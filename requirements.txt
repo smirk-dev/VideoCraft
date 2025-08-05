@@ -4,7 +4,7 @@ torch>=2.5.1
 torchvision>=0.18.0
 sentence-transformers==3.0.1
 datasets==2.14.0
-# facenet-pytorch removed to resolve numpy conflict
+numpy>=2.0.2
 
 # Video and Audio Processing
 opencv-python-headless==4.10.0.84
