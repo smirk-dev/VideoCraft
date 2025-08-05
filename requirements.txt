@@ -7,7 +7,7 @@ datasets==2.14.0
 # facenet-pytorch removed to resolve numpy conflict
 
 # Video and Audio Processing
-opencv-python==4.10.0.84
+opencv-python-headless==4.10.0.84
 moviepy==1.0.3
 librosa==0.10.2
 scenedetect==0.6.4
@@ -23,6 +23,7 @@ pandas>=2.2.3
 numpy>=2.0.2
 Pillow==10.4.0
 scikit-learn==1.5.1
+scikit-image==0.25.2
 
 # UI Framework
 streamlit==1.36.0
