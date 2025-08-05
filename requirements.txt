@@ -1,9 +1,10 @@
 # Core ML and AI
-transformers==4.41.2
-torch==2.3.1
-torchvision==0.18.1
+transformers==4.48.0
+torch==2.2.0
+torchvision==0.17.0
 sentence-transformers==3.0.1
 datasets==2.14.0
+facenet-pytorch==2.6.0
 
 # Video and Audio Processing
 opencv-python==4.10.0.84
@@ -11,15 +12,16 @@ moviepy==1.0.3
 librosa==0.10.2
 scenedetect==0.6.4
 pydub==0.25.1
+torchaudio==2.2.0
 
 # Natural Language Processing
 spacy==3.7.5
-nltk==3.8.1
+nltk>=3.9.1
 
 # Data Processing
-pandas==2.2.2
-numpy==1.26.4
-Pillow==10.4.0
+pandas>=2.2.3
+numpy>=2.0.2
+Pillow==10.2.0
 scikit-learn==1.5.1
 
 # UI Framework
@@ -39,5 +41,7 @@ black==24.4.2
 flake8==7.1.0
 
 # Optional: GPU acceleration
-# torch-audio==2.3.1
 # accelerate==0.32.1
+
+# WhisperX (ASR)
+whisperx==3.4.2
