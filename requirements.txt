@@ -1,10 +1,10 @@
 # Core ML and AI
-transformers==4.48.0
-torch==2.2.0
-torchvision==0.17.0
+transformers>=4.48.0
+torch>=2.5.1
+torchvision>=0.18.0
 sentence-transformers==3.0.1
 datasets==2.14.0
-facenet-pytorch==2.6.0
+# facenet-pytorch removed to resolve numpy conflict
 
 # Video and Audio Processing
 opencv-python==4.10.0.84
@@ -12,7 +12,7 @@ moviepy==1.0.3
 librosa==0.10.2
 scenedetect==0.6.4
 pydub==0.25.1
-torchaudio==2.2.0
+torchaudio>=2.5.1
 
 # Natural Language Processing
 spacy==3.7.5
@@ -21,7 +21,7 @@ nltk>=3.9.1
 # Data Processing
 pandas>=2.2.3
 numpy>=2.0.2
-Pillow==10.2.0
+Pillow==10.4.0
 scikit-learn==1.5.1
 
 # UI Framework
