@@ -71,7 +71,7 @@ class AudioAnalyzer:
             audio = video.audio
             audio.write_audiofile(
                 temp_audio_path,
-                sample_rate=self.sample_rate,
+                # sample_rate=self.sample_rate,
                 verbose=False,
                 logger=None
             )
