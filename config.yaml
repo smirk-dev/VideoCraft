@@ -13,7 +13,13 @@ video:
   max_resolution: [1920, 1080]
   supported_formats: ['.mp4', '.avi', '.mov', '.mkv', '.webm']
   frame_extraction_interval: 1.0  # seconds
-  max_duration: 3600  # seconds (1 hour)
+  max_duration: 7200  # seconds (2 hours)
+
+# File Size Limits (increased from defaults)
+file_limits:
+  max_video_size_mb: 2048  # 2GB (increased from 500MB)
+  max_script_size_kb: 500  # 500KB (increased from 100KB)
+  max_audio_size_mb: 500   # 500MB (increased from 100MB)
 
 audio:
   sample_rate: 16000

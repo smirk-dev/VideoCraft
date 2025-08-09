@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import List, Dict, Optional, Union
 import logging
 import shutil
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -68,10 +69,11 @@ class FileHandler:
         
         # Check file size
         file_size = path.stat().st_size
+        file_limits = self.config.get('file_limits', {})
         max_sizes = {
-            'video': self.config.get('max_video_size_mb', 500) * 1024 * 1024,
-            'script': self.config.get('max_script_size_kb', 100) * 1024,
-            'audio': self.config.get('max_audio_size_mb', 100) * 1024 * 1024
+            'video': file_limits.get('max_video_size_mb', 2048) * 1024 * 1024,
+            'script': file_limits.get('max_script_size_kb', 500) * 1024,
+            'audio': file_limits.get('max_audio_size_mb', 500) * 1024 * 1024
         }
         
         if file_size > max_sizes.get(file_type, float('inf')):
@@ -158,7 +160,7 @@ class FileHandler:
         
         # Generate filename if not provided
         if filename is None:
-            timestamp = pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
             filename = f"suggestions_{timestamp}.{format}"
         
         output_path = self.output_dir / filename

@@ -1,0 +1,29 @@
+[server]
+# Increase file upload size limit to 2GB (2048MB)
+maxUploadSize = 2048
+
+# Increase message size limit for large files
+maxMessageSize = 2048
+
+# Enable file watcher for development
+fileWatcherType = "auto"
+
+# Set timeout for long operations
+headless = false
+
+[browser]
+# Automatically open browser
+gatherUsageStats = false
+
+[theme]
+# Set default theme
+primaryColor = "#667eea"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f8f9ff"
+textColor = "#2c3e50"
+
+[client]
+# Connection settings
+caching = true
+displayEnabled = true
+showErrorDetails = true

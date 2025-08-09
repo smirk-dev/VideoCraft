@@ -29,6 +29,11 @@ streamlit==1.36.0
 plotly==5.22.0
 streamlit-timeline==0.0.2
 
+# UI Configuration - increase file upload limits
+# Add this to .streamlit/config.toml:
+# [server]
+# maxUploadSize = 2048
+
 # Utilities
 python-dotenv==1.0.1
 PyYAML==6.0.1

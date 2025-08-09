@@ -28,6 +28,30 @@ class SuggestionPanel:
         Returns:
             Dictionary with user-selected filter options
         """
+        st.markdown("""
+        <style>
+        .control-panel {
+            background: linear-gradient(145deg, #f8f9ff 0%, #ffffff 100%);
+            padding: 1.5rem;
+            border-radius: 15px;
+            border: 1px solid #e1e5e9;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.1);
+        }
+        .control-panel h3 {
+            color: #2c3e50 !important;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 0.5rem;
+        }
+        .control-panel label {
+            color: #2c3e50 !important;
+            font-weight: 500;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+        
+        st.markdown('<div class="control-panel">', unsafe_allow_html=True)
         st.subheader("🎛️ Suggestion Controls")
         
         with st.expander("Filter & Sort Options", expanded=True):
@@ -60,6 +84,8 @@ class SuggestionPanel:
                     ['Ascending', 'Descending'],
                     horizontal=True
                 )
+        
+        st.markdown('</div>', unsafe_allow_html=True)
         
         return {
             'min_confidence': min_confidence,
@@ -118,7 +144,7 @@ class SuggestionPanel:
                                suggestion,
                                index: int,
                                transition_suggestions: Optional[List] = None) -> Dict:
-        """Render individual suggestion card."""
+        """Render individual suggestion card with improved styling."""
         
         # Extract suggestion attributes
         timestamp = getattr(suggestion, 'timestamp', 0)
@@ -132,22 +158,76 @@ class SuggestionPanel:
         seconds = int(timestamp % 60)
         time_str = f"{minutes:02d}:{seconds:02d}"
         
-        # Create expandable card
-        with st.expander(
-            f"🎬 Cut #{index + 1}: {time_str} - {suggestion_type.replace('_', ' ').title()} (Conf: {confidence:.2f})",
-            expanded=False
-        ):
+        # Determine confidence color
+        conf_color = "#27ae60" if confidence > 0.7 else "#f39c12" if confidence > 0.5 else "#e74c3c"
+        
+        # Create enhanced suggestion card
+        st.markdown(f"""
+        <style>
+        .suggestion-card-{index} {{
+            background: linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%);
+            border: 1px solid #e1e5e9;
+            border-radius: 12px;
+            padding: 1rem;
+            margin: 0.5rem 0;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s ease;
+        }}
+        .suggestion-card-{index}:hover {{
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.1);
+        }}
+        .suggestion-header-{index} {{
+            color: #2c3e50 !important;
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }}
+        .suggestion-time-{index} {{
+            color: #667eea !important;
+            font-weight: bold;
+            font-size: 1rem;
+        }}
+        .suggestion-confidence-{index} {{
+            color: {conf_color} !important;
+            font-weight: bold;
+        }}
+        .suggestion-reason-{index} {{
+            color: #34495e !important;
+            font-style: italic;
+            margin: 0.5rem 0;
+        }}
+        .suggestion-type-{index} {{
+            color: #667eea !important;
+            font-weight: 500;
+            text-transform: capitalize;
+        }}
+        </style>
+        <div class="suggestion-card-{index}">
+            <div class="suggestion-header-{index}">
+                🎬 Cut #{index + 1}: <span class="suggestion-time-{index}">{time_str}</span>
+            </div>
+            <div style="margin: 0.5rem 0;">
+                <strong>Type:</strong> <span class="suggestion-type-{index}">{suggestion_type.replace('_', ' ')}</span> | 
+                <strong>Confidence:</strong> <span class="suggestion-confidence-{index}">{confidence:.1%}</span>
+            </div>
+            <div class="suggestion-reason-{index}">
+                <strong>Reason:</strong> {reason}
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Create expandable details section
+        with st.expander(f"Details for Cut #{index + 1}", expanded=False):
             col1, col2, col3 = st.columns([2, 1, 1])
             
             with col1:
-                st.write(f"**Reason:** {reason}")
-                
                 # Show metadata if available
                 if metadata:
-                    with st.expander("Additional Details", expanded=False):
-                        for key, value in metadata.items():
-                            if key != 'source':
-                                st.write(f"**{key.replace('_', ' ').title()}:** {value}")
+                    st.markdown("**Additional Details:**")
+                    for key, value in metadata.items():
+                        if key != 'source':
+                            st.write(f"• **{key.replace('_', ' ').title()}:** {value}")
             
             with col2:
                 st.metric("Confidence", f"{confidence:.2%}")
@@ -161,7 +241,7 @@ class SuggestionPanel:
                 )
                 
                 if st.button(
-                    "Preview",
+                    "🔍 Preview",
                     key=f"preview_{index}_{timestamp}",
                     help="Preview this cut point"
                 ):
@@ -176,7 +256,12 @@ class SuggestionPanel:
                     transition_type = getattr(transition, 'transition_type', None)
                     if transition_type:
                         transition_name = transition_type.value if hasattr(transition_type, 'value') else str(transition_type)
-                        st.info(f"🎭 **Transition:** {transition_name.replace('_', ' ').title()}")
+                        st.markdown(f"""
+                        <div style="background-color: #e8f4f8; padding: 0.5rem; border-radius: 5px; margin-top: 0.5rem;">
+                            <strong style="color: #2c3e50;">🎭 Recommended Transition:</strong><br>
+                            <span style="color: #34495e;">{transition_name.replace('_', ' ').title()}</span>
+                        </div>
+                        """, unsafe_allow_html=True)
         
         return {'selected': selected, 'suggestion': suggestion}
     

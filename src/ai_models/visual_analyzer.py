@@ -28,20 +28,34 @@ class VisualAnalyzer:
         # Load CLIP model for general visual understanding
         try:
             clip_model_name = config['models']['visual_features']
-            self.clip_model = CLIPModel.from_pretrained(clip_model_name)
+            # Load with proper device handling to avoid meta tensor issues
+            self.clip_model = CLIPModel.from_pretrained(
+                clip_model_name,
+                torch_dtype=torch.float32,
+                device_map=None  # Don't use device_map to avoid meta tensors
+            )
             self.clip_processor = CLIPProcessor.from_pretrained(clip_model_name)
-            logger.info(f"CLIP model loaded: {clip_model_name}")
+            
+            # Explicitly move to CPU (or GPU if available)
+            device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+            self.clip_model = self.clip_model.to(device)
+            self.device = device
+            
+            logger.info(f"CLIP model loaded: {clip_model_name} on {device}")
         except Exception as e:
             logger.error(f"Could not load CLIP model: {e}")
             self.clip_model = None
             self.clip_processor = None
+            self.device = torch.device('cpu')
         
-        # Try to load face emotion model
+        # Try to load face emotion model with proper error handling
         try:
             face_model_name = config['models']['face_emotion']
             self.face_emotion = pipeline(
                 "image-classification",
-                model=face_model_name
+                model=face_model_name,
+                torch_dtype=torch.float32,
+                device=0 if torch.cuda.is_available() else -1  # Use CPU if no GPU
             )
             logger.info(f"Face emotion model loaded: {face_model_name}")
         except Exception as e:
@@ -98,6 +112,11 @@ class VisualAnalyzer:
                 return_tensors="pt",
                 padding=True
             )
+            
+            # Move inputs to the same device as the model
+            if hasattr(self, 'device'):
+                inputs = {k: v.to(self.device) if isinstance(v, torch.Tensor) else v 
+                         for k, v in inputs.items()}
             
             with torch.no_grad():
                 outputs = self.clip_model(**inputs)
