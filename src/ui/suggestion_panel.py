@@ -52,46 +52,111 @@ class SuggestionPanel:
         """, unsafe_allow_html=True)
         
         st.markdown('<div class="control-panel">', unsafe_allow_html=True)
-        st.subheader("🎛️ Suggestion Controls")
+        st.subheader("🎛️ Advanced Suggestion Controls")
         
-        with st.expander("Filter & Sort Options", expanded=True):
+        with st.expander("🔍 Filter & Sort Options", expanded=True):
             col1, col2, col3 = st.columns(3)
             
             with col1:
-                min_confidence = st.slider(
-                    "Minimum Confidence", 
-                    0.0, 1.0, 0.5, 0.1,
-                    help="Filter suggestions below this confidence level"
+                confidence_range = st.slider(
+                    "Confidence Range", 
+                    0.0, 1.0, (0.3, 1.0), 0.1,
+                    help="Filter suggestions within this confidence range"
                 )
                 
-            with col2:
                 suggestion_types = st.multiselect(
                     "Suggestion Types",
-                    ['scene_change', 'emotion_beat', 'speaker_change', 'dialogue_pause', 'audio_silence'],
+                    ['scene_change', 'emotion_beat', 'speaker_change', 'dialogue_pause', 'audio_silence', 'music_sync'],
                     default=['scene_change', 'emotion_beat', 'speaker_change'],
                     help="Select which types of suggestions to show"
                 )
                 
-            with col3:
+            with col2:
                 sort_by = st.selectbox(
                     "Sort By", 
-                    ['timestamp', 'confidence', 'type'],
+                    ['timestamp', 'confidence', 'type', 'priority'],
                     help="Sort suggestions by selected criteria"
                 )
                 
                 sort_order = st.radio(
-                    "Order",
+                    "Sort Order",
                     ['Ascending', 'Descending'],
                     horizontal=True
+                )
+                
+                priority_filter = st.multiselect(
+                    "Priority Level",
+                    ["High", "Medium", "Low"],
+                    default=["High", "Medium"],
+                    help="Filter by suggestion priority"
+                )
+                
+            with col3:
+                # Time range filtering
+                time_filter_enabled = st.checkbox("Enable Time Range Filter", value=False)
+                
+                if time_filter_enabled:
+                    time_range = st.slider(
+                        "Time Range (seconds)",
+                        min_value=0,
+                        max_value=300,
+                        value=(0, 60),
+                        step=5,
+                        help="Show suggestions only within this time range"
+                    )
+                else:
+                    time_range = None
+                
+                # Real-time preview
+                show_preview = st.checkbox("Show Preview Thumbnails", value=True)
+                
+        with st.expander("🔧 Advanced Filters", expanded=False):
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                emotion_filter = st.multiselect(
+                    "Emotion Types",
+                    ["Joy", "Sadness", "Anger", "Fear", "Surprise", "Neutral", "Excitement"],
+                    help="Filter by detected emotional content"
+                )
+                
+                speaker_filter = st.checkbox("Only Speaker Changes", value=False)
+                music_sync_filter = st.checkbox("Only Music-Synced Cuts", value=False)
+                
+            with col2:
+                min_cut_length = st.number_input(
+                    "Minimum Cut Length (seconds)",
+                    min_value=0.1,
+                    max_value=10.0,
+                    value=1.0,
+                    step=0.1,
+                    help="Minimum duration between cuts"
+                )
+                
+                confidence_threshold = st.slider(
+                    "High Confidence Threshold",
+                    min_value=0.5,
+                    max_value=1.0,
+                    value=0.8,
+                    step=0.05,
+                    help="Threshold for highlighting high-confidence suggestions"
                 )
         
         st.markdown('</div>', unsafe_allow_html=True)
         
         return {
-            'min_confidence': min_confidence,
+            'confidence_range': confidence_range,
             'suggestion_types': suggestion_types,
             'sort_by': sort_by,
-            'sort_order': sort_order.lower()
+            'sort_order': sort_order.lower(),
+            'priority_filter': priority_filter,
+            'time_range': time_range,
+            'emotion_filter': emotion_filter,
+            'speaker_filter': speaker_filter,
+            'music_sync_filter': music_sync_filter,
+            'min_cut_length': min_cut_length,
+            'confidence_threshold': confidence_threshold,
+            'show_preview': show_preview
         }
     
     def render_suggestion_list(self, 
@@ -319,13 +384,14 @@ class SuggestionPanel:
                 st.write(f"• Total suggestions: {len(suggestions)}")
     
     def _apply_filters(self, suggestions: List, filters: Dict) -> List:
-        """Apply user-selected filters to suggestions."""
+        """Apply user-selected filters to suggestions with enhanced filtering options."""
         filtered = []
         
         for suggestion in suggestions:
-            # Check confidence threshold
+            # Check confidence range
             confidence = getattr(suggestion, 'confidence', 0.5)
-            if confidence < filters['min_confidence']:
+            min_conf, max_conf = filters.get('confidence_range', (0.0, 1.0))
+            if not (min_conf <= confidence <= max_conf):
                 continue
             
             # Check suggestion type
@@ -333,12 +399,51 @@ class SuggestionPanel:
             if suggestion_type not in filters['suggestion_types']:
                 continue
             
+            # Check time range if enabled
+            time_range = filters.get('time_range')
+            if time_range is not None:
+                timestamp = getattr(suggestion, 'timestamp', 0)
+                if not (time_range[0] <= timestamp <= time_range[1]):
+                    continue
+            
+            # Check priority filter
+            priority_filter = filters.get('priority_filter', [])
+            if priority_filter:
+                priority = getattr(suggestion, 'priority', 'Medium')
+                if priority not in priority_filter:
+                    continue
+            
+            # Check emotion filter
+            emotion_filter = filters.get('emotion_filter', [])
+            if emotion_filter:
+                emotions = getattr(suggestion, 'emotions', [])
+                if not any(emotion in emotion_filter for emotion in emotions):
+                    continue
+            
+            # Check speaker filter
+            if filters.get('speaker_filter', False):
+                is_speaker_change = getattr(suggestion, 'is_speaker_change', False)
+                if not is_speaker_change:
+                    continue
+            
+            # Check music sync filter
+            if filters.get('music_sync_filter', False):
+                is_music_synced = getattr(suggestion, 'is_music_synced', False)
+                if not is_music_synced:
+                    continue
+            
+            # Check minimum cut length
+            min_cut_length = filters.get('min_cut_length', 0.1)
+            cut_length = getattr(suggestion, 'duration', 1.0)
+            if cut_length < min_cut_length:
+                continue
+            
             filtered.append(suggestion)
         
         return filtered
     
     def _sort_suggestions(self, suggestions: List, filters: Dict) -> List:
-        """Sort suggestions based on user selection."""
+        """Sort suggestions based on user selection with enhanced sorting options."""
         sort_by = filters['sort_by']
         reverse = filters['sort_order'] == 'descending'
         
@@ -348,6 +453,12 @@ class SuggestionPanel:
             return sorted(suggestions, key=lambda x: getattr(x, 'confidence', 0.5), reverse=reverse)
         elif sort_by == 'type':
             return sorted(suggestions, key=lambda x: getattr(x, 'suggestion_type', 'unknown'), reverse=reverse)
+        elif sort_by == 'priority':
+            # Custom priority sorting: High > Medium > Low
+            priority_order = {'High': 3, 'Medium': 2, 'Low': 1}
+            return sorted(suggestions, 
+                         key=lambda x: priority_order.get(getattr(x, 'priority', 'Medium'), 2), 
+                         reverse=reverse)
         
         return suggestions
     

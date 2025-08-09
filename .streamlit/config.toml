@@ -21,9 +21,3 @@ primaryColor = "#667eea"
 backgroundColor = "#ffffff"
 secondaryBackgroundColor = "#f8f9ff"
 textColor = "#2c3e50"
-
-[client]
-# Connection settings
-caching = true
-displayEnabled = true
-showErrorDetails = true

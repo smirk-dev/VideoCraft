@@ -18,16 +18,19 @@ torchaudio>=2.5.1
 spacy>=3.8.0
 nltk>=3.9.1
 
-# Data Processing
+# Data Processing and Image Processing
 pandas>=2.2.3
 Pillow==10.4.0
 scikit-learn==1.5.1
 scikit-image==0.25.2
+scipy>=1.11.0
 
-# UI Framework
+# UI Framework and Enhanced Features
 streamlit==1.36.0
 plotly==5.22.0
 streamlit-timeline==0.0.2
+streamlit-aggrid==0.3.4  # Enhanced table displays
+streamlit-lottie==0.0.5  # Animations for progress indicators
 
 # UI Configuration - increase file upload limits
 # Add this to .streamlit/config.toml:
@@ -39,6 +42,7 @@ python-dotenv==1.0.1
 PyYAML==6.0.1
 tqdm==4.66.4
 python-multipart==0.0.9
+requests>=2.31.0
 
 # TensorFlow compatibility
 tf-keras>=2.19.0
@@ -53,6 +57,11 @@ flake8==7.1.0
 
 # WhisperX (ASR) - requires specific compatible versions
 whisperx==3.4.2
+
+# Additional packages for enhanced UI features
+click>=8.0.0  # Command line utilities
+matplotlib>=3.7.0  # Additional plotting capabilities
+seaborn>=0.12.0  # Enhanced data visualization
 
 # Note: The following packages may have numpy version conflicts if installed globally:
 # - mediapipe (requires numpy<2)
