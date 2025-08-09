@@ -1,10 +1,10 @@
 # Core ML and AI
 transformers>=4.48.0
-torch>=2.5.1
-torchvision>=0.18.0
+torch>=2.6.0
+torchvision>=0.23.0
 sentence-transformers==3.0.1
 datasets==2.14.0
-numpy>=2.0.2
+numpy>=2.0.2,<2.2.0  # Compatible with both whisperx and tensorflow
 
 # Video and Audio Processing
 opencv-python-headless==4.10.0.84
@@ -15,12 +15,11 @@ pydub==0.25.1
 torchaudio>=2.5.1
 
 # Natural Language Processing
-spacy==3.7.5
+spacy>=3.8.0
 nltk>=3.9.1
 
 # Data Processing
 pandas>=2.2.3
-numpy>=2.0.2
 Pillow==10.4.0
 scikit-learn==1.5.1
 scikit-image==0.25.2
@@ -36,6 +35,9 @@ PyYAML==6.0.1
 tqdm==4.66.4
 python-multipart==0.0.9
 
+# TensorFlow compatibility
+tf-keras>=2.19.0
+
 # Development tools
 pytest==8.3.2
 black==24.4.2
@@ -44,5 +46,12 @@ flake8==7.1.0
 # Optional: GPU acceleration
 # accelerate==0.32.1
 
-# WhisperX (ASR)
+# WhisperX (ASR) - requires specific compatible versions
 whisperx==3.4.2
+
+# Note: The following packages may have numpy version conflicts if installed globally:
+# - mediapipe (requires numpy<2)
+# - numba (requires numpy<2.3)  
+# - tensorflow (requires numpy<2.2.0)
+# - facenet-pytorch (removed due to torch version incompatibility)
+# These should be managed in separate environments if needed

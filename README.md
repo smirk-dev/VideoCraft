@@ -13,16 +13,52 @@ An intelligent video editing assistant that analyzes video content and scripts t
 
 ## 🚀 Quick Start
 
-1. **Clone and Setup**:
-git clone <your-repo-url>
-cd ai-film-editor
+### Option 1: Virtual Environment (Recommended)
+
+```powershell
+# Create and activate virtual environment
+.\setup_venv.ps1
+
+# Or manually:
+python -m venv videocraft_env
+.\videocraft_env\Scripts\Activate.ps1
+python setup.py
+```
+
+### Option 2: Direct Installation
+
+```bash
+# Install dependencies with automatic conflict resolution
 python setup.py
 
+# Or manually:
+pip install -r requirements.txt
+```
 
-2. **Run the Application**:
+### Running the Application
+
+```bash
 streamlit run main.py
+```
 
-3. **Upload and Process**:
+## ⚠️ Important Notes
+
+### PyTorch Version Requirements
+
+- **Security Update**: This project requires PyTorch ≥2.6.0 due to CVE-2025-32434
+- Some older packages may have version conflicts with newer PyTorch
+- A virtual environment is strongly recommended to avoid system-wide conflicts
+
+### Dependency Conflicts
+
+If you encounter version conflicts:
+
+1. Use the provided virtual environment setup script
+2. Check `requirements.txt` for compatible versions
+3. Some packages (mediapipe, tensorflow, numba) may conflict with numpy ≥2.0 but are not used in VideoCraft
+
+### Upload and Process
+
 - Upload your video file (.mp4, .avi, .mov, .mkv)
 - Upload corresponding script file (.txt, .srt)
 - Click "Process Video" and review AI suggestions
