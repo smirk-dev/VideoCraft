@@ -34,9 +34,28 @@ def load_config():
         with open('config.yaml', 'r') as file:
             return yaml.safe_load(file)
     except FileNotFoundError:
-        logger.error("config.yaml not found. Please ensure the configuration file exists.")
-        st.error("Configuration file not found. Please check your setup.")
-        return None
+        logger.warning("config.yaml not found. Using default configuration.")
+        # Return default configuration for cloud deployment
+        return {
+            'ai_models': {
+                'clip_model': 'openai/clip-vit-base-patch32',
+                'emotion_model': 'j-hartmann/emotion-english-distilroberta-base',
+                'cache_dir': './cache'
+            },
+            'suggestions': {
+                'scene_change_threshold': 0.4,
+                'emotion_change_threshold': 0.3,
+                'min_segment_length': 2.0
+            },
+            'video': {
+                'max_file_size_mb': 500,
+                'supported_formats': ['.mp4', '.avi', '.mov', '.mkv']
+            },
+            'processing': {
+                'batch_size': 8,
+                'num_workers': 2
+            }
+        }
     except yaml.YAMLError as e:
         logger.error(f"Error loading config.yaml: {e}")
         st.error("Error in configuration file format.")
