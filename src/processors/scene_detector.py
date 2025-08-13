@@ -76,23 +76,24 @@ class SceneDetector:
         
         # Add histogram-based detections
         for scene in hist_scenes:
-            timestamp = scene['timestamp']
+            timestamp = scene.get('timestamp', 0.0) if hasattr(scene, 'get') else scene.get('timestamp', 0.0)
             all_scenes[timestamp] = {
                 'timestamp': timestamp,
-                'confidence': scene['confidence'],
+                'confidence': scene.get('confidence', 0.5) if hasattr(scene, 'get') else scene.get('confidence', 0.5),
                 'methods': ['histogram'],
-                'scores': {'histogram': scene['confidence']}
+                'scores': {'histogram': scene.get('confidence', 0.5) if hasattr(scene, 'get') else scene.get('confidence', 0.5)}
             }
         
         # Add edge-based detections
         for scene in edge_scenes:
-            timestamp = scene['timestamp']
+            timestamp = scene.get('timestamp', 0.0) if hasattr(scene, 'get') else scene.get('timestamp', 0.0)
             if timestamp in all_scenes:
                 all_scenes[timestamp]['methods'].append('edge_density')
-                all_scenes[timestamp]['scores']['edge_density'] = scene['confidence']
+                all_scenes[timestamp]['scores']['edge_density'] = scene.get('confidence', 0.5) if hasattr(scene, 'get') else scene.get('confidence', 0.5)
                 # Boost confidence for multiple detections
+                scene_confidence = scene.get('confidence', 0.5) if hasattr(scene, 'get') else scene.get('confidence', 0.5)
                 all_scenes[timestamp]['confidence'] = min(1.0, 
-                    all_scenes[timestamp]['confidence'] + scene['confidence'] * 0.3)
+                    all_scenes[timestamp]['confidence'] + scene_confidence * 0.3)
             else:
                 all_scenes[timestamp] = {
                     'timestamp': timestamp,
@@ -119,7 +120,7 @@ class SceneDetector:
                 })
         
         # Sort by timestamp and filter close detections
-        combined_scenes.sort(key=lambda x: x['timestamp'])
+        combined_scenes.sort(key=lambda x: x.get('timestamp', 0.0) if hasattr(x, 'get') else x.get('timestamp', 0.0))
         filtered_scenes = self._filter_close_scenes(combined_scenes)
         
         logger.info(f"Detected {len(filtered_scenes)} scene changes using combined methods")
@@ -332,11 +333,13 @@ class SceneDetector:
         
         for scene in scenes[1:]:
             # Check if this scene is far enough from the last kept scene
-            time_diff = scene['timestamp'] - filtered[-1]['timestamp']
+            scene_timestamp = scene.get('timestamp', 0.0) if hasattr(scene, 'get') else scene.get('timestamp', 0.0)
+            last_timestamp = filtered[-1].get('timestamp', 0.0) if hasattr(filtered[-1], 'get') else filtered[-1].get('timestamp', 0.0)
+            time_diff = scene_timestamp - last_timestamp
             
             if time_diff >= self.min_scene_length:
                 filtered.append(scene)
-            elif scene['confidence'] > filtered[-1]['confidence']:
+            elif scene.get('confidence', 0.5) > filtered[-1].get('confidence', 0.5):
                 # Replace with higher confidence scene if within minimum interval
                 filtered[-1] = scene
         

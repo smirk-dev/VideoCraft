@@ -322,7 +322,8 @@ class InteractiveTimelineEditor:
         energy_timeline = audio_analysis.get('energy_timeline', [])
         
         if energy_timeline:
-            times = [point['timestamp'] for point in energy_timeline]
+            # Safe access to timestamp for any object type
+            times = [point.get('timestamp', 0.0) if hasattr(point, 'get') else point.get('timestamp', 0.0) for point in energy_timeline]
             energies = [point['energy'] for point in energy_timeline]
             
             # Filter for visible range
@@ -349,7 +350,8 @@ class InteractiveTimelineEditor:
         visible_cuts = [cut for cut in cut_suggestions if start <= cut.get('timestamp', 0) <= end]
         
         if visible_cuts:
-            times = [cut['timestamp'] for cut in visible_cuts]
+            # Safe access to timestamp for CutSuggestion objects
+            times = [cut.get('timestamp', 0.0) if hasattr(cut, 'get') else cut.get('timestamp', 0.0) for cut in visible_cuts]
             confidences = [cut.get('confidence', 0.5) for cut in visible_cuts]
             reasons = [cut.get('reason', 'AI suggestion') for cut in visible_cuts]
             
@@ -380,7 +382,8 @@ class InteractiveTimelineEditor:
         visible_emotions = [emotion for emotion in emotion_timeline if start <= emotion.get('timestamp', 0) <= end]
         
         if visible_emotions:
-            times = [emotion['timestamp'] for emotion in visible_emotions]
+            # Safe access to timestamp for any object type
+            times = [emotion.get('timestamp', 0.0) if hasattr(emotion, 'get') else emotion.get('timestamp', 0.0) for emotion in visible_emotions]
             dominant_emotions = [emotion.get('dominant_emotion', 'neutral') for emotion in visible_emotions]
             confidences = [emotion.get('confidence', 0.5) for emotion in visible_emotions]
             

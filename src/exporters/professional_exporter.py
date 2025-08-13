@@ -34,6 +34,31 @@ class ProfessionalExporter:
             'avid': self.export_avid_edl
         }
     
+    def _safe_get_timestamp(self, cut_obj, default=0.0):
+        """Safely extract timestamp from cut object (CutSuggestion or dict)"""
+        try:
+            if hasattr(cut_obj, 'get'):
+                value = cut_obj.get('timestamp', default)
+            elif isinstance(cut_obj, dict):
+                value = cut_obj.get('timestamp', default)
+            else:
+                return default
+            
+            # Handle different types of values
+            if isinstance(value, (list, tuple)):
+                return float(value[0]) if value else default
+            elif isinstance(value, (int, float)):
+                return float(value)
+            else:
+                # Try to convert string to float, fall back to default if it fails
+                try:
+                    return float(value)
+                except (ValueError, TypeError):
+                    return default
+                    
+        except Exception:
+            return default
+    
     def export_suggestions(self, 
                           cut_suggestions: List[Dict],
                           transition_suggestions: List[Dict],
@@ -119,15 +144,23 @@ class ProfessionalExporter:
         
         # Cuts
         cuts_elem = ET.SubElement(root, "cuts")
-        for cut in data['cuts']:
+        for i, cut in enumerate(data['cuts']):
             cut_elem = ET.SubElement(cuts_elem, "cut")
-            cut_elem.set("id", str(cut['id']))
-            cut_elem.set("timestamp", str(cut['timestamp']))
-            cut_elem.set("confidence", str(cut['confidence']))
-            cut_elem.set("type", cut.get('type', 'standard'))
             
-            ET.SubElement(cut_elem, "reason").text = cut.get('reason', '')
-            ET.SubElement(cut_elem, "frame_number").text = str(cut.get('frame_number', 0))
+            # Safe access for CutSuggestion objects
+            cut_id = cut.get('id', i) if hasattr(cut, 'get') else cut.get('id', i)
+            timestamp = cut.get('timestamp', 0.0) if hasattr(cut, 'get') else cut.get('timestamp', 0.0)
+            confidence = cut.get('confidence', 0.5) if hasattr(cut, 'get') else cut.get('confidence', 0.5)
+            cut_type = cut.get('suggestion_type', cut.get('type', 'standard')) if hasattr(cut, 'get') else cut.get('type', 'standard')
+            reason = cut.get('reason', '') if hasattr(cut, 'get') else cut.get('reason', '')
+            
+            cut_elem.set("id", str(cut_id))
+            cut_elem.set("timestamp", str(timestamp))
+            cut_elem.set("confidence", str(confidence))
+            cut_elem.set("type", str(cut_type))
+            
+            ET.SubElement(cut_elem, "reason").text = str(reason)
+            ET.SubElement(cut_elem, "frame_number").text = str(cut.get('frame_number', 0) if hasattr(cut, 'get') else 0)
         
         # Transitions
         transitions_elem = ET.SubElement(root, "transitions")
@@ -203,9 +236,10 @@ class ProfessionalExporter:
             if i == 0:
                 start_time = 0
             else:
-                start_time = data['cuts'][i-1]['timestamp']
+                prev_cut = data['cuts'][i-1]
+                start_time = prev_cut.get('timestamp', 0.0) if hasattr(prev_cut, 'get') else prev_cut.get('timestamp', 0.0)
             
-            end_time = cut['timestamp']
+            end_time = cut.get('timestamp', 0.0) if hasattr(cut, 'get') else cut.get('timestamp', 0.0)
             duration = end_time - start_time
             
             if duration > 0:
@@ -272,9 +306,11 @@ class ProfessionalExporter:
             if i == 0:
                 start_frame = 0
             else:
-                start_frame = int(data['cuts'][i-1]['timestamp'] * data['fps'])
+                prev_timestamp = self._safe_get_timestamp(data['cuts'][i-1])
+                start_frame = int(prev_timestamp * data['fps'])
             
-            end_frame = int(cut['timestamp'] * data['fps'])
+            cut_timestamp = self._safe_get_timestamp(cut)
+            end_frame = int(cut_timestamp * data['fps'])
             duration_frames = end_frame - start_frame
             
             if duration_frames > 0:
@@ -311,9 +347,9 @@ class ProfessionalExporter:
             if i == 0:
                 start_time = 0
             else:
-                start_time = data['cuts'][i-1]['timestamp']
+                start_time = self._safe_get_timestamp(data['cuts'][i-1])
             
-            end_time = cut['timestamp']
+            end_time = self._safe_get_timestamp(cut)
             duration = end_time - start_time
             
             if duration > 0:
@@ -352,11 +388,11 @@ class ProfessionalExporter:
             
             # Cuts
             for cut in data['cuts']:
-                timecode = self._seconds_to_timecode(cut['timestamp'], data['fps'])
+                timecode = self._seconds_to_timecode(self._safe_get_timestamp(cut), data['fps'])
                 writer.writerow([
                     'Cut',
                     cut['id'],
-                    cut['timestamp'],
+                    self._safe_get_timestamp(cut),
                     timecode,
                     cut['confidence'],
                     cut.get('reason', ''),
@@ -451,9 +487,9 @@ class ProfessionalExporter:
             if i == 0:
                 start_time = 0
             else:
-                start_time = data['cuts'][i-1]['timestamp']
+                start_time = self._safe_get_timestamp(data['cuts'][i-1])
             
-            end_time = cut['timestamp']
+            end_time = self._safe_get_timestamp(cut)
             duration = end_time - start_time
             
             if duration > 0:
@@ -487,7 +523,7 @@ class ProfessionalExporter:
         # Avid-specific EDL format
         for i, cut in enumerate(data['cuts'], 1):
             source_start = self._frames_to_timecode(0, data['fps'])
-            source_end = self._frames_to_timecode(int(cut['timestamp'] * data['fps']), data['fps'])
+            source_end = self._frames_to_timecode(int(self._safe_get_timestamp(cut) * data['fps']), data['fps'])
             record_start = source_start
             record_end = source_end
             

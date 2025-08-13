@@ -516,14 +516,15 @@ class IntelligentContentAnalyzer:
             
             # Adjust confidence based on content relevance
             relevance_boost = self._calculate_relevance_boost(suggestion, content_context)
-            adapted['confidence'] = min(1.0, suggestion['confidence'] + relevance_boost)
+            base_confidence = suggestion.get('confidence', 0.5)
+            adapted['confidence'] = min(1.0, base_confidence + relevance_boost)
             
             # Modify suggestion based on content rules
-            if rules.get('cut_frequency') == 'low' and suggestion['confidence'] < 0.8:
+            if rules.get('cut_frequency') == 'low' and base_confidence < 0.8:
                 adapted['confidence'] *= 0.7  # Reduce less confident cuts
             
             elif rules.get('cut_frequency') == 'high':
-                adapted['confidence'] = min(1.0, suggestion['confidence'] * 1.2)  # Boost cuts
+                adapted['confidence'] = min(1.0, base_confidence * 1.2)  # Boost cuts
             
             # Add content-specific metadata
             adapted['content_context'] = {
@@ -535,7 +536,7 @@ class IntelligentContentAnalyzer:
             adapted_suggestions.append(adapted)
         
         # Sort by adapted confidence
-        adapted_suggestions.sort(key=lambda x: x['confidence'], reverse=True)
+        adapted_suggestions.sort(key=lambda x: x.get('confidence', 0.0), reverse=True)
         
         return adapted_suggestions
     

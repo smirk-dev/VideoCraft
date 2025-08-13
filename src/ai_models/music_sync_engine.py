@@ -349,7 +349,7 @@ class MusicSyncEngine:
             })
         
         # Sort by timestamp and remove duplicates
-        cuts = sorted(cuts, key=lambda x: x['timestamp'])
+        cuts = sorted(cuts, key=lambda x: x.get('timestamp', 0.0))
         cuts = self._remove_duplicate_cuts(cuts, tolerance=0.5)  # 500ms tolerance
         
         return cuts
@@ -399,8 +399,9 @@ class MusicSyncEngine:
         
         for cut in cuts[1:]:
             # Check if this cut is too close to any existing cut
+            cut_timestamp = cut.get('timestamp', 0.0)
             too_close = any(
-                abs(cut['timestamp'] - existing['timestamp']) < tolerance
+                abs(cut_timestamp - existing.get('timestamp', 0.0)) < tolerance
                 for existing in filtered_cuts
             )
             
@@ -409,8 +410,8 @@ class MusicSyncEngine:
             else:
                 # Keep the cut with higher confidence
                 for i, existing in enumerate(filtered_cuts):
-                    if abs(cut['timestamp'] - existing['timestamp']) < tolerance:
-                        if cut['confidence'] > existing['confidence']:
+                    if abs(cut_timestamp - existing.get('timestamp', 0.0)) < tolerance:
+                        if cut.get('confidence', 0.0) > existing.get('confidence', 0.0):
                             filtered_cuts[i] = cut
                         break
         
