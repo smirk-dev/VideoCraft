@@ -2,6 +2,7 @@ import numpy as np
 from typing import List, Dict, Tuple, Optional
 from dataclasses import dataclass
 import logging
+import copy
 
 logger = logging.getLogger(__name__)
 
@@ -12,6 +13,53 @@ class CutSuggestion:
     reason: str
     suggestion_type: str  # 'scene_change', 'emotion_beat', 'speaker_change', 'dialogue_pause'
     metadata: Dict = None
+    
+    def copy(self):
+        """Create a copy of this CutSuggestion."""
+        return copy.deepcopy(self)
+    
+    def update(self, updates: Dict):
+        """Update fields in this CutSuggestion with values from a dictionary."""
+        for key, value in updates.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
+            else:
+                # If the key doesn't exist as an attribute, add it to metadata
+                if self.metadata is None:
+                    self.metadata = {}
+                self.metadata[key] = value
+    
+    def get(self, key: str, default=None):
+        """Get a field value from this CutSuggestion, supporting both attributes and metadata."""
+        if hasattr(self, key):
+            return getattr(self, key)
+        elif self.metadata is not None and key in self.metadata:
+            return self.metadata[key]
+        else:
+            return default
+    
+    def __getitem__(self, key: str):
+        """Make CutSuggestion subscriptable - support suggestion['key'] syntax."""
+        if hasattr(self, key):
+            return getattr(self, key)
+        elif self.metadata is not None and key in self.metadata:
+            return self.metadata[key]
+        else:
+            raise KeyError(f"'{key}' not found in CutSuggestion")
+    
+    def __setitem__(self, key: str, value):
+        """Make CutSuggestion subscriptable - support suggestion['key'] = value syntax."""
+        if hasattr(self, key):
+            setattr(self, key, value)
+        else:
+            # If the key doesn't exist as an attribute, add it to metadata
+            if self.metadata is None:
+                self.metadata = {}
+            self.metadata[key] = value
+    
+    def __contains__(self, key: str):
+        """Support 'key in suggestion' syntax."""
+        return hasattr(self, key) or (self.metadata is not None and key in self.metadata)
 
 class CutSuggester:
     """

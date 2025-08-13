@@ -27,8 +27,8 @@ class InteractiveTimelineEditor:
                 'zoom_level': 10,
                 'selected_cuts': [],
                 'custom_cuts': [],
-                'timeline_position': 0,
-                'preview_range': [0, 30],
+                'timeline_position': 0.0,
+                'preview_range': (0.0, 30.0),
                 'edited_suggestions': {},
                 'timeline_tracks': {
                     'video': True,
@@ -129,11 +129,11 @@ class InteractiveTimelineEditor:
         with col3:
             # Playback controls
             if st.button("⏮️", help="Go to start"):
-                st.session_state.timeline_state['timeline_position'] = 0
+                st.session_state.timeline_state['timeline_position'] = 0.0
                 st.rerun()
             
             if st.button("⏭️", help="Go to end"):
-                st.session_state.timeline_state['timeline_position'] = video_duration
+                st.session_state.timeline_state['timeline_position'] = float(video_duration)
                 st.rerun()
         
         with col4:
@@ -548,19 +548,37 @@ class InteractiveTimelineEditor:
                 col1, col2 = st.columns(2)
                 
                 with col1:
+                    # Ensure timestamp is always a float, handle potential type issues
+                    timestamp_value = cut.get('timestamp', 0.0)
+                    if isinstance(timestamp_value, (list, tuple)):
+                        timestamp_value = float(timestamp_value[0]) if timestamp_value else 0.0
+                    elif not isinstance(timestamp_value, (int, float)):
+                        timestamp_value = 0.0
+                    else:
+                        timestamp_value = float(timestamp_value)
+                    
                     new_timestamp = st.number_input(
                         "Timestamp (seconds)",
-                        value=cut.get('timestamp', 0),
+                        value=timestamp_value,
                         min_value=0.0,
                         step=0.1,
                         key=f"edit_timestamp_{cut_idx}"
                     )
                     
+                    # Ensure confidence is always a float, handle potential type issues
+                    confidence_value = cut.get('confidence', 0.5)
+                    if isinstance(confidence_value, (list, tuple)):
+                        confidence_value = float(confidence_value[0]) if confidence_value else 0.5
+                    elif not isinstance(confidence_value, (int, float)):
+                        confidence_value = 0.5
+                    else:
+                        confidence_value = float(confidence_value)
+                    
                     new_confidence = st.slider(
                         "Confidence",
                         min_value=0.0,
                         max_value=1.0,
-                        value=cut.get('confidence', 0.5),
+                        value=confidence_value,
                         step=0.01,
                         key=f"edit_confidence_{cut_idx}"
                     )

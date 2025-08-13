@@ -108,7 +108,11 @@ class OfflineModelManager:
             'clip': self.models.get('visual_analyzer'),
             'emotion': self.models.get('emotion_detector'),
             'nlp': self.models.get('nlp_processor'),
-            'scene': self.models.get('scene_detector')
+            'nlp_processor': self.models.get('nlp_processor'),  # Additional mapping
+            'scene': self.models.get('scene_detector'),
+            'visual_analyzer': self.models.get('visual_analyzer'),
+            'emotion_detector': self.models.get('emotion_detector'),
+            'scene_detector': self.models.get('scene_detector')
         }
         
         return fallback_map.get(model_type, BasicFallbackModel())
@@ -273,6 +277,163 @@ class BasicNLPProcessor:
             'of', 'with', 'by', 'is', 'are', 'was', 'were', 'be', 'been', 'being'
         }
     
+    def parse_script_file(self, script_path: str) -> List[Dict]:
+        """
+        Basic script file parsing without advanced NLP models.
+        
+        Args:
+            script_path: Path to script file
+            
+        Returns:
+            List of dialogue entries with basic metadata
+        """
+        try:
+            with open(script_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+            
+            # Basic dialogue parsing
+            lines = content.split('\n')
+            dialogue_data = []
+            line_number = 1
+            cumulative_time = 0.0
+            
+            for line in lines:
+                line = line.strip()
+                if not line:
+                    continue
+                
+                # Simple speaker detection (UPPERCASE NAME followed by colon)
+                if ':' in line and line.split(':')[0].isupper():
+                    parts = line.split(':', 1)
+                    speaker = parts[0].strip()
+                    text = parts[1].strip() if len(parts) > 1 else ""
+                else:
+                    speaker = "UNKNOWN"
+                    text = line
+                
+                if text:
+                    # Basic duration estimation (150 words per minute)
+                    word_count = len(text.split())
+                    duration = max(0.5, (word_count / 150) * 60)
+                    
+                    dialogue_entry = {
+                        'line_number': line_number,
+                        'speaker': speaker,
+                        'text': text,
+                        'word_count': word_count,
+                        'character_count': len(text),
+                        'estimated_duration': duration,
+                        'estimated_start_time': cumulative_time,
+                        'estimated_end_time': cumulative_time + duration,
+                        'has_parenthetical': '(' in text and ')' in text,
+                        'is_action': speaker.upper() in ['ACTION', 'DESCRIPTION', 'SCENE'],
+                        'scene_type': 'dialogue',
+                        'emotion': 'neutral',
+                        'emotion_confidence': 0.5
+                    }
+                    
+                    dialogue_data.append(dialogue_entry)
+                    cumulative_time += duration + 0.5
+                    line_number += 1
+            
+            return dialogue_data
+            
+        except Exception as e:
+            logger.error(f"Error parsing script file with basic parser: {e}")
+            return []
+    
+    def analyze_emotions(self, dialogue_data: List[Dict]) -> List[Dict]:
+        """Basic emotion analysis without transformer models."""
+        emotion_keywords = {
+            'joy': ['happy', 'joy', 'excited', 'wonderful', 'great', 'love', 'amazing'],
+            'sadness': ['sad', 'cry', 'tears', 'sorrow', 'grief', 'depressed'],
+            'anger': ['angry', 'mad', 'furious', 'rage', 'hate', 'annoyed'],
+            'fear': ['scared', 'afraid', 'terrified', 'worried', 'anxious'],
+            'surprise': ['surprised', 'shocked', 'amazed', 'unexpected'],
+            'disgust': ['disgusted', 'gross', 'awful', 'terrible', 'horrible']
+        }
+        
+        for item in dialogue_data:
+            text = item['text'].lower()
+            emotion_scores = {}
+            
+            for emotion, keywords in emotion_keywords.items():
+                score = sum(1 for keyword in keywords if keyword in text)
+                if score > 0:
+                    emotion_scores[emotion] = score
+            
+            if emotion_scores:
+                dominant_emotion = max(emotion_scores, key=emotion_scores.get)
+                confidence = min(0.8, emotion_scores[dominant_emotion] * 0.2)
+            else:
+                dominant_emotion = 'neutral'
+                confidence = 0.5
+            
+            item.update({
+                'emotion': dominant_emotion,
+                'emotion_confidence': confidence,
+                'all_emotions': {dominant_emotion: confidence}
+            })
+        
+        return dialogue_data
+    
+    def detect_emotional_beats(self, dialogue_data: List[Dict]) -> List[Dict]:
+        """Basic emotional beat detection."""
+        beats = []
+        prev_emotion = None
+        
+        for item in dialogue_data:
+            current_emotion = item.get('emotion', 'neutral')
+            
+            if prev_emotion and prev_emotion != current_emotion:
+                beat = {
+                    'timestamp': item.get('estimated_start_time', 0.0),
+                    'line_number': item['line_number'],
+                    'speaker': item['speaker'],
+                    'emotion_from': prev_emotion,
+                    'emotion_to': current_emotion,
+                    'change_magnitude': 0.5,  # Basic magnitude
+                    'context': item['text'][:100] + '...' if len(item['text']) > 100 else item['text']
+                }
+                beats.append(beat)
+            
+            prev_emotion = current_emotion
+        
+        return beats
+    
+    def extract_character_analysis(self, dialogue_data: List[Dict]) -> Dict[str, Dict]:
+        """Basic character analysis."""
+        character_analysis = {}
+        
+        for item in dialogue_data:
+            speaker = item['speaker']
+            
+            if speaker not in character_analysis:
+                character_analysis[speaker] = {
+                    'total_lines': 0,
+                    'total_words': 0,
+                    'emotions': {},
+                    'average_line_length': 0,
+                    'dominant_emotion': 'neutral',
+                    'emotional_range': 0
+                }
+            
+            char_data = character_analysis[speaker]
+            char_data['total_lines'] += 1
+            char_data['total_words'] += item['word_count']
+            
+            emotion = item.get('emotion', 'neutral')
+            char_data['emotions'][emotion] = char_data['emotions'].get(emotion, 0) + 1
+        
+        # Calculate derived metrics
+        for speaker, data in character_analysis.items():
+            if data['total_lines'] > 0:
+                data['average_line_length'] = data['total_words'] / data['total_lines']
+                data['dominant_emotion'] = max(data['emotions'], key=data['emotions'].get)
+                data['emotional_range'] = len(data['emotions'])
+        
+        return character_analysis
+
     def process_text(self, text: str) -> Dict[str, Any]:
         """Basic text processing and analysis."""
         if not text:
@@ -306,6 +467,29 @@ class BasicNLPProcessor:
             'word_count': len(words),
             'sentence_count': len(sentences)
         }
+    
+    def process_script(self, text: str) -> List[Dict]:
+        """Process script text and return basic structure."""
+        if not text:
+            return []
+        
+        lines = text.split('\n')
+        processed = []
+        
+        for i, line in enumerate(lines):
+            line = line.strip()
+            if not line:
+                continue
+            
+            processed.append({
+                'line_number': i + 1,
+                'text': line,
+                'type': 'dialogue' if ':' in line else 'action',
+                'word_count': len(line.split()),
+                'sentiment': self.process_text(line)['sentiment']
+            })
+        
+        return processed
 
 
 class BasicSceneDetector:
@@ -347,6 +531,7 @@ class BasicFallbackModel:
     
     def __init__(self):
         self.name = "Basic Fallback Model"
+        self._is_fallback = True
     
     def predict(self, *args, **kwargs):
         """Basic prediction that returns safe defaults."""
@@ -360,3 +545,59 @@ class BasicFallbackModel:
     def analyze(self, *args, **kwargs):
         """Basic analysis that returns safe defaults."""
         return self.predict(*args, **kwargs)
+    
+    def parse_script_file(self, script_path: str) -> List[Dict]:
+        """Basic script parsing fallback."""
+        try:
+            with open(script_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+            
+            lines = [line.strip() for line in content.split('\n') if line.strip()]
+            
+            return [{
+                'line_number': i + 1,
+                'speaker': 'UNKNOWN',
+                'text': line,
+                'word_count': len(line.split()),
+                'character_count': len(line),
+                'estimated_duration': max(0.5, len(line.split()) / 150 * 60),
+                'estimated_start_time': i * 2.0,
+                'estimated_end_time': (i + 1) * 2.0,
+                'has_parenthetical': False,
+                'is_action': False,
+                'scene_type': 'dialogue',
+                'emotion': 'neutral',
+                'emotion_confidence': 0.5
+            } for i, line in enumerate(lines)]
+            
+        except Exception as e:
+            logger.error(f"Error in fallback script parsing: {e}")
+            return []
+    
+    def analyze_emotions(self, dialogue_data: List[Dict]) -> List[Dict]:
+        """Basic emotion analysis fallback."""
+        for item in dialogue_data:
+            item.update({
+                'emotion': 'neutral',
+                'emotion_confidence': 0.5,
+                'all_emotions': {'neutral': 0.5}
+            })
+        return dialogue_data
+    
+    def detect_emotional_beats(self, dialogue_data: List[Dict]) -> List[Dict]:
+        """Basic emotional beat detection fallback."""
+        return []
+    
+    def extract_character_analysis(self, dialogue_data: List[Dict]) -> Dict[str, Dict]:
+        """Basic character analysis fallback."""
+        characters = set(item.get('speaker', 'UNKNOWN') for item in dialogue_data)
+        return {
+            char: {
+                'total_lines': 1,
+                'total_words': 10,
+                'emotions': {'neutral': 1},
+                'average_line_length': 10,
+                'dominant_emotion': 'neutral',
+                'emotional_range': 1
+            } for char in characters
+        }

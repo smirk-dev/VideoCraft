@@ -6,6 +6,7 @@ from transformers import pipeline, AutoModel, AutoTokenizer
 import logging
 from dataclasses import dataclass
 from enum import Enum
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -362,6 +363,137 @@ class IntelligentContentAnalyzer:
         else:
             return "general"
     
+    def analyze_content(self, 
+                       video_path: str,
+                       script_text: Optional[str] = None,
+                       metadata: Optional[Dict] = None) -> Dict:
+        """
+        Main content analysis method - this is the primary interface.
+        
+        Args:
+            video_path: Path to video file
+            script_text: Optional script/subtitle text
+            metadata: Optional video metadata
+            
+        Returns:
+            Comprehensive content analysis results
+        """
+        try:
+            # Get content context
+            content_context = self.analyze_content_type(video_path, script_text, metadata)
+            
+            # Prepare comprehensive analysis results
+            analysis_results = {
+                'content_type': content_context.type.value,
+                'confidence': content_context.confidence,
+                'key_elements': content_context.key_elements,
+                'suggested_style': content_context.suggested_style,
+                'pacing': content_context.pacing,
+                'target_audience': content_context.target_audience,
+                'editing_recommendations': self._get_editing_recommendations(content_context),
+                'metadata': {
+                    'analyzed_at': datetime.now().isoformat(),
+                    'video_path': video_path,
+                    'has_script': script_text is not None,
+                    'analysis_version': '1.0'
+                }
+            }
+            
+            logger.info(f"Content analysis completed: {content_context.type.value} (confidence: {content_context.confidence:.2f})")
+            return analysis_results
+            
+        except Exception as e:
+            logger.error(f"Content analysis failed: {e}")
+            # Return fallback analysis
+            return {
+                'content_type': 'unknown',
+                'confidence': 0.0,
+                'key_elements': [],
+                'suggested_style': 'balanced',
+                'pacing': 'medium',
+                'target_audience': 'general',
+                'editing_recommendations': self._get_default_recommendations(),
+                'metadata': {
+                    'analyzed_at': datetime.now().isoformat(),
+                    'video_path': video_path,
+                    'has_script': script_text is not None,
+                    'analysis_version': '1.0',
+                    'error': str(e)
+                }
+            }
+    
+    def _get_editing_recommendations(self, content_context: ContentContext) -> Dict:
+        """Generate editing recommendations based on content context."""
+        rules = self.editing_rules.get(content_context.type, {})
+        
+        return {
+            'cut_frequency': rules.get('cut_frequency', 'medium'),
+            'preferred_transitions': rules.get('preferred_transitions', ['cut', 'fade']),
+            'focus_areas': rules.get('focus_on', ['scene_changes']),
+            'avoid_patterns': rules.get('avoid', []),
+            'special_considerations': self._get_special_considerations(content_context),
+            'suggested_duration_range': self._suggest_duration_range(content_context)
+        }
+    
+    def _get_special_considerations(self, content_context: ContentContext) -> List[str]:
+        """Get special considerations for the content type."""
+        considerations = []
+        
+        if content_context.type == ContentType.INTERVIEW:
+            considerations.extend([
+                "Maintain speaker eye contact",
+                "Cut on natural pauses",
+                "Preserve emotional moments"
+            ])
+        elif content_context.type == ContentType.TUTORIAL:
+            considerations.extend([
+                "Ensure step completion visibility",
+                "Maintain instructional flow",
+                "Show key demonstration moments"
+            ])
+        elif content_context.type == ContentType.MUSIC_VIDEO:
+            considerations.extend([
+                "Sync cuts to beat",
+                "Maintain visual rhythm",
+                "Match energy to music"
+            ])
+        elif content_context.type == ContentType.VLOG:
+            considerations.extend([
+                "Keep high energy",
+                "Quick topic transitions",
+                "Engage viewer attention"
+            ])
+        
+        return considerations
+    
+    def _suggest_duration_range(self, content_context: ContentContext) -> Tuple[float, float]:
+        """Suggest optimal duration range for content type."""
+        duration_map = {
+            ContentType.INTERVIEW: (3.0, 8.0),
+            ContentType.VLOG: (1.0, 4.0),
+            ContentType.TUTORIAL: (5.0, 15.0),
+            ContentType.MUSIC_VIDEO: (0.5, 2.0),
+            ContentType.DOCUMENTARY: (4.0, 10.0),
+            ContentType.PRESENTATION: (6.0, 12.0),
+            ContentType.GAMING: (1.0, 3.0),
+            ContentType.NEWS: (3.0, 6.0),
+            ContentType.SPORTS: (1.0, 4.0),
+            ContentType.COMMERCIAL: (2.0, 5.0)
+        }
+        
+        return duration_map.get(content_context.type, (2.0, 6.0))
+    
+    def _get_default_recommendations(self) -> Dict:
+        """Get default editing recommendations for fallback."""
+        return {
+            'cut_frequency': 'medium',
+            'preferred_transitions': ['cut', 'fade'],
+            'focus_areas': ['scene_changes', 'speaker_changes'],
+            'avoid_patterns': ['too_frequent_cuts'],
+            'special_considerations': ['Maintain natural flow'],
+            'suggested_duration_range': (2.0, 6.0)
+        }
+
     def generate_adaptive_suggestions(self, 
                                     content_context: ContentContext,
                                     base_suggestions: List[Dict]) -> List[Dict]:
@@ -566,3 +698,48 @@ class IntelligentContentAnalyzer:
             elements.append("instructional_content")
         
         return elements
+
+    def adapt_suggestions_to_content(self, 
+                                   suggestions: List[Dict], 
+                                   content_analysis: Dict) -> List[Dict]:
+        """
+        Adapt editing suggestions based on content analysis.
+        
+        Args:
+            suggestions: Original cut suggestions
+            content_analysis: Content analysis results
+            
+        Returns:
+            Adapted suggestions optimized for content type
+        """
+        try:
+            # Convert content analysis to ContentContext if needed
+            if isinstance(content_analysis, dict):
+                content_type_str = content_analysis.get('content_type', 'unknown')
+                try:
+                    content_type = ContentType(content_type_str)
+                except ValueError:
+                    content_type = ContentType.VLOG  # Default fallback
+                
+                content_context = ContentContext(
+                    type=content_type,
+                    confidence=content_analysis.get('confidence', 0.5),
+                    key_elements=content_analysis.get('key_elements', []),
+                    suggested_style=content_analysis.get('suggested_style', 'balanced'),
+                    pacing=content_analysis.get('pacing', 'medium'),
+                    target_audience=content_analysis.get('target_audience', 'general')
+                )
+            else:
+                # Assume it's already a ContentContext
+                content_context = content_analysis
+            
+            # Use the existing generate_adaptive_suggestions method
+            adapted_suggestions = self.generate_adaptive_suggestions(content_context, suggestions)
+            
+            logger.info(f"Adapted {len(suggestions)} suggestions for {content_context.type.value} content")
+            return adapted_suggestions
+            
+        except Exception as e:
+            logger.error(f"Failed to adapt suggestions: {e}")
+            # Return original suggestions if adaptation fails
+            return suggestions

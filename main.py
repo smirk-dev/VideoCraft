@@ -15,29 +15,127 @@ from io import BytesIO
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Import our modules
-from src.processors.video_analyzer import VideoAnalyzer
-from src.processors.script_parser import ScriptParser
-from src.processors.audio_analyzer import AudioAnalyzer
-from src.processors.scene_detector import SceneDetector
-from src.ai_models.emotion_detector import EmotionDetector
-from src.ai_models.advanced_emotion_detector import AdvancedEmotionDetector
-from src.processors.video_editor import VideoEditor
-from src.processors.realtime_processor import RealTimeProcessor
-from src.exporters.professional_exporter import ProfessionalExporter
-from src.suggestions.cut_suggester import CutSuggester
-from src.suggestions.transition_recommender import TransitionRecommender
-from src.ui.timeline_viewer import TimelineViewer
-from src.ui.suggestion_panel import SuggestionPanel
-from src.utils.file_handler import FileHandler
-from src.utils.timeline_sync import TimelineSync
+# Import our modules with error handling
+try:
+    from src.processors.video_analyzer import VideoAnalyzer
+except ImportError as e:
+    logger.warning(f"VideoAnalyzer import failed: {e}")
+    VideoAnalyzer = None
+
+try:
+    from src.processors.script_parser import ScriptParser
+except ImportError as e:
+    logger.warning(f"ScriptParser import failed: {e}")
+    ScriptParser = None
+
+try:
+    from src.processors.audio_analyzer import AudioAnalyzer
+except ImportError as e:
+    logger.warning(f"AudioAnalyzer import failed: {e}")
+    AudioAnalyzer = None
+
+try:
+    from src.processors.scene_detector import SceneDetector
+except ImportError as e:
+    logger.warning(f"SceneDetector import failed: {e}")
+    SceneDetector = None
+
+try:
+    from src.ai_models.emotion_detector import EmotionDetector
+except ImportError as e:
+    logger.warning(f"EmotionDetector import failed: {e}")
+    EmotionDetector = None
+
+try:
+    from src.ai_models.advanced_emotion_detector import AdvancedEmotionDetector
+except ImportError as e:
+    logger.warning(f"AdvancedEmotionDetector import failed: {e}")
+    AdvancedEmotionDetector = None
+
+try:
+    from src.processors.video_editor import VideoEditor
+except ImportError as e:
+    logger.warning(f"VideoEditor import failed: {e}")
+    VideoEditor = None
+
+try:
+    from src.processors.realtime_processor import RealTimeProcessor
+except ImportError as e:
+    logger.warning(f"RealTimeProcessor import failed: {e}")
+    RealTimeProcessor = None
+
+try:
+    from src.exporters.professional_exporter import ProfessionalExporter
+except ImportError as e:
+    logger.warning(f"ProfessionalExporter import failed: {e}")
+    ProfessionalExporter = None
+
+try:
+    from src.suggestions.cut_suggester import CutSuggester
+except ImportError as e:
+    logger.warning(f"CutSuggester import failed: {e}")
+    CutSuggester = None
+
+try:
+    from src.suggestions.transition_recommender import TransitionRecommender
+except ImportError as e:
+    logger.warning(f"TransitionRecommender import failed: {e}")
+    TransitionRecommender = None
+
+try:
+    from src.ui.timeline_viewer import TimelineViewer
+except ImportError as e:
+    logger.warning(f"TimelineViewer import failed: {e}")
+    TimelineViewer = None
+
+try:
+    from src.ui.suggestion_panel import SuggestionPanel
+except ImportError as e:
+    logger.warning(f"SuggestionPanel import failed: {e}")
+    SuggestionPanel = None
+
+try:
+    from src.utils.file_handler import FileHandler
+except ImportError as e:
+    logger.warning(f"FileHandler import failed: {e}")
+    FileHandler = None
+
+try:
+    from src.utils.timeline_sync import TimelineSync
+except ImportError as e:
+    logger.warning(f"TimelineSync import failed: {e}")
+    TimelineSync = None
 
 # Import advanced AI components
-from src.ai_models.intelligent_content_analyzer import IntelligentContentAnalyzer
-from src.ai_models.music_sync_engine import MusicSyncEngine
-from src.ai_models.user_learning_system import AIUserLearningSystem
-from src.ui.interactive_timeline_editor import InteractiveTimelineEditor
-from src.utils.cloud_integration import CloudIntegrationManager
+try:
+    from src.ai_models.intelligent_content_analyzer import IntelligentContentAnalyzer
+except ImportError as e:
+    logger.warning(f"IntelligentContentAnalyzer import failed: {e}")
+    IntelligentContentAnalyzer = None
+
+try:
+    from src.ai_models.music_sync_engine import MusicSyncEngine
+except ImportError as e:
+    logger.warning(f"MusicSyncEngine import failed: {e}")
+    MusicSyncEngine = None
+
+try:
+    from src.ai_models.user_learning_system import AIUserLearningSystem
+except ImportError as e:
+    logger.warning(f"AIUserLearningSystem import failed: {e}")
+    AIUserLearningSystem = None
+
+try:
+    from src.ui.interactive_timeline_editor import InteractiveTimelineEditor
+except ImportError as e:
+    logger.warning(f"InteractiveTimelineEditor import failed: {e}")
+    InteractiveTimelineEditor = None
+
+try:
+    from src.utils.cloud_integration import CloudIntegrationManager
+except ImportError as e:
+    logger.warning(f"CloudIntegrationManager import failed: {e}")
+    CloudIntegrationManager = None
 
 def load_config():
     """Load configuration from YAML file."""
@@ -85,41 +183,61 @@ def initialize_components(config):
         
         # Initialize components with error handling
         try:
-            from src.processors.video_analyzer import VideoAnalyzer
-            components['video_analyzer'] = VideoAnalyzer(config)
+            from src.processors.video_analyzer import VideoAnalyzer as VideoAnalyzerClass
+            components['video_analyzer'] = VideoAnalyzerClass(config)
             logger.info("✅ Video analyzer initialized")
         except Exception as e:
             logger.warning(f"⚠️ Video analyzer failed to initialize: {e}")
-            components['video_analyzer'] = offline_manager.get_model('visual_analyzer')
+            fallback_analyzer = offline_manager.get_model('visual_analyzer')
+            if fallback_analyzer is None:
+                from src.utils.offline_models import BasicVisualAnalyzer
+                fallback_analyzer = BasicVisualAnalyzer()
+            components['video_analyzer'] = fallback_analyzer
+            logger.info("✅ Video analyzer initialized with offline fallback")
         
         try:
-            from src.processors.script_parser import ScriptParser
-            components['script_parser'] = ScriptParser(config)
+            from src.processors.script_parser import ScriptParser as ScriptParserClass
+            components['script_parser'] = ScriptParserClass(config)
             logger.info("✅ Script parser initialized")
         except Exception as e:
             logger.warning(f"⚠️ Script parser failed to initialize: {e}")
-            components['script_parser'] = offline_manager.get_model('nlp_processor')
+            fallback_parser = offline_manager.get_model('nlp_processor')
+            if fallback_parser is None:
+                # Force create a basic NLP processor if none exists
+                from src.utils.offline_models import BasicNLPProcessor
+                fallback_parser = BasicNLPProcessor()
+            components['script_parser'] = fallback_parser
+            logger.info("✅ Script parser initialized with offline fallback")
         
         try:
             from src.processors.audio_analyzer import AudioAnalyzer
-            components['audio_analyzer'] = AudioAnalyzer(config)
-            logger.info("✅ Audio analyzer initialized")
+            if AudioAnalyzer is not None:
+                components['audio_analyzer'] = AudioAnalyzer(config)
+                logger.info("✅ Audio analyzer initialized")
+            else:
+                raise ImportError("AudioAnalyzer class not available")
         except Exception as e:
             logger.warning(f"⚠️ Audio analyzer failed to initialize: {e}")
             components['audio_analyzer'] = offline_manager.get_model('visual_analyzer')  # Basic fallback
         
         try:
             from src.processors.scene_detector import SceneDetector
-            components['scene_detector'] = SceneDetector(config)
-            logger.info("✅ Scene detector initialized")
+            if SceneDetector is not None:
+                components['scene_detector'] = SceneDetector(config)
+                logger.info("✅ Scene detector initialized")
+            else:
+                raise ImportError("SceneDetector class not available")
         except Exception as e:
             logger.warning(f"⚠️ Scene detector failed to initialize: {e}")
             components['scene_detector'] = offline_manager.get_model('scene_detector')
         
         try:
             from src.ai_models.emotion_detector import EmotionDetector
-            components['emotion_detector'] = EmotionDetector(config)
-            logger.info("✅ Emotion detector initialized")
+            if EmotionDetector is not None:
+                components['emotion_detector'] = EmotionDetector(config)
+                logger.info("✅ Emotion detector initialized")
+            else:
+                raise ImportError("EmotionDetector class not available")
         except Exception as e:
             logger.warning(f"⚠️ Emotion detector failed to initialize: {e}")
             components['emotion_detector'] = offline_manager.get_model('emotion_detector')
@@ -142,8 +260,11 @@ def initialize_components(config):
             try:
                 module = __import__(module_path, fromlist=[class_name])
                 component_class = getattr(module, class_name)
-                components[component_name] = component_class(config)
-                logger.info(f"✅ {component_name} initialized")
+                if component_class is not None:
+                    components[component_name] = component_class(config)
+                    logger.info(f"✅ {component_name} initialized")
+                else:
+                    raise ImportError(f"{class_name} class not available")
             except Exception as e:
                 logger.warning(f"⚠️ {component_name} failed to initialize: {e}")
                 components[component_name] = offline_manager.get_model('visual_analyzer')  # Basic fallback
@@ -161,8 +282,11 @@ def initialize_components(config):
             try:
                 module = __import__(module_path, fromlist=[class_name])
                 component_class = getattr(module, class_name)
-                components[component_name] = component_class(config)
-                logger.info(f"✅ {component_name} initialized")
+                if component_class is not None:
+                    components[component_name] = component_class(config)
+                    logger.info(f"✅ {component_name} initialized")
+                else:
+                    raise ImportError(f"{class_name} class not available")
             except Exception as e:
                 logger.warning(f"⚠️ {component_name} failed to initialize, using fallback: {e}")
                 components[component_name] = offline_manager.get_model('visual_analyzer')  # Basic fallback
@@ -958,8 +1082,19 @@ def main():
                     script_parser = components['script_parser']
                     timeline_sync = components['timeline_sync']
                     
+                    # Ensure we have a valid script parser
+                    if script_parser is None:
+                        st.error("❌ Script parser not available. Cannot analyze script.")
+                        logger.error("Script parser is None, cannot parse script")
+                        return
+                    
                     # Parse script
-                    dialogue_data = script_parser.parse_script_file(script_path)
+                    try:
+                        dialogue_data = script_parser.parse_script_file(script_path)
+                    except Exception as e:
+                        st.error(f"❌ Error parsing script: {e}")
+                        logger.error(f"Script parsing failed: {e}")
+                        return
                     
                     current_step += 1
                     update_progress("Analyzing emotions in script...", current_step, total_steps)
@@ -968,7 +1103,18 @@ def main():
                         progress_bar.progress(current_step / total_steps)
                     
                     # Emotion analysis
-                    dialogue_with_emotions = script_parser.analyze_emotions(dialogue_data)
+                    try:
+                        dialogue_with_emotions = script_parser.analyze_emotions(dialogue_data)
+                    except Exception as e:
+                        st.warning(f"⚠️ Emotion analysis failed, using basic analysis: {e}")
+                        # Fallback to basic emotion assignment
+                        dialogue_with_emotions = dialogue_data
+                        for item in dialogue_with_emotions:
+                            item.update({
+                                'emotion': 'neutral',
+                                'emotion_confidence': 0.5,
+                                'all_emotions': {'neutral': 0.5}
+                            })
                     
                     # Align script to video duration
                     video_duration = audio_analysis.get('features', {}).get('duration', 60)
@@ -983,7 +1129,11 @@ def main():
                         progress_bar.progress(current_step / total_steps)
                     
                     # Detect emotional beats
-                    emotional_beats = script_parser.detect_emotional_beats(aligned_dialogue)
+                    try:
+                        emotional_beats = script_parser.detect_emotional_beats(aligned_dialogue)
+                    except Exception as e:
+                        st.warning(f"⚠️ Emotional beat detection failed: {e}")
+                        emotional_beats = []  # Empty list as fallback
                     
                     script_analysis['dialogue_data'] = aligned_dialogue
                     script_analysis['emotional_beats'] = emotional_beats
@@ -1023,9 +1173,17 @@ def main():
                 )
                 
                 # Adapt suggestions based on content type
-                adapted_suggestions = content_analyzer.adapt_suggestions_to_content(
-                    cut_suggestions, content_analysis
-                )
+                try:
+                    if hasattr(content_analyzer, 'adapt_suggestions_to_content'):
+                        adapted_suggestions = content_analyzer.adapt_suggestions_to_content(
+                            cut_suggestions, content_analysis
+                        )
+                    else:
+                        logger.warning("Content analyzer missing adapt_suggestions_to_content method, using original suggestions")
+                        adapted_suggestions = cut_suggestions
+                except Exception as e:
+                    logger.error(f"Failed to adapt suggestions: {e}")
+                    adapted_suggestions = cut_suggestions
                 
                 # Music synchronization (if music detected)
                 music_sync = components['music_sync']
