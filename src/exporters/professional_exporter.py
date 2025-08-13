@@ -59,6 +59,43 @@ class ProfessionalExporter:
         except Exception:
             return default
     
+    def _safe_get_confidence(self, cut_obj, default=0.5):
+        """Safely extract confidence from cut object (CutSuggestion or dict)"""
+        try:
+            if hasattr(cut_obj, 'get'):
+                value = cut_obj.get('confidence', default)
+            elif isinstance(cut_obj, dict):
+                value = cut_obj.get('confidence', default)
+            else:
+                return default
+            
+            # Handle different types of values
+            if isinstance(value, (list, tuple)):
+                return float(value[0]) if value else default
+            elif isinstance(value, (int, float)):
+                return float(value)
+            else:
+                # Try to convert string to float, fall back to default if it fails
+                try:
+                    return float(value)
+                except (ValueError, TypeError):
+                    return default
+                    
+        except Exception:
+            return default
+    
+    def _safe_get_field(self, obj, field_name, default=None):
+        """Safely extract any field from object (CutSuggestion or dict)"""
+        try:
+            if hasattr(obj, 'get'):
+                return obj.get(field_name, default)
+            elif isinstance(obj, dict):
+                return obj.get(field_name, default)
+            else:
+                return default
+        except Exception:
+            return default
+    
     def export_suggestions(self, 
                           cut_suggestions: List[Dict],
                           transition_suggestions: List[Dict],
@@ -118,7 +155,7 @@ class ProfessionalExporter:
             edl_content.append(f"{i:03d}  001      V     C        {source_in} {source_out} {timecode_in} {timecode_out}")
             
             # Add comment with AI confidence
-            edl_content.append(f"* FROM CLIP NAME: AI_CUT_CONFIDENCE_{cut['confidence']:.2f}")
+            edl_content.append(f"* FROM CLIP NAME: AI_CUT_CONFIDENCE_{self._safe_get_confidence(cut):.2f}")
             edl_content.append(f"* COMMENT: {cut.get('reason', 'AI suggestion')}")
             edl_content.append("")
         
@@ -166,7 +203,7 @@ class ProfessionalExporter:
         transitions_elem = ET.SubElement(root, "transitions")
         for transition in data['transitions']:
             trans_elem = ET.SubElement(transitions_elem, "transition")
-            trans_elem.set("type", transition['type'])
+            trans_elem.set("type", self._safe_get_field(transition, 'type', 'cut'))
             trans_elem.set("duration", str(transition['duration']))
             trans_elem.set("start_time", str(transition['start_time']))
             trans_elem.set("confidence", str(transition.get('confidence', 1.0)))
@@ -254,7 +291,7 @@ class ProfessionalExporter:
                 marker = ET.SubElement(clip, f"{{{ns}}}marker")
                 marker.set("start", "0s")
                 marker.set("duration", "1/30s")
-                marker.set("value", f"AI Cut Confidence: {cut['confidence']:.2f}")
+                marker.set("value", f"AI Cut Confidence: {self._safe_get_confidence(cut):.2f}")
         
         # Write FCPXML
         tree = ET.ElementTree(root)
@@ -360,7 +397,7 @@ class ProfessionalExporter:
                     "source_file": data['source_file'],
                     "source_in": start_time,
                     "source_out": end_time,
-                    "ai_confidence": cut['confidence'],
+                    "ai_confidence": self._safe_get_confidence(cut),
                     "ai_reason": cut.get('reason', 'AI suggestion')
                 }
                 resolve_data["clips"].append(clip_data)
@@ -394,7 +431,7 @@ class ProfessionalExporter:
                     cut['id'],
                     self._safe_get_timestamp(cut),
                     timecode,
-                    cut['confidence'],
+                    self._safe_get_confidence(cut),
                     cut.get('reason', ''),
                     cut.get('frame_number', ''),
                     '',
@@ -410,7 +447,7 @@ class ProfessionalExporter:
                     transition['start_time'],
                     timecode,
                     transition.get('confidence', 1.0),
-                    f"Type: {transition['type']}",
+                    f"Type: {self._safe_get_field(transition, 'type', 'cut')}",
                     '',
                     transition['duration'],
                     f"Auto-generated transition"
@@ -437,7 +474,7 @@ class ProfessionalExporter:
             "ai_analysis": {
                 "total_cuts": len(data['cuts']),
                 "total_transitions": len(data['transitions']),
-                "average_confidence": sum(c['confidence'] for c in data['cuts']) / len(data['cuts']) if data['cuts'] else 0,
+                "average_confidence": sum(self._safe_get_confidence(c) for c in data['cuts']) / len(data['cuts']) if data['cuts'] else 0,
                 "processing_time": data.get('processing_time', 0)
             },
             "cuts": data['cuts'],
@@ -499,7 +536,7 @@ class ProfessionalExporter:
                     "start_time": int(start_time * data['fps']),
                     "source_mob_slot": 1,
                     "user_comments": {
-                        "AI_Confidence": str(cut['confidence']),
+                        "AI_Confidence": str(self._safe_get_confidence(cut)),
                         "AI_Reason": cut.get('reason', ''),
                         "VideoCraft_ID": str(cut['id'])
                     }
@@ -533,10 +570,10 @@ class ProfessionalExporter:
             # Avid comments
             edl_content.append(f"* FROM CLIP NAME: {Path(data['source_file']).stem}")
             edl_content.append(f"* TO CLIP NAME: AI_CUT_{i:03d}")
-            edl_content.append(f"* COMMENT: CONFIDENCE={cut['confidence']:.3f} REASON={cut.get('reason', 'AI')}")
+            edl_content.append(f"* COMMENT: CONFIDENCE={self._safe_get_confidence(cut):.3f} REASON={cut.get('reason', 'AI')}")
             
             # Avid locator for AI metadata
-            edl_content.append(f"* LOC: {source_start} WHITE AI_MARKER_CONF_{cut['confidence']:.2f}")
+            edl_content.append(f"* LOC: {source_start} WHITE AI_MARKER_CONF_{self._safe_get_confidence(cut):.2f}")
             edl_content.append("")
         
         with open(output_path, 'w') as f:

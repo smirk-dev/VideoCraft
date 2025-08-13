@@ -282,7 +282,7 @@ class InteractiveTimelineEditor:
                 gridcolor='rgba(128,128,128,0.2)'
             ),
             dragmode='select',
-            selectdirection='horizontal'
+            selectdirection='h'
         )
         
         return fig
@@ -324,7 +324,7 @@ class InteractiveTimelineEditor:
         if energy_timeline:
             # Safe access to timestamp for any object type
             times = [point.get('timestamp', 0.0) if hasattr(point, 'get') else point.get('timestamp', 0.0) for point in energy_timeline]
-            energies = [point['energy'] for point in energy_timeline]
+            energies = [point.get('energy', 0.0) if hasattr(point, 'get') else point.get('energy', 0.0) for point in energy_timeline]
             
             # Filter for visible range
             visible_indices = [i for i, t in enumerate(times) if start <= t <= end]
@@ -644,7 +644,7 @@ class InteractiveTimelineEditor:
                 
                 fig = px.histogram(
                     x=confidences,
-                    bins=20,
+                    nbins=20,
                     title="Cut Confidence Distribution",
                     labels={'x': 'Confidence', 'y': 'Count'}
                 )
