@@ -1,17 +1,24 @@
 # Streamlit Cloud Compatible Requirements
 # Core ML and AI
 transformers>=4.40.0
-torch>=2.0.0
+torch>=2.6.0
 torchvision>=0.15.0
+torchaudio>=2.0.0
 sentence-transformers>=2.6.0
 datasets>=2.10.0
 numpy>=1.24.0,<2.0.0
+
+# Advanced AI Models
+accelerate>=0.21.0
+optimum>=1.12.0
+safetensors>=0.3.0
 
 # Video and Audio Processing
 opencv-python-headless>=4.8.0
 moviepy>=1.0.3
 librosa>=0.10.0
 pydub>=0.25.1
+ffmpeg-python>=0.2.0
 
 # Natural Language Processing
 spacy>=3.7.0
@@ -26,13 +33,34 @@ scipy>=1.10.0
 # UI Framework
 streamlit>=1.32.0
 plotly>=5.15.0
+streamlit-webrtc>=0.47.0
+
+# Performance and Processing
+asyncio-throttle>=1.0.0
+aiofiles>=23.0.0
+multiprocessing-logging>=0.3.0
+
+# Professional Export Formats
+lxml>=4.9.0
+xmltodict>=0.13.0
 
 # Utilities
 python-dotenv>=1.0.0
 PyYAML>=6.0.0
 tqdm>=4.65.0
 requests>=2.28.0
+aiohttp>=3.8.0
 
 # Additional UI packages
 click>=8.0.0
 matplotlib>=3.5.0
+
+# Real-time Processing
+websockets>=11.0.0
+redis>=4.5.0
+
+# Development and Testing
+pytest>=7.0.0
+pytest-asyncio>=0.21.0
+black>=23.0.0
+flake8>=6.0.0

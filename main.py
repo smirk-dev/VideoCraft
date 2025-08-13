@@ -21,6 +21,10 @@ from src.processors.script_parser import ScriptParser
 from src.processors.audio_analyzer import AudioAnalyzer
 from src.processors.scene_detector import SceneDetector
 from src.ai_models.emotion_detector import EmotionDetector
+from src.ai_models.advanced_emotion_detector import AdvancedEmotionDetector
+from src.processors.video_editor import VideoEditor
+from src.processors.realtime_processor import RealTimeProcessor
+from src.exporters.professional_exporter import ProfessionalExporter
 from src.suggestions.cut_suggester import CutSuggester
 from src.suggestions.transition_recommender import TransitionRecommender
 from src.ui.timeline_viewer import TimelineViewer
@@ -70,6 +74,10 @@ def initialize_components(config):
             'audio_analyzer': AudioAnalyzer(config),
             'scene_detector': SceneDetector(config),
             'emotion_detector': EmotionDetector(config),
+            'advanced_emotion_detector': AdvancedEmotionDetector(config),
+            'video_editor': VideoEditor(config),
+            'realtime_processor': RealTimeProcessor(config),
+            'professional_exporter': ProfessionalExporter(config),
             'cut_suggester': CutSuggester(config),
             'transition_recommender': TransitionRecommender(config),
             'timeline_viewer': TimelineViewer(config),
@@ -931,6 +939,161 @@ def main():
                         batch_result = suggestion_panel.render_batch_actions(selected_suggestions)
                         
                         if batch_result.get('action') == 'export':
+                            # Professional Export Section
+                            st.header("🎬 Professional Export")
+                            
+                            col1, col2 = st.columns(2)
+                            
+                            with col1:
+                                st.subheader("Export Formats")
+                                export_formats = st.multiselect(
+                                    "Select Export Formats",
+                                    ['edl', 'xml', 'csv', 'json', 'fcpxml', 'premiere', 'resolve', 'avid'],
+                                    default=['edl', 'xml', 'json'],
+                                    help="Choose formats for your video editing software"
+                                )
+                                
+                                create_package = st.checkbox(
+                                    "Create Project Package",
+                                    value=True,
+                                    help="Bundle all formats in a ZIP file"
+                                )
+                                
+                                include_preview = st.checkbox(
+                                    "Generate Video Preview",
+                                    value=False,
+                                    help="Create a preview video with suggested cuts"
+                                )
+                            
+                            with col2:
+                                st.subheader("Export Options")
+                                project_name = st.text_input(
+                                    "Project Name",
+                                    value=f"videocraft_edit_{Path(video_file.name).stem}",
+                                    help="Name for the exported project"
+                                )
+                                
+                                # Video editing software targeting
+                                target_software = st.selectbox(
+                                    "Target Software",
+                                    ["Generic", "Adobe Premiere Pro", "Final Cut Pro", "DaVinci Resolve", "Avid Media Composer"],
+                                    help="Optimize export for specific software"
+                                )
+                                
+                                confidence_filter = st.slider(
+                                    "Minimum Confidence for Export",
+                                    0.0, 1.0, 0.5, 0.1,
+                                    help="Only export cuts above this confidence level"
+                                )
+                            
+                            if st.button("🚀 Export Professional Project", type="primary"):
+                                with st.spinner("Creating professional exports..."):
+                                    try:
+                                        # Filter suggestions by confidence
+                                        export_cuts = [s for s in selected_suggestions if s.confidence >= confidence_filter]
+                                        
+                                        # Prepare video metadata
+                                        video_metadata = {
+                                            'file_path': video_file.name,
+                                            'duration': total_duration,
+                                            'fps': 30,  # Default, should be extracted from video
+                                            'width': 1920,  # Default, should be extracted
+                                            'height': 1080,  # Default, should be extracted
+                                            'processing_time': time.time() - current_step  # Approximate
+                                        }
+                                        
+                                        professional_exporter = components['professional_exporter']
+                                        
+                                        if create_package:
+                                            # Create complete project package
+                                            package_path = professional_exporter.create_project_package(
+                                                export_cuts,
+                                                transition_suggestions,
+                                                video_metadata,
+                                                str(Path.cwd() / "exports"),
+                                                export_formats
+                                            )
+                                            
+                                            # Offer download
+                                            with open(package_path, 'rb') as f:
+                                                st.download_button(
+                                                    "📦 Download Project Package",
+                                                    data=f.read(),
+                                                    file_name=Path(package_path).name,
+                                                    mime="application/zip"
+                                                )
+                                        else:
+                                            # Export individual formats
+                                            for fmt in export_formats:
+                                                export_path = f"exports/{project_name}.{fmt}"
+                                                Path("exports").mkdir(exist_ok=True)
+                                                
+                                                result_path = professional_exporter.export_suggestions(
+                                                    export_cuts,
+                                                    transition_suggestions,
+                                                    video_metadata,
+                                                    fmt,
+                                                    export_path
+                                                )
+                                                
+                                                with open(result_path, 'rb') as f:
+                                                    st.download_button(
+                                                        f"📄 Download {fmt.upper()}",
+                                                        data=f.read(),
+                                                        file_name=Path(result_path).name,
+                                                        mime="application/octet-stream",
+                                                        key=f"download_{fmt}"
+                                                    )
+                                        
+                                        # Generate video preview if requested
+                                        if include_preview:
+                                            video_editor = components['video_editor']
+                                            preview_path = video_editor.create_preview(
+                                                video_path, export_cuts, max_duration=30.0
+                                            )
+                                            
+                                            if preview_path:
+                                                st.success("✅ Preview video generated!")
+                                                with open(preview_path, 'rb') as f:
+                                                    st.download_button(
+                                                        "🎥 Download Preview Video",
+                                                        data=f.read(),
+                                                        file_name="ai_edit_preview.mp4",
+                                                        mime="video/mp4"
+                                                    )
+                                        
+                                        st.success(f"✅ Successfully exported {len(export_cuts)} suggestions in {len(export_formats)} format(s)!")
+                                        
+                                        # Show export statistics
+                                        st.info(f"""
+                                        **Export Summary:**
+                                        - Exported Cuts: {len(export_cuts)}
+                                        - Average Confidence: {sum(s.confidence for s in export_cuts) / len(export_cuts):.1%}
+                                        - Formats: {', '.join(export_formats)}
+                                        - Target Software: {target_software}
+                                        """)
+                                        
+                                    except Exception as e:
+                                        st.error(f"Export failed: {e}")
+                                        logger.error(f"Export error: {e}")
+                            
+                            # Export format descriptions
+                            st.subheader("📋 Format Guide")
+                            format_descriptions = {
+                                'edl': "**EDL** - Industry standard Edit Decision List, compatible with most professional software",
+                                'xml': "**XML** - Generic XML format for broad compatibility and custom workflows", 
+                                'fcpxml': "**FCPXML** - Native Final Cut Pro format with full metadata support",
+                                'premiere': "**Premiere XML** - Adobe Premiere Pro compatible project format",
+                                'resolve': "**Resolve DRP** - DaVinci Resolve project metadata format",
+                                'avid': "**Avid EDL** - Avid Media Composer optimized Edit Decision List",
+                                'csv': "**CSV** - Spreadsheet format for analysis and custom processing",
+                                'json': "**JSON** - Complete metadata with full AI analysis results"
+                            }
+                            
+                            for fmt in export_formats:
+                                if fmt in format_descriptions:
+                                    st.markdown(f"- {format_descriptions[fmt]}")
+                            
                             # Export functionality
                             export_format = st.selectbox("Export Format", ['json', 'csv', 'txt'])
                             

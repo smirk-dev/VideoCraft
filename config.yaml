@@ -7,6 +7,15 @@ models:
   scene_detection: "MCG-NJU/videomae-base"
   sentiment_analyzer: "cardiffnlp/twitter-roberta-base-sentiment-latest"
 
+# Advanced AI Settings
+ai_models:
+  clip_model: 'openai/clip-vit-base-patch32'
+  emotion_model: 'j-hartmann/emotion-english-distilroberta-base'
+  cache_dir: './cache'
+  use_gpu: true
+  batch_size: 8
+  confidence_threshold: 0.7
+
 # Processing Settings
 video:
   fps_target: 30
@@ -15,22 +24,23 @@ video:
   frame_extraction_interval: 1.0  # seconds
   max_duration: 7200  # seconds (2 hours)
 
-# File Size Limits (increased from defaults)
+# File Size Limits (increased for production use)
 file_limits:
-  max_video_size_mb: 2048  # 2GB (increased from 500MB)
-  max_script_size_kb: 500  # 500KB (increased from 100KB)
-  max_audio_size_mb: 500   # 500MB (increased from 100MB)
+  max_video_size_mb: 4096  # 4GB (increased for professional use)
+  max_script_size_kb: 1000  # 1MB (increased)
+  max_audio_size_mb: 1000   # 1GB (increased for high-quality audio)
 
 audio:
   sample_rate: 16000
   chunk_duration: 5  # seconds
-  supported_formats: ['.wav', '.mp3', '.m4a', '.flac']
+  supported_formats: ['.wav', '.mp3', '.m4a', '.flac', '.aac']
   noise_reduction: true
+  enable_speech_enhancement: true
 
 script:
-  supported_formats: ['.txt', '.srt', '.ass', '.vtt']
+  supported_formats: ['.txt', '.srt', '.ass', '.vtt', '.sbv']
   encoding: 'utf-8'
-  max_lines: 10000
+  max_lines: 50000  # Increased for feature films
   
 # AI Suggestion Thresholds
 suggestions:
@@ -39,12 +49,25 @@ suggestions:
   speaker_change_threshold: 0.6
   speaker_change_weight: 0.8
   minimum_cut_interval: 2.0  # seconds
-  maximum_suggestions: 100
+  maximum_suggestions: 500  # Increased for longer content
+  min_segment_length: 2.0
+
+# Real-time Processing
+processing:
+  max_workers: 8  # Increased for better performance
+  batch_size: 16
+  num_workers: 4
+  enable_parallel_processing: true
+  use_multiprocessing: true
+  chunk_processing: true
+  enable_caching: true
+  cache_ttl: 3600  # seconds
+  cache_size: 1000  # Number of cached results
 
 # Timeline Settings
 timeline:
   time_unit: 'seconds'
-  zoom_levels: [1, 5, 10, 30, 60]
+  zoom_levels: [1, 5, 10, 30, 60, 300]  # Added 5-minute zoom
   default_zoom: 10
 
 # UI Settings
@@ -53,16 +76,46 @@ ui:
   sidebar_width: 300
   timeline_height: 400
   suggestion_panel_height: 300
+  enable_real_time_preview: true
+  auto_save_interval: 300  # seconds
 
-# Performance Settings
-performance:
-  max_workers: 4
-  chunk_processing: true
-  enable_caching: true
-  cache_ttl: 3600  # seconds
-
-# Export Settings
+# Professional Export Settings
 export:
-  formats: ['json', 'csv', 'xml']
+  formats: ['json', 'csv', 'xml', 'edl', 'fcpxml', 'premiere', 'resolve', 'avid']
   include_metadata: true
-  timestamp_precision: 2  # decimal places
+  timestamp_precision: 3  # decimal places for professional accuracy
+  default_project_settings:
+    fps: 30
+    resolution: [1920, 1080]
+    audio_sample_rate: 48000
+    color_space: 'Rec.709'
+
+# Real-time Stream Processing
+streaming:
+  enable_live_processing: true
+  buffer_size: 30  # frames
+  max_latency_ms: 100
+  supported_sources: ['webcam', 'rtmp', 'file']
+
+# Performance Monitoring
+monitoring:
+  enable_performance_logging: true
+  log_level: 'INFO'
+  metrics_retention_hours: 24
+  alert_on_high_latency: true
+
+# Advanced Features
+features:
+  enable_real_time_editing: true
+  enable_collaborative_editing: false
+  enable_auto_save: true
+  enable_version_control: false
+  enable_cloud_sync: false
+  enable_ai_learning: true  # Learn from user corrections
+
+# Security Settings
+security:
+  enable_input_validation: true
+  max_file_uploads_per_session: 10
+  session_timeout_minutes: 60
+  enable_content_filtering: false
