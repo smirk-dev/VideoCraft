@@ -667,31 +667,89 @@ class AWSIntegration:
     
     async def upload_video(self, video_path: str) -> str:
         """Upload video to AWS S3."""
-        # Implementation for AWS S3 upload
-        return f"s3://bucket/video_{int(time.time())}.mp4"
+        try:
+            # Check if video file exists
+            if not os.path.exists(video_path):
+                raise FileNotFoundError(f"Video file not found: {video_path}")
+            
+            # Check file size
+            file_size = os.path.getsize(video_path) / (1024 * 1024)  # MB
+            if file_size > 5000:  # 5GB limit
+                raise ValueError(f"File too large for upload: {file_size:.1f}MB")
+            
+            # For now, return local fallback since cloud isn't implemented
+            logger.warning("AWS S3 upload not implemented - using local fallback")
+            return video_path  # Return local path as fallback
+            
+        except Exception as e:
+            logger.error(f"AWS upload failed: {e}")
+            return video_path  # Fallback to local processing
     
     async def start_processing_job(self, job_config: Dict) -> str:
         """Start processing job on AWS."""
-        # Implementation for AWS batch/lambda processing
-        return f"job_{int(time.time())}"
+        try:
+            # Validate job config
+            if not job_config.get('video_url'):
+                raise ValueError("Missing video_url in job config")
+            
+            # For now, return error since cloud isn't implemented
+            logger.warning("AWS Batch processing not implemented - falling back to local")
+            raise NotImplementedError("Cloud processing not available - using local fallback")
+            
+        except Exception as e:
+            logger.error(f"AWS job start failed: {e}")
+            raise e
     
     async def get_job_status(self, job_id: str) -> Dict:
         """Get AWS job status."""
-        # Mock implementation
-        return {'status': 'completed', 'progress': 100}
+        try:
+            if not job_id:
+                raise ValueError("Missing job_id")
+            
+            # Since cloud isn't implemented, return error
+            logger.warning("AWS job status not implemented")
+            return {'status': 'failed', 'progress': 0, 'error': 'Cloud processing not available'}
+            
+        except Exception as e:
+            logger.error(f"AWS job status failed: {e}")
+            return {'status': 'failed', 'progress': 0, 'error': str(e)}
     
     async def download_results(self, job_id: str) -> Dict:
         """Download results from AWS."""
-        # Implementation for downloading results
-        return {'status': 'success', 'results': {}}
+        try:
+            if not job_id:
+                raise ValueError("Missing job_id")
+            
+            # Since cloud isn't implemented, return empty results
+            logger.warning("AWS result download not implemented")
+            return {'status': 'error', 'error': 'Cloud processing not available', 'results': {}}
+            
+        except Exception as e:
+            logger.error(f"AWS download failed: {e}")
+            return {'status': 'error', 'error': str(e), 'results': {}}
     
     async def cleanup_job(self, job_id: str):
         """Cleanup AWS resources."""
-        pass
+        try:
+            if not job_id:
+                logger.warning("No job_id provided for cleanup")
+                return
+            
+            # Since cloud isn't implemented, just log
+            logger.info(f"AWS cleanup requested for job {job_id} - no action needed (local processing)")
+            
+        except Exception as e:
+            logger.error(f"AWS cleanup failed: {e}")
     
     async def test_connection(self) -> bool:
         """Test AWS connection."""
-        return True
+        try:
+            logger.warning("AWS connection test not implemented - assuming offline")
+            return False  # Return False since not implemented
+            
+        except Exception as e:
+            logger.error(f"AWS connection test failed: {e}")
+            return False
 
 
 class GCPIntegration:
@@ -701,22 +759,82 @@ class GCPIntegration:
         self.config = config
     
     async def upload_video(self, video_path: str) -> str:
-        return f"gs://bucket/video_{int(time.time())}.mp4"
+        """Upload video to Google Cloud Storage."""
+        try:
+            if not os.path.exists(video_path):
+                raise FileNotFoundError(f"Video file not found: {video_path}")
+            
+            file_size = os.path.getsize(video_path) / (1024 * 1024)  # MB
+            if file_size > 5000:  # 5GB limit
+                raise ValueError(f"File too large for upload: {file_size:.1f}MB")
+            
+            logger.warning("GCP Cloud Storage upload not implemented - using local fallback")
+            return video_path  # Return local path as fallback
+            
+        except Exception as e:
+            logger.error(f"GCP upload failed: {e}")
+            return video_path
     
     async def start_processing_job(self, job_config: Dict) -> str:
-        return f"gcp_job_{int(time.time())}"
+        """Start processing job on Google Cloud."""
+        try:
+            if not job_config.get('video_url'):
+                raise ValueError("Missing video_url in job config")
+            
+            logger.warning("GCP Cloud Functions processing not implemented - falling back to local")
+            raise NotImplementedError("Cloud processing not available - using local fallback")
+            
+        except Exception as e:
+            logger.error(f"GCP job start failed: {e}")
+            raise e
     
     async def get_job_status(self, job_id: str) -> Dict:
-        return {'status': 'completed', 'progress': 100}
+        """Get Google Cloud job status."""
+        try:
+            if not job_id:
+                raise ValueError("Missing job_id")
+            
+            logger.warning("GCP job status not implemented")
+            return {'status': 'failed', 'progress': 0, 'error': 'Cloud processing not available'}
+            
+        except Exception as e:
+            logger.error(f"GCP job status failed: {e}")
+            return {'status': 'failed', 'progress': 0, 'error': str(e)}
     
     async def download_results(self, job_id: str) -> Dict:
-        return {'status': 'success', 'results': {}}
+        """Download results from Google Cloud Storage."""
+        try:
+            if not job_id:
+                raise ValueError("Missing job_id")
+            
+            logger.warning("GCP result download not implemented")
+            return {'status': 'error', 'error': 'Cloud processing not available', 'results': {}}
+            
+        except Exception as e:
+            logger.error(f"GCP download failed: {e}")
+            return {'status': 'error', 'error': str(e), 'results': {}}
     
     async def cleanup_job(self, job_id: str):
-        pass
+        """Cleanup Google Cloud resources."""
+        try:
+            if not job_id:
+                logger.warning("No job_id provided for cleanup")
+                return
+            
+            logger.info(f"GCP cleanup requested for job {job_id} - no action needed (local processing)")
+            
+        except Exception as e:
+            logger.error(f"GCP cleanup failed: {e}")
     
     async def test_connection(self) -> bool:
-        return True
+        """Test Google Cloud connection."""
+        try:
+            logger.warning("GCP connection test not implemented - assuming offline")
+            return False  # Return False since not implemented
+            
+        except Exception as e:
+            logger.error(f"GCP connection test failed: {e}")
+            return False
 
 
 class AzureIntegration:
@@ -726,19 +844,79 @@ class AzureIntegration:
         self.config = config
     
     async def upload_video(self, video_path: str) -> str:
-        return f"https://storage.azure.com/video_{int(time.time())}.mp4"
+        """Upload video to Azure Blob Storage."""
+        try:
+            if not os.path.exists(video_path):
+                raise FileNotFoundError(f"Video file not found: {video_path}")
+            
+            file_size = os.path.getsize(video_path) / (1024 * 1024)  # MB
+            if file_size > 5000:  # 5GB limit
+                raise ValueError(f"File too large for upload: {file_size:.1f}MB")
+            
+            logger.warning("Azure Blob Storage upload not implemented - using local fallback")
+            return video_path  # Return local path as fallback
+            
+        except Exception as e:
+            logger.error(f"Azure upload failed: {e}")
+            return video_path
     
     async def start_processing_job(self, job_config: Dict) -> str:
-        return f"azure_job_{int(time.time())}"
+        """Start processing job on Azure."""
+        try:
+            if not job_config.get('video_url'):
+                raise ValueError("Missing video_url in job config")
+            
+            logger.warning("Azure Functions processing not implemented - falling back to local")
+            raise NotImplementedError("Cloud processing not available - using local fallback")
+            
+        except Exception as e:
+            logger.error(f"Azure job start failed: {e}")
+            raise e
     
     async def get_job_status(self, job_id: str) -> Dict:
-        return {'status': 'completed', 'progress': 100}
+        """Get Azure job status."""
+        try:
+            if not job_id:
+                raise ValueError("Missing job_id")
+            
+            logger.warning("Azure job status not implemented")
+            return {'status': 'failed', 'progress': 0, 'error': 'Cloud processing not available'}
+            
+        except Exception as e:
+            logger.error(f"Azure job status failed: {e}")
+            return {'status': 'failed', 'progress': 0, 'error': str(e)}
     
     async def download_results(self, job_id: str) -> Dict:
-        return {'status': 'success', 'results': {}}
+        """Download results from Azure Blob Storage."""
+        try:
+            if not job_id:
+                raise ValueError("Missing job_id")
+            
+            logger.warning("Azure result download not implemented")
+            return {'status': 'error', 'error': 'Cloud processing not available', 'results': {}}
+            
+        except Exception as e:
+            logger.error(f"Azure download failed: {e}")
+            return {'status': 'error', 'error': str(e), 'results': {}}
     
     async def cleanup_job(self, job_id: str):
-        pass
+        """Cleanup Azure resources."""
+        try:
+            if not job_id:
+                logger.warning("No job_id provided for cleanup")
+                return
+            
+            logger.info(f"Azure cleanup requested for job {job_id} - no action needed (local processing)")
+            
+        except Exception as e:
+            logger.error(f"Azure cleanup failed: {e}")
     
     async def test_connection(self) -> bool:
-        return True
+        """Test Azure connection."""
+        try:
+            logger.warning("Azure connection test not implemented - assuming offline")
+            return False  # Return False since not implemented
+            
+        except Exception as e:
+            logger.error(f"Azure connection test failed: {e}")
+            return False

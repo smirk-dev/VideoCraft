@@ -20,6 +20,7 @@
 ## 📋 Table of Contents
 
 - [🎯 Project Overview](#-project-overview)
+- [📁 Project Structure](#-project-structure)
 - [✨ Core Features](#-core-features)
 - [🤖 AI Models & Technologies](#-ai-models--technologies)
 - [🚀 Installation & Setup](#-installation--setup)
@@ -30,6 +31,58 @@
 - [📊 Performance](#-performance)
 - [🤝 Contributing](#-contributing)
 - [📄 License](#-license)
+
+---
+
+## 📁 Project Structure
+
+```
+VideoCraft/
+├── 📄 main.py                     # Main Streamlit application
+├── 📄 config.yaml                 # Configuration settings
+├── 📄 requirements.txt            # Python dependencies
+├── 📄 LICENSE                     # Project license
+├── 📄 README.md                   # This file
+│
+├── 📁 src/                        # Core source code
+│   ├── 📁 ai_models/              # AI/ML models
+│   │   ├── emotion_detector.py    # Emotion detection system
+│   │   ├── sentiment_analyzer.py  # Text sentiment analysis
+│   │   ├── visual_analyzer.py     # Computer vision models
+│   │   └── user_learning_system.py # Personalization AI
+│   │
+│   ├── 📁 processors/             # Data processing modules
+│   │   ├── audio_analyzer.py      # Audio analysis & processing
+│   │   ├── scene_detector.py      # Scene change detection
+│   │   ├── script_parser.py       # Script/subtitle parsing
+│   │   └── video_analyzer.py      # Video content analysis
+│   │
+│   ├── 📁 suggestions/            # AI suggestion engines
+│   │   ├── cut_suggester.py       # Intelligent cut recommendations
+│   │   └── transition_recommender.py # Transition suggestions
+│   │
+│   ├── 📁 ui/                     # User interface components
+│   │   ├── suggestion_panel.py    # Suggestions display
+│   │   └── timeline_viewer.py     # Timeline visualization
+│   │
+│   └── 📁 utils/                  # Utility modules
+│       ├── cloud_integration.py   # Cloud processing support
+│       ├── file_handler.py        # File I/O operations
+│       └── timeline_sync.py       # Timeline synchronization
+│
+├── 📁 docs/                       # Documentation & reports
+│   ├── 📁 reports/                # Analysis & performance reports
+│   ├── 📁 fixes/                  # Development fix logs
+│   └── 📄 README.md               # Documentation index
+│
+├── 📁 scripts/                    # Development & testing scripts
+│   ├── 📁 setup/                  # Setup & installation utilities
+│   ├── 📁 test_scripts/           # Testing & validation scripts
+│   └── 📄 README.md               # Scripts directory guide
+│
+└── 📁 tests/                      # Unit & integration tests
+    └── test_*.py                  # Test modules
+```
 
 ---
 

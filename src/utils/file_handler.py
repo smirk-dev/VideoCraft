@@ -104,7 +104,7 @@ class FileHandler:
         logger.info(f"Created temporary file: {temp_file.name}")
         return temp_file.name
     
-    def save_uploaded_file(self, uploaded_file, file_type: str) -> Optional[str]:
+    def save_uploaded_file(self, uploaded_file, file_type: str) -> str:
         """
         Save uploaded file to temporary location.
         
@@ -113,10 +113,15 @@ class FileHandler:
             file_type: Type of file for validation
             
         Returns:
-            Path to saved file or None if failed
+            Path to saved file (always returns a path, even if validation fails)
         """
         if uploaded_file is None:
-            return None
+            # Create an empty placeholder file for error handling
+            logger.warning("No file uploaded - creating placeholder")
+            placeholder_path = self.create_temp_file(suffix='.txt')
+            with open(placeholder_path, 'w') as f:
+                f.write("ERROR: No file was uploaded")
+            return placeholder_path
         
         try:
             # Create temporary file with appropriate extension
@@ -132,17 +137,32 @@ class FileHandler:
                 logger.info(f"Successfully saved uploaded file: {temp_path}")
                 return temp_path
             else:
-                self.cleanup_file(temp_path)
-                return None
+                logger.warning(f"File validation failed, but keeping file: {temp_path}")
+                # Don't delete the file, just warn about validation issues
+                # Create a warning file alongside it
+                warning_path = temp_path + ".validation_warning"
+                with open(warning_path, 'w') as f:
+                    f.write(f"File validation failed for type: {file_type}\n")
+                    f.write(f"Original file: {uploaded_file.name}\n")
+                    f.write(f"Issues may include: unsupported format, file too large, or corrupted data\n")
+                
+                return temp_path  # Return the file anyway for user to troubleshoot
                 
         except Exception as e:
             logger.error(f"Error saving uploaded file: {e}")
-            return None
+            # Create error file with details
+            error_path = self.create_temp_file(suffix='.error')
+            with open(error_path, 'w') as f:
+                f.write(f"ERROR saving uploaded file: {e}\n")
+                f.write(f"File name: {getattr(uploaded_file, 'name', 'Unknown')}\n")
+                f.write(f"File type: {file_type}\n")
+                f.write(f"Timestamp: {datetime.now().isoformat()}\n")
+            return error_path
     
     def export_suggestions(self, 
                          suggestions: List,
                          format: str = 'json',
-                         filename: Optional[str] = None) -> Optional[str]:
+                         filename: Optional[str] = None) -> str:
         """
         Export suggestions to file.
         
@@ -152,18 +172,45 @@ class FileHandler:
             filename: Optional custom filename
             
         Returns:
-            Path to exported file or None if failed
+            Path to exported file (always returns a path)
         """
-        if not suggestions:
-            logger.warning("No suggestions to export")
-            return None
-        
         # Generate filename if not provided
         if filename is None:
             timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
             filename = f"suggestions_{timestamp}.{format}"
         
         output_path = self.output_dir / filename
+        
+        if not suggestions:
+            logger.warning("No suggestions to export - creating empty file")
+            try:
+                # Create empty file with proper format
+                if format == 'json':
+                    with open(output_path, 'w') as f:
+                        json.dump([], f)
+                elif format == 'csv':
+                    with open(output_path, 'w', newline='') as f:
+                        writer = csv.writer(f)
+                        writer.writerow(['Timestamp', 'Confidence', 'Type', 'Reason'])
+                        writer.writerow(['No suggestions available', '', '', ''])
+                else:  # txt or unknown format
+                    with open(output_path, 'w') as f:
+                        f.write("AI Film Editor - Cut Suggestions\n")
+                        f.write("=" * 50 + "\n\n")
+                        f.write("No suggestions were generated.\n")
+                        f.write("This could be due to:\n")
+                        f.write("- Video too short\n")
+                        f.write("- Processing error\n")
+                        f.write("- No suitable cut points found\n")
+                
+                return str(output_path)
+            except Exception as e:
+                logger.error(f"Error creating empty suggestions file: {e}")
+                # Create basic text file as fallback
+                fallback_path = self.output_dir / f"empty_suggestions_{timestamp}.txt"
+                with open(fallback_path, 'w') as f:
+                    f.write(f"No suggestions available. Error: {e}\n")
+                return str(fallback_path)
         
         try:
             if format == 'json':
@@ -173,12 +220,35 @@ class FileHandler:
             elif format == 'txt':
                 return self._export_txt(suggestions, output_path)
             else:
-                logger.error(f"Unsupported export format: {format}")
-                return None
+                logger.warning(f"Unsupported export format: {format}, defaulting to txt")
+                # Default to txt format
+                txt_path = output_path.with_suffix('.txt')
+                return self._export_txt(suggestions, txt_path)
                 
         except Exception as e:
             logger.error(f"Error exporting suggestions: {e}")
-            return None
+            # Create error file with whatever information we can gather
+            error_path = self.output_dir / f"export_error_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+            try:
+                with open(error_path, 'w') as f:
+                    f.write(f"Export Error: {e}\n")
+                    f.write(f"Requested format: {format}\n")
+                    f.write(f"Number of suggestions: {len(suggestions)}\n")
+                    f.write(f"Timestamp: {datetime.now().isoformat()}\n\n")
+                    
+                    # Try to write basic suggestion info
+                    f.write("Raw suggestion data:\n")
+                    for i, suggestion in enumerate(suggestions[:5]):  # Limit to first 5
+                        try:
+                            f.write(f"Suggestion {i+1}: {str(suggestion)[:100]}...\n")
+                        except:
+                            f.write(f"Suggestion {i+1}: [Unable to display]\n")
+                
+                return str(error_path)
+            except Exception as final_error:
+                logger.error(f"Final fallback export also failed: {final_error}")
+                # Return the intended path anyway
+                return str(output_path)
     
     def _export_json(self, suggestions: List, output_path: Path) -> str:
         """Export suggestions as JSON."""

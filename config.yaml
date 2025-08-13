@@ -76,6 +76,7 @@ ui:
   sidebar_width: 300
   timeline_height: 400
   suggestion_panel_height: 300
+  thumbnail_width: 300
   enable_real_time_preview: true
   auto_save_interval: 300  # seconds
 

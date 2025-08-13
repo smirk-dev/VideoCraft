@@ -333,25 +333,47 @@ class SuggestionPanel:
     def render_batch_actions(self, selected_suggestions: List) -> Dict:
         """Render batch action controls for selected suggestions."""
         if not selected_suggestions:
-            return {}
+            st.info("Select suggestions above to enable batch actions")
+            return {'action': 'none', 'suggestions': [], 'status': 'no_selection'}
         
         st.subheader(f"🎯 Batch Actions ({len(selected_suggestions)} selected)")
         
-        col1, col2, col3 = st.columns(3)
+        col1, col2, col3, col4 = st.columns(4)
         
         with col1:
             if st.button("Apply All Cuts", type="primary"):
-                return {'action': 'apply_all', 'suggestions': selected_suggestions}
+                st.success(f"Applying {len(selected_suggestions)} cuts to timeline")
+                return {'action': 'apply_all', 'suggestions': selected_suggestions, 'status': 'success'}
         
         with col2:
             if st.button("Export Cut List"):
-                return {'action': 'export', 'suggestions': selected_suggestions}
+                st.info(f"Exporting {len(selected_suggestions)} cuts")
+                return {'action': 'export', 'suggestions': selected_suggestions, 'status': 'export_requested'}
         
         with col3:
-            if st.button("Clear Selection"):
-                return {'action': 'clear', 'suggestions': []}
+            if st.button("Preview All"):
+                st.info(f"Previewing {len(selected_suggestions)} cuts")
+                return {'action': 'preview_all', 'suggestions': selected_suggestions, 'status': 'preview_requested'}
         
-        return {}
+        with col4:
+            if st.button("Clear Selection"):
+                st.warning("Selection cleared")
+                return {'action': 'clear', 'suggestions': [], 'status': 'cleared'}
+        
+        # Show summary of selected suggestions
+        with st.expander("📋 Selection Summary", expanded=False):
+            total_duration = sum(getattr(s, 'duration', 1.0) for s in selected_suggestions)
+            avg_confidence = sum(getattr(s, 'confidence', 0.5) for s in selected_suggestions) / len(selected_suggestions)
+            
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.metric("Selected Cuts", len(selected_suggestions))
+            with col2:
+                st.metric("Avg Confidence", f"{avg_confidence:.1%}")
+            with col3:
+                st.metric("Total Duration", f"{total_duration:.1f}s")
+        
+        return {'action': 'none', 'suggestions': selected_suggestions, 'status': 'pending'}
     
     def render_suggestion_analytics(self, suggestions: List):
         """Render analytics panel for suggestions."""

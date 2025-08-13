@@ -559,60 +559,352 @@ class AIUserLearningSystem:
 class CutTimingLearner:
     """Learns user preferences for cut timing."""
     
+    def __init__(self):
+        self.timing_preferences = {
+            'preferred_cut_duration': 3.0,  # seconds
+            'min_cut_duration': 1.0,
+            'max_cut_duration': 10.0,
+            'confidence': 0.1
+        }
+    
     def update(self, action: UserAction):
         """Update cut timing preferences based on user action."""
-        # Implementation for learning cut timing preferences
-        pass
+        try:
+            if action.action_type in ['cut_approval', 'cut_edit']:
+                action_data = action.action_data
+                
+                # Extract timing information
+                if 'cut_duration' in action_data:
+                    duration = action_data['cut_duration']
+                    
+                    # Update preferred duration with weighted average
+                    current_pref = self.timing_preferences['preferred_cut_duration']
+                    weight = 0.1  # Learning rate
+                    
+                    if action.action_type == 'cut_approval':
+                        # User approved this duration - move towards it
+                        self.timing_preferences['preferred_cut_duration'] = (
+                            current_pref * (1 - weight) + duration * weight
+                        )
+                    elif action.action_type == 'cut_edit':
+                        # User edited - learn from the final duration
+                        final_duration = action_data.get('final_duration', duration)
+                        self.timing_preferences['preferred_cut_duration'] = (
+                            current_pref * (1 - weight) + final_duration * weight
+                        )
+                    
+                    # Update confidence
+                    self.timing_preferences['confidence'] = min(
+                        self.timing_preferences['confidence'] + 0.1, 1.0
+                    )
+                    
+                    logger.info(f"Updated cut timing preference: {self.timing_preferences['preferred_cut_duration']:.2f}s")
+                    
+        except Exception as e:
+            logger.error(f"Error updating cut timing preferences: {e}")
     
     def adjust_suggestion(self, suggestion: Dict, user_profile: Dict, context: Dict) -> Dict:
         """Adjust cut timing based on learned preferences."""
-        # Implementation for adjusting cut timing
-        return {}
+        try:
+            adjustments = {}
+            
+            if self.timing_preferences['confidence'] > 0.3:
+                current_duration = suggestion.get('duration', 3.0)
+                preferred_duration = self.timing_preferences['preferred_cut_duration']
+                
+                # Adjust duration towards user preference
+                adjustment_factor = 0.3 * self.timing_preferences['confidence']
+                new_duration = (
+                    current_duration * (1 - adjustment_factor) + 
+                    preferred_duration * adjustment_factor
+                )
+                
+                adjustments['duration'] = new_duration
+                adjustments['timing_confidence'] = self.timing_preferences['confidence']
+                
+            return adjustments
+            
+        except Exception as e:
+            logger.error(f"Error adjusting cut timing: {e}")
+            return {}
 
 
 class TransitionStyleLearner:
     """Learns user preferences for transition styles."""
     
+    def __init__(self):
+        self.style_preferences = {
+            'preferred_styles': {'cut': 0.7, 'fade': 0.2, 'dissolve': 0.1},
+            'style_confidence': 0.1
+        }
+    
     def update(self, action: UserAction):
         """Update transition style preferences."""
-        pass
+        try:
+            if action.action_type in ['transition_selection', 'transition_edit']:
+                action_data = action.action_data
+                
+                if 'transition_type' in action_data:
+                    transition_type = action_data['transition_type']
+                    
+                    # Increase preference for selected/approved transitions
+                    current_prefs = self.style_preferences['preferred_styles']
+                    
+                    if action.action_type == 'transition_selection':
+                        # Boost selected transition
+                        for style in current_prefs:
+                            if style == transition_type:
+                                current_prefs[style] = min(current_prefs[style] + 0.05, 1.0)
+                            else:
+                                current_prefs[style] = max(current_prefs[style] - 0.01, 0.0)
+                    
+                    # Normalize preferences
+                    total = sum(current_prefs.values())
+                    if total > 0:
+                        for style in current_prefs:
+                            current_prefs[style] /= total
+                    
+                    # Update confidence
+                    self.style_preferences['style_confidence'] = min(
+                        self.style_preferences['style_confidence'] + 0.1, 1.0
+                    )
+                    
+                    logger.info(f"Updated transition preferences: {current_prefs}")
+                    
+        except Exception as e:
+            logger.error(f"Error updating transition preferences: {e}")
     
     def adjust_suggestion(self, suggestion: Dict, user_profile: Dict, context: Dict) -> Dict:
         """Adjust transition style based on preferences."""
-        return {}
+        try:
+            adjustments = {}
+            
+            if self.style_preferences['style_confidence'] > 0.3:
+                current_style = suggestion.get('transition_type', 'cut')
+                preferred_styles = self.style_preferences['preferred_styles']
+                
+                # Find best matching style
+                best_style = max(preferred_styles.items(), key=lambda x: x[1])
+                
+                if best_style[1] > 0.5:  # Strong preference
+                    adjustments['transition_type'] = best_style[0]
+                    adjustments['style_confidence'] = self.style_preferences['style_confidence']
+                
+            return adjustments
+            
+        except Exception as e:
+            logger.error(f"Error adjusting transition style: {e}")
+            return {}
 
 
 class ContentPreferenceLearner:
     """Learns user content preferences."""
     
+    def __init__(self):
+        self.content_preferences = {
+            'preferred_content_types': defaultdict(float),
+            'scene_preferences': defaultdict(float),
+            'confidence': 0.1
+        }
+    
     def update(self, action: UserAction):
         """Update content preferences."""
-        pass
+        try:
+            if action.action_type in ['content_rating', 'scene_approval']:
+                action_data = action.action_data
+                context = action.context
+                
+                # Learn from content ratings
+                if 'content_type' in context:
+                    content_type = context['content_type']
+                    rating = action_data.get('rating', 3)
+                    
+                    # Update preference based on rating (1-5 scale)
+                    normalized_rating = (rating - 3) / 2  # Convert to -1 to 1
+                    self.content_preferences['preferred_content_types'][content_type] += normalized_rating * 0.1
+                
+                # Learn from scene approvals
+                if 'scene_type' in context:
+                    scene_type = context['scene_type']
+                    if action.action_type == 'scene_approval':
+                        self.content_preferences['scene_preferences'][scene_type] += 0.1
+                
+                # Update confidence
+                self.content_preferences['confidence'] = min(
+                    self.content_preferences['confidence'] + 0.05, 1.0
+                )
+                
+        except Exception as e:
+            logger.error(f"Error updating content preferences: {e}")
     
     def adjust_suggestion(self, suggestion: Dict, user_profile: Dict, context: Dict) -> Dict:
         """Adjust based on content preferences."""
-        return {}
+        try:
+            adjustments = {}
+            
+            if self.content_preferences['confidence'] > 0.2:
+                scene_type = context.get('scene_type')
+                if scene_type and scene_type in self.content_preferences['scene_preferences']:
+                    preference_score = self.content_preferences['scene_preferences'][scene_type]
+                    
+                    if preference_score > 0.3:
+                        # Boost confidence for preferred content
+                        adjustments['content_boost'] = 1.2
+                    elif preference_score < -0.3:
+                        # Reduce confidence for disliked content
+                        adjustments['content_boost'] = 0.8
+                    else:
+                        adjustments['content_boost'] = 1.0
+            
+            return adjustments
+            
+        except Exception as e:
+            logger.error(f"Error adjusting content preferences: {e}")
+            return {}
 
 
 class EditingPaceLearner:
     """Learns user editing pace preferences."""
     
+    def __init__(self):
+        self.pace_preferences = {
+            'preferred_pace': 'medium',  # slow, medium, fast
+            'cuts_per_minute': 10.0,
+            'confidence': 0.1
+        }
+    
     def update(self, action: UserAction):
         """Update editing pace preferences."""
-        pass
+        try:
+            if action.action_type in ['timeline_navigation', 'editing_speed']:
+                action_data = action.action_data
+                
+                # Learn from editing speed
+                if 'cuts_per_minute' in action_data:
+                    cpm = action_data['cuts_per_minute']
+                    current_cpm = self.pace_preferences['cuts_per_minute']
+                    
+                    # Weighted average
+                    self.pace_preferences['cuts_per_minute'] = (
+                        current_cpm * 0.9 + cpm * 0.1
+                    )
+                    
+                    # Classify pace
+                    if self.pace_preferences['cuts_per_minute'] < 5:
+                        self.pace_preferences['preferred_pace'] = 'slow'
+                    elif self.pace_preferences['cuts_per_minute'] > 15:
+                        self.pace_preferences['preferred_pace'] = 'fast'
+                    else:
+                        self.pace_preferences['preferred_pace'] = 'medium'
+                
+                # Update confidence
+                self.pace_preferences['confidence'] = min(
+                    self.pace_preferences['confidence'] + 0.1, 1.0
+                )
+                
+        except Exception as e:
+            logger.error(f"Error updating pace preferences: {e}")
     
     def adjust_suggestion(self, suggestion: Dict, user_profile: Dict, context: Dict) -> Dict:
         """Adjust based on editing pace."""
-        return {}
+        try:
+            adjustments = {}
+            
+            if self.pace_preferences['confidence'] > 0.3:
+                preferred_pace = self.pace_preferences['preferred_pace']
+                
+                # Adjust number of cuts based on pace preference
+                current_cuts = suggestion.get('estimated_cuts', 10)
+                
+                if preferred_pace == 'fast':
+                    adjustments['estimated_cuts'] = int(current_cuts * 1.3)
+                elif preferred_pace == 'slow':
+                    adjustments['estimated_cuts'] = int(current_cuts * 0.7)
+                
+                adjustments['pace_preference'] = preferred_pace
+            
+            return adjustments
+            
+        except Exception as e:
+            logger.error(f"Error adjusting editing pace: {e}")
+            return {}
 
 
 class QualityStandardsLearner:
     """Learns user quality standards."""
     
+    def __init__(self):
+        self.quality_preferences = {
+            'min_confidence_threshold': 0.5,
+            'quality_vs_speed': 0.5,  # 0 = speed, 1 = quality
+            'confidence': 0.1
+        }
+    
     def update(self, action: UserAction):
         """Update quality standards."""
-        pass
+        try:
+            if action.action_type in ['quality_rating', 'export_settings']:
+                action_data = action.action_data
+                
+                # Learn from quality ratings
+                if 'quality_rating' in action_data:
+                    rating = action_data['quality_rating']
+                    confidence = action_data.get('suggestion_confidence', 0.5)
+                    
+                    # If user rated low quality highly, lower threshold
+                    # If user rated high quality lowly, raise threshold
+                    if rating >= 4 and confidence < self.quality_preferences['min_confidence_threshold']:
+                        self.quality_preferences['min_confidence_threshold'] -= 0.05
+                    elif rating <= 2 and confidence > self.quality_preferences['min_confidence_threshold']:
+                        self.quality_preferences['min_confidence_threshold'] += 0.05
+                
+                # Learn from export settings
+                if 'export_quality' in action_data:
+                    export_quality = action_data['export_quality']
+                    if export_quality in ['high', 'ultra']:
+                        self.quality_preferences['quality_vs_speed'] += 0.1
+                    elif export_quality in ['fast', 'draft']:
+                        self.quality_preferences['quality_vs_speed'] -= 0.1
+                
+                # Clamp values
+                self.quality_preferences['min_confidence_threshold'] = max(0.1, min(0.9, 
+                    self.quality_preferences['min_confidence_threshold']))
+                self.quality_preferences['quality_vs_speed'] = max(0.0, min(1.0,
+                    self.quality_preferences['quality_vs_speed']))
+                
+                # Update confidence
+                self.quality_preferences['confidence'] = min(
+                    self.quality_preferences['confidence'] + 0.1, 1.0
+                )
+                
+        except Exception as e:
+            logger.error(f"Error updating quality standards: {e}")
     
     def adjust_suggestion(self, suggestion: Dict, user_profile: Dict, context: Dict) -> Dict:
         """Adjust based on quality standards."""
-        return {}
+        try:
+            adjustments = {}
+            
+            if self.quality_preferences['confidence'] > 0.3:
+                min_threshold = self.quality_preferences['min_confidence_threshold']
+                current_confidence = suggestion.get('confidence', 0.5)
+                
+                # Filter out suggestions below user's quality threshold
+                if current_confidence < min_threshold:
+                    adjustments['quality_filtered'] = True
+                    adjustments['reason'] = 'Below user quality threshold'
+                
+                # Adjust processing quality based on preference
+                quality_pref = self.quality_preferences['quality_vs_speed']
+                if quality_pref > 0.7:
+                    adjustments['processing_quality'] = 'high'
+                elif quality_pref < 0.3:
+                    adjustments['processing_quality'] = 'fast'
+                else:
+                    adjustments['processing_quality'] = 'balanced'
+                
+            return adjustments
+            
+        except Exception as e:
+            logger.error(f"Error adjusting quality standards: {e}")
+            return {}

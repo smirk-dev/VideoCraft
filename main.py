@@ -344,7 +344,7 @@ def generate_video_thumbnail(video_path, output_path=None, timestamp=1.0):
             # Resize for thumbnail
             height, width = frame_rgb.shape[:2]
             aspect_ratio = width / height
-            thumbnail_width = 300
+            thumbnail_width = 300  # Use default since config not available in this scope
             thumbnail_height = int(thumbnail_width / aspect_ratio)
             
             thumbnail = cv2.resize(frame_rgb, (thumbnail_width, thumbnail_height))
@@ -810,16 +810,49 @@ def main():
         # Display upload progress, file info, and thumbnail
         if video_file is not None:
             file_size_mb = video_file.size / (1024 * 1024)
-            if file_size_mb > 2048:
-                st.error(f"⚠️ File too large: {file_size_mb:.1f}MB. Maximum allowed: 2048MB (2GB)")
+            max_size_mb = config.get('file_limits', {}).get('max_video_size_mb', 4096)
+            
+            # Comprehensive file validation
+            validation_errors = []
+            
+            # Check file size
+            if file_size_mb > max_size_mb:
+                validation_errors.append(f"File too large: {file_size_mb:.1f}MB. Maximum allowed: {max_size_mb}MB")
+            
+            # Check file extension
+            allowed_extensions = config.get('video', {}).get('supported_formats', ['.mp4', '.avi', '.mov', '.mkv', '.webm'])
+            file_ext = '.' + video_file.name.split('.')[-1].lower()
+            if file_ext not in allowed_extensions:
+                validation_errors.append(f"Unsupported format: {file_ext}. Allowed: {', '.join(allowed_extensions)}")
+            
+            # Check minimum file size (1MB minimum)
+            if file_size_mb < 1:
+                validation_errors.append(f"File too small: {file_size_mb:.1f}MB. Minimum size: 1MB")
+            
+            # Display validation results
+            if validation_errors:
+                for error in validation_errors:
+                    st.error(f"⚠️ {error}")
+                st.warning("Please upload a valid video file that meets all requirements.")
             else:
                 st.success(f"✅ Video loaded: {file_size_mb:.1f}MB")
+                
+                # Display file metadata
+                with st.expander("📋 File Information", expanded=False):
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.write(f"**Filename:** {video_file.name}")
+                        st.write(f"**Size:** {file_size_mb:.1f} MB")
+                        st.write(f"**Format:** {file_ext.upper()}")
+                    with col2:
+                        st.write(f"**Status:** ✅ Valid")
+                        st.write(f"**Validation:** Passed all checks")
                 
                 # Generate and display thumbnail
                 with st.expander("📺 Video Preview", expanded=True):
                     try:
                         # Save uploaded file temporarily for thumbnail generation
-                        with tempfile.NamedTemporaryFile(delete=False, suffix='.mp4') as tmp_file:
+                        with tempfile.NamedTemporaryFile(delete=False, suffix=file_ext) as tmp_file:
                             tmp_file.write(video_file.getvalue())
                             temp_path = tmp_file.name
                         
@@ -827,12 +860,13 @@ def main():
                         if thumbnail:
                             st.image(thumbnail, caption="Video Thumbnail", use_column_width=True)
                         else:
-                            st.info("Could not generate thumbnail")
+                            st.info("Could not generate thumbnail - file may be corrupted or in an unsupported codec")
                         
                         # Clean up temporary file
                         os.unlink(temp_path)
                     except Exception as e:
                         st.warning(f"Thumbnail generation failed: {e}")
+                        st.info("This may indicate a corrupted file or unsupported codec")
         
         # Script file upload
         script_file = st.file_uploader(
@@ -1463,14 +1497,26 @@ def main():
                                     try:
                                         # Filter suggestions by confidence
                                         export_cuts = [s for s in selected_suggestions if s.confidence >= confidence_filter]
+                                        # Extract video properties
+                                        try:
+                                            cap = cv2.VideoCapture(video_path)
+                                            video_fps = cap.get(cv2.CAP_PROP_FPS) or config.get('video', {}).get('fps_target', 30)
+                                            video_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)) or 1920
+                                            video_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)) or 1080
+                                            cap.release()
+                                        except Exception as e:
+                                            logger.warning(f"Could not extract video properties: {e}")
+                                            video_fps = config.get('video', {}).get('fps_target', 30)
+                                            video_width = 1920
+                                            video_height = 1080
                                         
                                         # Prepare video metadata
                                         video_metadata = {
                                             'file_path': video_file.name,
                                             'duration': total_duration,
-                                            'fps': 30,  # Default, should be extracted from video
-                                            'width': 1920,  # Default, should be extracted
-                                            'height': 1080,  # Default, should be extracted
+                                            'fps': video_fps,
+                                            'width': video_width,
+                                            'height': video_height,
                                             'processing_time': time.time() - current_step  # Approximate
                                         }
                                         

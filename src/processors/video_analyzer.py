@@ -25,6 +25,23 @@ class VideoAnalyzer:
         self.config = config
         self.video_config = config.get('video', {})
         
+        # Get configurable video processing parameters
+        self.fps_target = self.video_config.get('fps_target', 30)
+        self.max_resolution = tuple(self.video_config.get('max_resolution', [1920, 1080]))
+        self.frame_extraction_interval = self.video_config.get('frame_extraction_interval', 1.0)
+        self.max_duration = self.video_config.get('max_duration', 7200)
+        
+        # Get AI processing parameters
+        ai_config = config.get('ai_models', {})
+        self.confidence_threshold = ai_config.get('confidence_threshold', 0.7)
+        self.batch_size = ai_config.get('batch_size', 8)
+        self.use_gpu = ai_config.get('use_gpu', torch.cuda.is_available())
+        
+        # Get suggestion parameters
+        suggestion_config = config.get('suggestions', {})
+        self.scene_change_threshold = suggestion_config.get('scene_change_threshold', 0.4)
+        self.min_segment_length = suggestion_config.get('min_segment_length', 2.0)
+        
         # Initialize offline model manager
         self.offline_manager = OfflineModelManager(config)
         

@@ -287,7 +287,14 @@ class TimelineSync:
         """Get video features at specific time point."""
         # Find closest feature point
         if not features:
-            return {}
+            logger.warning(f"No features available for time point {time_point}")
+            return {
+                'timestamp': time_point,
+                'scene_type': 'unknown',
+                'confidence': 0.0,
+                'status': 'no_data_available',
+                'interpolated': True
+            }
         
         closest_feature = None
         min_distance = float('inf')
@@ -303,29 +310,112 @@ class TimelineSync:
                 min_distance = distance
                 closest_feature = feature
         
-        return closest_feature if isinstance(closest_feature, dict) else {'timestamp': closest_feature}
+        # Return the closest feature or create a default one
+        if isinstance(closest_feature, dict):
+            result = closest_feature.copy()
+            result['distance_from_query'] = min_distance
+            result['interpolated'] = min_distance > 1.0  # Mark as interpolated if > 1 second away
+            return result
+        else:
+            return {
+                'timestamp': closest_feature if closest_feature is not None else time_point,
+                'scene_type': 'default',
+                'confidence': 0.3,
+                'status': 'basic_timestamp_only',
+                'distance_from_query': min_distance,
+                'interpolated': True
+            }
     
     def _get_audio_features_at_time(self, time_point: float, audio_timeline: List[Dict]) -> Dict:
         """Get audio features at specific time point."""
+        # First try exact match
         for audio_item in audio_timeline:
             start_time = audio_item.get('start_time', 0)
             end_time = audio_item.get('end_time', start_time + 5)
             
             if start_time <= time_point <= end_time:
-                return audio_item
+                result = audio_item.copy()
+                result['exact_match'] = True
+                return result
         
-        return {}
+        # If no exact match, find closest
+        if audio_timeline:
+            closest_item = None
+            min_distance = float('inf')
+            
+            for audio_item in audio_timeline:
+                start_time = audio_item.get('start_time', 0)
+                distance = abs(start_time - time_point)
+                
+                if distance < min_distance:
+                    min_distance = distance
+                    closest_item = audio_item
+            
+            if closest_item:
+                result = closest_item.copy()
+                result['exact_match'] = False
+                result['distance_from_query'] = min_distance
+                result['interpolated'] = min_distance > 2.0
+                return result
+        
+        # No audio data available - return silence default
+        logger.warning(f"No audio features available for time point {time_point}")
+        return {
+            'timestamp': time_point,
+            'emotion': 'neutral',
+            'confidence': 0.0,
+            'energy': 0.0,
+            'speaker': 'unknown',
+            'status': 'no_audio_data',
+            'exact_match': False,
+            'interpolated': True
+        }
     
     def _get_script_features_at_time(self, time_point: float, dialogue_data: List[Dict]) -> Dict:
         """Get script features at specific time point."""
+        # First try exact match
         for dialogue_item in dialogue_data:
             start_time = dialogue_item.get('estimated_start_time', 0)
             end_time = dialogue_item.get('estimated_end_time', start_time + 2)
             
             if start_time <= time_point <= end_time:
-                return dialogue_item
+                result = dialogue_item.copy()
+                result['exact_match'] = True
+                return result
         
-        return {}
+        # If no exact match, find closest dialogue
+        if dialogue_data:
+            closest_item = None
+            min_distance = float('inf')
+            
+            for dialogue_item in dialogue_data:
+                start_time = dialogue_item.get('estimated_start_time', 0)
+                distance = abs(start_time - time_point)
+                
+                if distance < min_distance:
+                    min_distance = distance
+                    closest_item = dialogue_item
+            
+            if closest_item and min_distance < 10.0:  # Within 10 seconds
+                result = closest_item.copy()
+                result['exact_match'] = False
+                result['distance_from_query'] = min_distance
+                result['interpolated'] = True
+                return result
+        
+        # No script data available - return silence/action default
+        logger.debug(f"No script features available for time point {time_point}")
+        return {
+            'timestamp': time_point,
+            'dialogue': '',
+            'speaker': 'none',
+            'emotion': 'neutral',
+            'scene_type': 'action',
+            'confidence': 0.0,
+            'status': 'no_script_data',
+            'exact_match': False,
+            'interpolated': True
+        }
     
     def _extract_event_timestamps(self, events: List) -> List[float]:
         """Extract timestamps from event list."""
