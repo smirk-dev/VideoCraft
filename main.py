@@ -73,36 +73,135 @@ def load_config():
         return None
 
 def initialize_components(config):
-    """Initialize all processing components with advanced AI features."""
+    """Initialize all processing components with advanced AI features and offline fallbacks."""
     try:
-        components = {
-            'video_analyzer': VideoAnalyzer(config),
-            'script_parser': ScriptParser(config),
-            'audio_analyzer': AudioAnalyzer(config),
-            'scene_detector': SceneDetector(config),
-            'emotion_detector': EmotionDetector(config),
-            'advanced_emotion_detector': AdvancedEmotionDetector(config),
-            'video_editor': VideoEditor(config),
-            'realtime_processor': RealTimeProcessor(config),
-            'professional_exporter': ProfessionalExporter(config),
-            'cut_suggester': CutSuggester(config),
-            'transition_recommender': TransitionRecommender(config),
-            'timeline_viewer': TimelineViewer(config),
-            'suggestion_panel': SuggestionPanel(config),
-            'file_handler': FileHandler(config),
-            'timeline_sync': TimelineSync(config),
-            # Advanced AI components
-            'content_analyzer': IntelligentContentAnalyzer(config),
-            'music_sync': MusicSyncEngine(config),
-            'learning_system': AIUserLearningSystem(config),
-            'timeline_editor': InteractiveTimelineEditor(config),
-            'cloud_manager': CloudIntegrationManager(config)
-        }
+        # Import offline model manager for fallback support
+        from src.utils.offline_models import OfflineModelManager
+        
+        # Initialize offline manager first
+        offline_manager = OfflineModelManager(config)
+        
+        components = {}
+        
+        # Initialize components with error handling
+        try:
+            from src.processors.video_analyzer import VideoAnalyzer
+            components['video_analyzer'] = VideoAnalyzer(config)
+            logger.info("✅ Video analyzer initialized")
+        except Exception as e:
+            logger.warning(f"⚠️ Video analyzer failed to initialize: {e}")
+            components['video_analyzer'] = offline_manager.get_model('visual_analyzer')
+        
+        try:
+            from src.processors.script_parser import ScriptParser
+            components['script_parser'] = ScriptParser(config)
+            logger.info("✅ Script parser initialized")
+        except Exception as e:
+            logger.warning(f"⚠️ Script parser failed to initialize: {e}")
+            components['script_parser'] = offline_manager.get_model('nlp_processor')
+        
+        try:
+            from src.processors.audio_analyzer import AudioAnalyzer
+            components['audio_analyzer'] = AudioAnalyzer(config)
+            logger.info("✅ Audio analyzer initialized")
+        except Exception as e:
+            logger.warning(f"⚠️ Audio analyzer failed to initialize: {e}")
+            components['audio_analyzer'] = offline_manager.get_model('visual_analyzer')  # Basic fallback
+        
+        try:
+            from src.processors.scene_detector import SceneDetector
+            components['scene_detector'] = SceneDetector(config)
+            logger.info("✅ Scene detector initialized")
+        except Exception as e:
+            logger.warning(f"⚠️ Scene detector failed to initialize: {e}")
+            components['scene_detector'] = offline_manager.get_model('scene_detector')
+        
+        try:
+            from src.ai_models.emotion_detector import EmotionDetector
+            components['emotion_detector'] = EmotionDetector(config)
+            logger.info("✅ Emotion detector initialized")
+        except Exception as e:
+            logger.warning(f"⚠️ Emotion detector failed to initialize: {e}")
+            components['emotion_detector'] = offline_manager.get_model('emotion_detector')
+        
+        # Initialize remaining components with fallbacks
+        component_imports = [
+            ('advanced_emotion_detector', 'src.ai_models.advanced_emotion_detector', 'AdvancedEmotionDetector'),
+            ('video_editor', 'src.processors.video_editor', 'VideoEditor'),
+            ('realtime_processor', 'src.processors.realtime_processor', 'RealTimeProcessor'),
+            ('professional_exporter', 'src.exporters.professional_exporter', 'ProfessionalExporter'),
+            ('cut_suggester', 'src.suggestions.cut_suggester', 'CutSuggester'),
+            ('transition_recommender', 'src.suggestions.transition_recommender', 'TransitionRecommender'),
+            ('timeline_viewer', 'src.ui.timeline_viewer', 'TimelineViewer'),
+            ('suggestion_panel', 'src.ui.suggestion_panel', 'SuggestionPanel'),
+            ('file_handler', 'src.utils.file_handler', 'FileHandler'),
+            ('timeline_sync', 'src.utils.timeline_sync', 'TimelineSync'),
+        ]
+        
+        for component_name, module_path, class_name in component_imports:
+            try:
+                module = __import__(module_path, fromlist=[class_name])
+                component_class = getattr(module, class_name)
+                components[component_name] = component_class(config)
+                logger.info(f"✅ {component_name} initialized")
+            except Exception as e:
+                logger.warning(f"⚠️ {component_name} failed to initialize: {e}")
+                components[component_name] = offline_manager.get_model('visual_analyzer')  # Basic fallback
+        
+        # Initialize advanced AI components with extra error handling
+        advanced_components = [
+            ('content_analyzer', 'src.ai_models.intelligent_content_analyzer', 'IntelligentContentAnalyzer'),
+            ('music_sync', 'src.ai_models.music_sync_engine', 'MusicSyncEngine'),
+            ('learning_system', 'src.ai_models.user_learning_system', 'AIUserLearningSystem'),
+            ('timeline_editor', 'src.ui.interactive_timeline_editor', 'InteractiveTimelineEditor'),
+            ('cloud_manager', 'src.utils.cloud_integration', 'CloudIntegrationManager')
+        ]
+        
+        for component_name, module_path, class_name in advanced_components:
+            try:
+                module = __import__(module_path, fromlist=[class_name])
+                component_class = getattr(module, class_name)
+                components[component_name] = component_class(config)
+                logger.info(f"✅ {component_name} initialized")
+            except Exception as e:
+                logger.warning(f"⚠️ {component_name} failed to initialize, using fallback: {e}")
+                components[component_name] = offline_manager.get_model('visual_analyzer')  # Basic fallback
+        
+        # Add offline manager status info
+        components['offline_manager'] = offline_manager
+        
+        # Show initialization summary
+        online_count = sum(1 for name in components if not name.endswith('_fallback'))
+        total_count = len(components) - 1  # Exclude offline_manager
+        
+        if online_count == total_count:
+            logger.info(f"🚀 All {total_count} components initialized successfully!")
+        else:
+            fallback_count = total_count - online_count
+            logger.info(f"⚠️ {online_count}/{total_count} components initialized. {fallback_count} using fallbacks.")
+            st.warning(f"Some AI models are unavailable (offline mode). {online_count}/{total_count} components loaded successfully.")
+        
         return components
+        
     except Exception as e:
-        logger.error(f"Error initializing components: {e}")
-        st.error(f"Error initializing AI components: {e}")
-        return None
+        logger.error(f"Critical error initializing components: {e}")
+        st.error(f"Critical error initializing AI components: {e}")
+        
+        # Return minimal fallback system
+        try:
+            from src.utils.offline_models import OfflineModelManager
+            offline_manager = OfflineModelManager(config)
+            return {
+                'video_analyzer': offline_manager.get_model('visual_analyzer'),
+                'audio_analyzer': offline_manager.get_model('visual_analyzer'),
+                'emotion_detector': offline_manager.get_model('emotion_detector'),
+                'scene_detector': offline_manager.get_model('scene_detector'),
+                'script_parser': offline_manager.get_model('nlp_processor'),
+                'offline_manager': offline_manager
+            }
+        except Exception as fallback_error:
+            logger.error(f"Even fallback initialization failed: {fallback_error}")
+            return None
 
 def generate_video_thumbnail(video_path, output_path=None, timestamp=1.0):
     """Generate a thumbnail from video file."""
@@ -238,13 +337,16 @@ def create_advanced_filters():
     }
 
 def main():
-    """Main Streamlit application."""
-    st.set_page_config(
-        page_title="AI Film Editor",
-        page_icon="🎬",
-        layout="wide",
-        initial_sidebar_state="expanded"
-    )
+    """Main Streamlit application with enhanced error handling and offline support."""
+    try:
+        st.set_page_config(
+            page_title="VideoCraft - AI Video Editor",
+            page_icon="🎬",
+            layout="wide",
+            initial_sidebar_state="expanded"
+        )
+    except Exception as e:
+        logger.error(f"Page config error: {e}")
     
     # Custom CSS for better styling and accessibility
     st.markdown("""
@@ -273,7 +375,12 @@ def main():
         margin: 0;
     }
     
-    /* Improved metric cards */
+    /* System status indicators */
+    .status-online { color: #28a745; font-weight: bold; }
+    .status-offline { color: #dc3545; font-weight: bold; }
+    .status-fallback { color: #ffc107; font-weight: bold; }
+    
+    /* Enhanced metric cards */
     .metric-card {
         background: linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%);
         padding: 1.5rem;
@@ -512,12 +619,54 @@ def main():
     if config is None:
         return
     
-    # Initialize components
+    # Initialize components with error handling and offline mode support
     with st.spinner("Initializing AI components..."):
         components = initialize_components(config)
     
     if components is None:
+        st.error("❌ Critical error: Unable to initialize any components")
+        st.info("🔧 **Emergency Mode**: Try basic file management below")
+        
+        # Provide basic functionality even when everything fails
+        st.subheader("📁 Basic File Management")
+        video_file = st.file_uploader("Upload Video File", type=['mp4', 'avi', 'mov', 'mkv', 'webm'])
+        if video_file:
+            st.success(f"✅ File uploaded: {video_file.name} ({video_file.size / (1024*1024):.1f}MB)")
+            st.info("Basic functionality only. Please check system requirements and restart.")
         return
+    
+    # Check if we're running in offline mode
+    offline_mode = 'offline_manager' in components
+    online_components = [name for name, comp in components.items() 
+                        if name != 'offline_manager' and not hasattr(comp, '_is_fallback')]
+    total_components = len(components) - (1 if offline_mode else 0)
+    
+    # Show system status
+    if len(online_components) < total_components:
+        st.warning("""
+        🔄 **Offline Mode Active**: Some AI models are unavailable. VideoCraft is using local processing 
+        for basic functionality. For full AI capabilities, ensure internet connection and restart the application.
+        """)
+        
+        # System status metrics
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("System Status", "🟡 Offline Mode", "Basic AI Active")
+        with col2:
+            st.metric("Components", f"{len(online_components)}/{total_components}", "Online/Total")
+        with col3:
+            st.metric("AI Capability", "Local Processing", "Limited Features")
+    else:
+        st.success("🚀 All AI components online and ready!")
+        
+        # Full system status
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("System Status", "🟢 Online", "Full AI Active")
+        with col2:
+            st.metric("Components", f"{total_components}/{total_components}", "All Online")
+        with col3:
+            st.metric("AI Capability", "Advanced AI", "All Features")
     
     # Sidebar for file uploads and settings
     with st.sidebar:

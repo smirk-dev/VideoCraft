@@ -4,15 +4,15 @@ import numpy as np
 from PIL import Image
 from typing import List, Dict, Tuple, Optional
 import moviepy.editor as mp
-from transformers import CLIPProcessor, CLIPModel
 import logging
+from src.utils.offline_models import OfflineModelManager
 
 logger = logging.getLogger(__name__)
 
 class VideoAnalyzer:
     """
     Analyzes video content for visual features, shot types, and content understanding.
-    Uses CLIP model for semantic understanding of video frames.
+    Uses CLIP model for semantic understanding of video frames with offline fallbacks.
     """
     
     def __init__(self, config: dict):
@@ -25,12 +25,29 @@ class VideoAnalyzer:
         self.config = config
         self.video_config = config.get('video', {})
         
-        # Load CLIP model for visual understanding
-        model_name = config['models']['visual_features']
-        logger.info(f"Loading CLIP model: {model_name}")
+        # Initialize offline model manager
+        self.offline_manager = OfflineModelManager(config)
         
-        self.clip_model = CLIPModel.from_pretrained(model_name)
-        self.clip_processor = CLIPProcessor.from_pretrained(model_name)
+        # Try to load CLIP model with fallback
+        try:
+            model_name = config['models']['visual_features']
+            logger.info(f"Attempting to load CLIP model: {model_name}")
+            
+            from transformers import CLIPProcessor, CLIPModel
+            self.clip_model = CLIPModel.from_pretrained(model_name)
+            self.clip_processor = CLIPProcessor.from_pretrained(model_name)
+            self.use_clip = True
+            logger.info("CLIP model loaded successfully")
+            
+        except Exception as e:
+            logger.warning(f"Could not load CLIP model: {e}")
+            logger.info("Using offline visual analysis fallback")
+            self.clip_model = None
+            self.clip_processor = None
+            self.use_clip = False
+            
+            # Get offline visual analyzer
+            self.visual_analyzer = self.offline_manager.get_model('visual_analyzer')
         
         # Define visual concepts for film analysis
         self.visual_concepts = [
@@ -80,7 +97,7 @@ class VideoAnalyzer:
     
     def analyze_visual_content(self, frame: np.ndarray) -> Dict[str, float]:
         """
-        Analyze frame for visual features using CLIP.
+        Analyze frame for visual features using CLIP or offline fallback.
         
         Args:
             frame: Video frame as numpy array
@@ -89,35 +106,90 @@ class VideoAnalyzer:
             Dictionary mapping visual concepts to confidence scores
         """
         try:
-            # Convert frame to PIL Image
-            if frame.dtype == np.float64:
-                frame = (frame * 255).astype(np.uint8)
-            image = Image.fromarray(frame)
-            
-            # Process image and text concepts
-            inputs = self.clip_processor(
-                text=self.visual_concepts,
-                images=image,
-                return_tensors="pt",
-                padding=True
-            )
-            
-            with torch.no_grad():
-                outputs = self.clip_model(**inputs)
-                logits_per_image = outputs.logits_per_image
-                probs = logits_per_image.softmax(dim=1)
+            if self.use_clip and self.clip_model is not None:
+                # Use CLIP model if available
+                return self._analyze_with_clip(frame)
+            else:
+                # Use offline visual analyzer fallback
+                return self._analyze_with_fallback(frame)
                 
-            # Return concept probabilities
-            concept_scores = {
-                concept: prob.item() 
-                for concept, prob in zip(self.visual_concepts, probs[0])
-            }
-            
-            return concept_scores
-            
         except Exception as e:
             logger.error(f"Error analyzing visual content: {e}")
-            return {concept: 0.0 for concept in self.visual_concepts}
+            return self._get_default_analysis()
+    
+    def _analyze_with_clip(self, frame: np.ndarray) -> Dict[str, float]:
+        """Analyze frame using CLIP model."""
+        # Convert frame to PIL Image
+        if frame.dtype == np.float64:
+            frame = (frame * 255).astype(np.uint8)
+        image = Image.fromarray(frame)
+        
+        # Process image and text concepts
+        inputs = self.clip_processor(
+            text=self.visual_concepts,
+            images=image,
+            return_tensors="pt",
+            padding=True
+        )
+        
+        with torch.no_grad():
+            outputs = self.clip_model(**inputs)
+            logits_per_image = outputs.logits_per_image
+            probs = logits_per_image.softmax(dim=1)
+            
+        # Return concept probabilities
+        concept_scores = {
+            concept: prob.item() 
+            for concept, prob in zip(self.visual_concepts, probs[0])
+        }
+        
+        return concept_scores
+    
+    def _analyze_with_fallback(self, frame: np.ndarray) -> Dict[str, float]:
+        """Analyze frame using offline fallback methods."""
+        # Get basic visual features
+        basic_features = self.visual_analyzer.analyze_frame(frame)
+        
+        # Map basic features to visual concepts
+        concept_scores = {}
+        
+        # Map brightness to lighting conditions
+        brightness = basic_features.get('brightness', 0.5)
+        if brightness > 0.7:
+            concept_scores['bright scene'] = 0.8
+            concept_scores['day scene'] = 0.7
+        elif brightness < 0.3:
+            concept_scores['dark scene'] = 0.8
+            concept_scores['night scene'] = 0.7
+        else:
+            concept_scores['day scene'] = 0.6
+        
+        # Map contrast to shot types (heuristic)
+        contrast = basic_features.get('contrast', 0.5)
+        if contrast > 0.6:
+            concept_scores['action scene'] = 0.7
+        else:
+            concept_scores['dialogue scene'] = 0.6
+        
+        # Map edge density to shot composition
+        edge_density = basic_features.get('edge_density', 0.5)
+        if edge_density > 0.4:
+            concept_scores['close-up shot'] = 0.6
+        elif edge_density > 0.2:
+            concept_scores['medium shot'] = 0.7
+        else:
+            concept_scores['wide shot'] = 0.6
+        
+        # Fill in default values for other concepts
+        for concept in self.visual_concepts:
+            if concept not in concept_scores:
+                concept_scores[concept] = 0.1
+        
+        return concept_scores
+    
+    def _get_default_analysis(self) -> Dict[str, float]:
+        """Return default analysis when everything fails."""
+        return {concept: 0.1 for concept in self.visual_concepts}
     
     def analyze_video_timeline(self, video_path: str) -> Dict[str, List]:
         """
