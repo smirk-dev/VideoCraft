@@ -32,6 +32,13 @@ from src.ui.suggestion_panel import SuggestionPanel
 from src.utils.file_handler import FileHandler
 from src.utils.timeline_sync import TimelineSync
 
+# Import advanced AI components
+from src.ai_models.intelligent_content_analyzer import IntelligentContentAnalyzer
+from src.ai_models.music_sync_engine import MusicSyncEngine
+from src.ai_models.user_learning_system import AIUserLearningSystem
+from src.ui.interactive_timeline_editor import InteractiveTimelineEditor
+from src.utils.cloud_integration import CloudIntegrationManager
+
 def load_config():
     """Load configuration from YAML file."""
     try:
@@ -66,7 +73,7 @@ def load_config():
         return None
 
 def initialize_components(config):
-    """Initialize all processing components."""
+    """Initialize all processing components with advanced AI features."""
     try:
         components = {
             'video_analyzer': VideoAnalyzer(config),
@@ -83,7 +90,13 @@ def initialize_components(config):
             'timeline_viewer': TimelineViewer(config),
             'suggestion_panel': SuggestionPanel(config),
             'file_handler': FileHandler(config),
-            'timeline_sync': TimelineSync(config)
+            'timeline_sync': TimelineSync(config),
+            # Advanced AI components
+            'content_analyzer': IntelligentContentAnalyzer(config),
+            'music_sync': MusicSyncEngine(config),
+            'learning_system': AIUserLearningSystem(config),
+            'timeline_editor': InteractiveTimelineEditor(config),
+            'cloud_manager': CloudIntegrationManager(config)
         }
         return components
     except Exception as e:
@@ -851,23 +864,157 @@ def main():
                     script_analysis
                 )
                 
+                # Advanced AI Processing
+                st.info("🧠 Running advanced AI analysis...")
+                
+                # Content-aware analysis
+                content_analyzer = components['content_analyzer']
+                content_analysis = content_analyzer.analyze_content(
+                    video_path, audio_analysis, video_analysis
+                )
+                
+                # Adapt suggestions based on content type
+                adapted_suggestions = content_analyzer.adapt_suggestions_to_content(
+                    cut_suggestions, content_analysis
+                )
+                
+                # Music synchronization (if music detected)
+                music_sync = components['music_sync']
+                if content_analysis.get('has_music', False):
+                    music_data = music_sync.analyze_music_structure(audio_path)
+                    music_suggestions = music_sync.generate_beat_synchronized_cuts(
+                        adapted_suggestions, music_data
+                    )
+                    final_suggestions = music_suggestions
+                else:
+                    final_suggestions = adapted_suggestions
+                
+                # User learning integration
+                learning_system = components['learning_system']
+                personalized_suggestions = learning_system.get_personalized_suggestions(
+                    final_suggestions, {
+                        'video_type': content_analysis.get('content_type'),
+                        'duration': audio_analysis.get('features', {}).get('duration'),
+                        'has_speech': bool(audio_analysis.get('speech_emotions')),
+                        'has_music': content_analysis.get('has_music', False)
+                    }
+                )
+                
+                # Track user interaction for learning
+                learning_system.track_user_action(
+                    'video_processed',
+                    {
+                        'content_type': content_analysis.get('content_type'),
+                        'suggestion_count': len(personalized_suggestions),
+                        'processing_time': time.time() - current_step
+                    },
+                    {
+                        'video_duration': audio_analysis.get('features', {}).get('duration'),
+                        'analysis_types': ['video' if analyze_video else None, 
+                                         'audio' if analyze_audio else None,
+                                         'script' if analyze_script else None]
+                    }
+                )
+                
                 # Complete progress
                 progress_bar.progress(1.0)
                 with status_container:
-                    status_text.text(f"✅ AI analysis complete! Generated {len(cut_suggestions)} cut suggestions")
+                    status_text.text(f"✅ AI analysis complete! Generated {len(personalized_suggestions)} personalized suggestions")
                 
                 # Display Results
-                if cut_suggestions:
-                    st.success(f"✅ Analysis complete! Generated {len(cut_suggestions)} cut suggestions and {len(transition_suggestions)} transition recommendations.")
+                if personalized_suggestions:
+                    st.success(f"✅ Analysis complete! Generated {len(personalized_suggestions)} personalized suggestions and {len(transition_suggestions)} transition recommendations.")
                     
                     st.header("📊 Analysis Results")
+                    
+                    # Content Analysis Results
+                    if content_analysis:
+                        st.subheader("🎯 Content Analysis")
+                        col1, col2, col3 = st.columns(3)
+                        
+                        with col1:
+                            st.metric("Content Type", content_analysis.get('content_type', 'Unknown'))
+                        
+                        with col2:
+                            confidence = content_analysis.get('confidence', 0)
+                            st.metric("Classification Confidence", f"{confidence:.1%}")
+                        
+                        with col3:
+                            has_music = content_analysis.get('has_music', False)
+                            st.metric("Music Detected", "✅ Yes" if has_music else "❌ No")
+                        
+                        # Content-specific insights
+                        insights = content_analysis.get('insights', [])
+                        if insights:
+                            st.write("**AI Insights:**")
+                            for insight in insights:
+                                st.write(f"• {insight}")
+                    
+                    # Interactive Timeline Editor
+                    st.subheader("🎬 Interactive Timeline Editor")
+                    timeline_editor = components['timeline_editor']
+                    
+                    # Prepare emotion timeline for timeline editor
+                    emotion_timeline = []
+                    if audio_analysis.get('speech_emotions'):
+                        emotion_timeline = [
+                            {
+                                'timestamp': emotion['timestamp'],
+                                'dominant_emotion': emotion['emotion'],
+                                'confidence': emotion['confidence']
+                            }
+                            for emotion in audio_analysis['speech_emotions']
+                        ]
+                    
+                    # Prepare music data if available
+                    music_data = None
+                    if content_analysis.get('has_music'):
+                        music_data = music_sync.get_last_analysis_data()
+                    
+                    # Render advanced timeline
+                    video_duration = audio_analysis.get('features', {}).get('duration', 60)
+                    timeline_interactions = timeline_editor.render_advanced_timeline(
+                        video_duration,
+                        personalized_suggestions,
+                        audio_analysis,
+                        emotion_timeline,
+                        music_data
+                    )
+                    
+                    # Update suggestions based on timeline interactions
+                    if timeline_interactions.get('selected_cuts'):
+                        selected_suggestions = [
+                            personalized_suggestions[i] 
+                            for i in timeline_interactions['selected_cuts']
+                            if i < len(personalized_suggestions)
+                        ]
+                        
+                        # Track timeline interactions for learning
+                        learning_system.track_user_action(
+                            'timeline_selection',
+                            {
+                                'selected_count': len(selected_suggestions),
+                                'total_count': len(personalized_suggestions)
+                            }
+                        )
+                    else:
+                        selected_suggestions = personalized_suggestions
+                    
+                    # AI Learning Dashboard
+                    st.subheader("🧠 AI Learning Dashboard")
+                    learning_dashboard = learning_system.render_learning_dashboard()
+                    
+                    # Cloud Integration Dashboard
+                    st.subheader("☁️ Performance & Cloud Integration")
+                    cloud_manager = components['cloud_manager']
+                    cloud_dashboard = cloud_manager.render_cloud_dashboard()
                     
                     # Advanced Filtering Section
                     filter_settings = create_advanced_filters()
                     
                     # Apply filters to suggestions
                     filtered_suggestions = []
-                    for suggestion in cut_suggestions:
+                    for suggestion in selected_suggestions:
                         # Apply confidence filter
                         if suggestion.confidence < filter_settings['confidence_threshold']:
                             continue
@@ -884,9 +1031,9 @@ def main():
                         
                         filtered_suggestions.append(suggestion)
                     
-                    st.info(f"Showing {len(filtered_suggestions)} of {len(cut_suggestions)} suggestions after filtering")
+                    st.info(f"Showing {len(filtered_suggestions)} of {len(selected_suggestions)} suggestions after filtering")
                     
-                    # Timeline Visualization
+                    # Timeline Visualization (Traditional)
                     timeline_viewer = components['timeline_viewer']
                     
                     # Create main timeline with filtered suggestions
@@ -922,6 +1069,14 @@ def main():
                         st.metric("Filtered Suggestions", len(filtered_suggestions))
                         st.metric("Average Confidence", f"{avg_confidence:.1%}")
                         st.metric("High Confidence Cuts", high_confidence_count)
+                        
+                        # AI enhancement metrics
+                        if content_analysis:
+                            st.metric("Content Type", content_analysis.get('content_type', 'Unknown'))
+                        
+                        personalization_count = len(personalized_suggestions) - len(cut_suggestions)
+                        if personalization_count > 0:
+                            st.metric("AI Enhancements", f"+{personalization_count}")
                     
                     # Interactive Suggestion Panel
                     suggestion_panel = components['suggestion_panel']
@@ -930,9 +1085,19 @@ def main():
                     filters = suggestion_panel.render_suggestion_controls()
                     
                     # Render suggestion list with filtered suggestions
-                    selected_suggestions = suggestion_panel.render_suggestion_list(
+                    final_selected_suggestions = suggestion_panel.render_suggestion_list(
                         filtered_suggestions, filters, transition_suggestions
                     )
+                    
+                    # Track final selections for learning
+                    if final_selected_suggestions:
+                        learning_system.track_user_action(
+                            'final_selection',
+                            {
+                                'selected_count': len(final_selected_suggestions),
+                                'from_filtered': len(filtered_suggestions)
+                            }
+                        )
                     
                     # Batch actions
                     if selected_suggestions:
