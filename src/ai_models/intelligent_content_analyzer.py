@@ -196,8 +196,8 @@ class IntelligentContentAnalyzer:
         
         return indicators
     
-    def _analyze_audio_patterns(self, video_path: str) -> Dict:
-        """Analyze audio patterns for content classification."""
+    def _analyze_audio_patterns(self, audio_source) -> Dict:
+        """Analyze audio patterns from a path or precomputed feature dict."""
         indicators = {
             'speech_ratio': 0,
             'music_presence': False,
@@ -205,30 +205,66 @@ class IntelligentContentAnalyzer:
             'speaker_count': 1,
             'background_noise': 'low'
         }
-        
+
         try:
+            # If we were passed a dict of features from upstream analyzer
+            if isinstance(audio_source, dict):
+                features = audio_source.get('features', {}) if 'features' in audio_source else audio_source
+                # Estimate speech ratio from presence of speech_emotions timeline
+                if 'speech_emotions' in audio_source and audio_source['speech_emotions']:
+                    total = 0.0
+                    speech = 0.0
+                    for item in audio_source['speech_emotions']:
+                        s = float(item.get('start_time', item.get('timestamp', 0.0)))
+                        e = float(item.get('end_time', s + 1.0))
+                        total += max(0.0, e - s)
+                        speech += max(0.0, e - s)
+                    indicators['speech_ratio'] = min(1.0, speech / total) if total > 0 else 0.0
+                else:
+                    # Fallback using energy timeline
+                    energy = audio_source.get('energy_timeline', [])
+                    if energy:
+                        total = max((energy[-1].get('end_time', 0.0) - energy[0].get('start_time', 0.0)), 1e-6)
+                        loud = sum((min(p.get('end_time', 0.0), energy[0].get('start_time', 0.0) + total) - p.get('start_time', 0.0))
+                                   for p in energy if p.get('rms_energy', 0.0) > 0.01)
+                        indicators['speech_ratio'] = float(min(1.0, loud / total)) if total > 0 else 0.0
+
+                # Music presence heuristic: tempo present or high spectral centroid
+                tempo = features.get('tempo') or features.get('tempo_estimate')
+                chroma = features.get('chroma')
+                indicators['music_presence'] = bool((tempo and tempo > 60) or (isinstance(chroma, (list, tuple))))
+
+                # Speaker count approximation
+                mfcc = features.get('mfcc')
+                if mfcc is not None:
+                    try:
+                        import numpy as np
+                        variance = float(np.var(mfcc))
+                        indicators['speaker_count'] = 3 if variance > 10 else (2 if variance > 5 else 1)
+                    except Exception:
+                        pass
+
+                # Audio quality by energy
+                energy_mean = features.get('energy_mean')
+                if isinstance(energy_mean, (int, float)):
+                    indicators['audio_quality'] = 'high' if energy_mean > 0.03 else ('medium' if energy_mean > 0.01 else 'low')
+
+                return indicators
+
+            # Otherwise assume it's a file path
             import librosa
-            
-            # Extract audio
-            y, sr = librosa.load(video_path, duration=60)  # Analyze first minute
-            
-            # Speech detection
+            y, sr = librosa.load(audio_source, duration=60)
+
             speech_segments = self._detect_speech_segments(y, sr)
-            indicators['speech_ratio'] = sum(seg[1] - seg[0] for seg in speech_segments) / len(y) * sr
-            
-            # Music detection
+            indicators['speech_ratio'] = sum(seg[1] - seg[0] for seg in speech_segments) / (len(y) / sr) if len(y) else 0.0
             indicators['music_presence'] = self._detect_music(y, sr)
-            
-            # Audio quality assessment
             indicators['audio_quality'] = self._assess_audio_quality(y, sr)
-            
-            # Speaker count estimation
             indicators['speaker_count'] = self._estimate_speaker_count(y, sr)
-            
+            return indicators
+
         except Exception as e:
             logger.error(f"Audio analysis failed: {e}")
-        
-        return indicators
+            return indicators
     
     def _analyze_text_content(self, text: str) -> Dict:
         """Analyze text content for classification clues."""
@@ -365,22 +401,57 @@ class IntelligentContentAnalyzer:
     
     def analyze_content(self, 
                        video_path: str,
-                       script_text: Optional[str] = None,
-                       metadata: Optional[Dict] = None) -> Dict:
+                       audio_or_text: Optional[Dict] = None,
+                       visual_or_metadata: Optional[Dict] = None) -> Dict:
         """
         Main content analysis method - this is the primary interface.
         
         Args:
             video_path: Path to video file
-            script_text: Optional script/subtitle text
-            metadata: Optional video metadata
+            audio_or_text: Either precomputed audio_analysis dict or script text
+            visual_or_metadata: Either precomputed video_analysis dict or metadata
             
         Returns:
             Comprehensive content analysis results
         """
         try:
-            # Get content context
-            content_context = self.analyze_content_type(video_path, script_text, metadata)
+            # Determine inputs based on provided types
+            precomputed_audio = audio_or_text if isinstance(audio_or_text, dict) else None
+            script_text = audio_or_text if isinstance(audio_or_text, str) else None
+            precomputed_visual = visual_or_metadata if isinstance(visual_or_metadata, dict) else None
+            metadata = visual_or_metadata if isinstance(visual_or_metadata, dict) and 'timestamps' not in visual_or_metadata else None
+
+            # Build indicators using precomputed analysis when available
+            if precomputed_visual is not None:
+                # Approximate visual indicators from precomputed analysis dict
+                visual_indicators = {
+                    'face_frequency': 0,  # Not available without face detection
+                    'object_diversity': 0,
+                    'scene_complexity': float(len(precomputed_visual.get('scene_moods', [])) or 0),
+                    'motion_level': 0.5,
+                    'visual_style': 'professional'
+                }
+            else:
+                visual_indicators = self._analyze_visual_content(video_path)
+
+            if precomputed_audio is not None:
+                audio_indicators = self._analyze_audio_patterns(precomputed_audio)
+            else:
+                # Try to analyze directly from video_path audio track (best-effort)
+                audio_indicators = self._analyze_audio_patterns(video_path)
+
+            text_indicators = self._analyze_text_content(script_text) if script_text else {}
+
+            # Classify content type
+            classified = self._classify_content_type(visual_indicators, audio_indicators, text_indicators, metadata)
+            content_context = ContentContext(
+                type=classified['type'],
+                confidence=classified['confidence'],
+                key_elements=classified['elements'],
+                suggested_style=self._suggest_editing_style(classified['type']),
+                pacing=self._determine_pacing(visual_indicators, audio_indicators),
+                target_audience=self._infer_target_audience(classified['type'], text_indicators)
+            )
             
             # Prepare comprehensive analysis results
             analysis_results = {
@@ -390,6 +461,11 @@ class IntelligentContentAnalyzer:
                 'suggested_style': content_context.suggested_style,
                 'pacing': content_context.pacing,
                 'target_audience': content_context.target_audience,
+                'has_music': bool(audio_indicators.get('music_presence', False)),
+                'insights': [
+                    'High speech content' if audio_indicators.get('speech_ratio', 0) > 0.6 else 'Moderate speech content',
+                    'Music detected' if audio_indicators.get('music_presence', False) else 'No music detected'
+                ],
                 'editing_recommendations': self._get_editing_recommendations(content_context),
                 'metadata': {
                     'analyzed_at': datetime.now().isoformat(),

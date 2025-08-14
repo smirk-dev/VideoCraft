@@ -322,9 +322,15 @@ class InteractiveTimelineEditor:
         energy_timeline = audio_analysis.get('energy_timeline', [])
         
         if energy_timeline:
-            # Safe access to timestamp for any object type
-            times = [point.get('timestamp', 0.0) if hasattr(point, 'get') else point.get('timestamp', 0.0) for point in energy_timeline]
-            energies = [point.get('energy', 0.0) if hasattr(point, 'get') else point.get('energy', 0.0) for point in energy_timeline]
+            # Safe access using start_time and rms_energy keys used across the app
+            times = [
+                (point.get('start_time', 0.0) if hasattr(point, 'get') else 0.0)
+                for point in energy_timeline
+            ]
+            energies = [
+                (point.get('rms_energy', 0.0) if hasattr(point, 'get') else 0.0)
+                for point in energy_timeline
+            ]
             
             # Filter for visible range
             visible_indices = [i for i, t in enumerate(times) if start <= t <= end]

@@ -174,15 +174,41 @@ class AudioAnalyzer:
                 
                 # Create temporary chunk file
                 chunk_path = None
+            try:
+                with tempfile.NamedTemporaryFile(delete=False, suffix='.wav') as temp_chunk:
+                    chunk_path = temp_chunk.name
+                
+                # Save chunk with robust fallbacks
+                saved = False
                 try:
-                    with tempfile.NamedTemporaryFile(delete=False, suffix='.wav') as temp_chunk:
-                        chunk_path = temp_chunk.name
+                    import soundfile as sf
+                    sf.write(chunk_path, chunk, sr)
+                    saved = True
+                except Exception:
+                    try:
+                        from scipy.io import wavfile
+                        wavfile.write(chunk_path, sr, (chunk * 32767).astype(np.int16))
+                        saved = True
+                    except Exception:
+                        try:
+                            # Fallback via pydub if available
+                            segment = AudioSegment(
+                                (chunk * 32767).astype(np.int16).tobytes(),
+                                frame_rate=sr,
+                                sample_width=2,
+                                channels=1
+                            )
+                            segment.export(chunk_path, format='wav')
+                            saved = True
+                        except Exception as write_err:
+                            logger.error(f"Failed to save audio chunk: {write_err}")
+                            saved = False
                     
-                    # Save chunk
-                    librosa.output.write_wav(chunk_path, chunk, sr)
-                    
-                    # Analyze emotion
-                    emotions = self.speech_emotion(chunk_path)
+                if not saved:
+                    continue
+                
+                # Analyze emotion
+                emotions = self.speech_emotion(chunk_path)
                     
                     # Find dominant emotion
                     if emotions and len(emotions) > 0:

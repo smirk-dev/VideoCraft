@@ -672,15 +672,32 @@ class ProfessionalExporter:
             }
             cuts.append(cut_data)
         
-        # Prepare transition data
+        # Prepare transition data (support both dict and dataclass objects)
         transitions = []
-        for transition in transition_suggestions:
-            trans_data = {
-                'type': transition.get('type', 'cut'),
-                'duration': transition.get('duration', 0.5),
-                'start_time': transition.get('start_time', 0),
-                'confidence': transition.get('confidence', 1.0)
-            }
+        for t in transition_suggestions:
+            try:
+                # Try attribute access first (TransitionSuggestion dataclass)
+                t_type = getattr(t, 'transition_type', None)
+                if t_type is not None:
+                    t_type_str = getattr(t_type, 'value', str(t_type))
+                else:
+                    # Fallback to dict-like 'type'
+                    t_type_str = self._safe_get_field(t, 'type', 'cut')
+
+                trans_data = {
+                    'type': t_type_str,
+                    'duration': getattr(t, 'duration', self._safe_get_field(t, 'duration', 0.5)),
+                    'start_time': getattr(t, 'start_time', self._safe_get_field(t, 'start_time', 0.0)),
+                    'confidence': getattr(t, 'confidence', self._safe_get_field(t, 'confidence', 1.0))
+                }
+            except Exception:
+                # Last resort safe extraction
+                trans_data = {
+                    'type': self._safe_get_field(t, 'type', 'cut'),
+                    'duration': self._safe_get_field(t, 'duration', 0.5),
+                    'start_time': self._safe_get_field(t, 'start_time', 0.0),
+                    'confidence': self._safe_get_field(t, 'confidence', 1.0)
+                }
             transitions.append(trans_data)
         
         return {

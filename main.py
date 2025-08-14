@@ -994,6 +994,9 @@ def main():
                 progress_bar = st.progress(0)
                 status_text = st.empty()
             
+            # Mark processing start for accurate timing
+            st.session_state['processing_start_ts'] = time.time()
+
             # Save uploaded files
             current_step += 1
             update_progress("Preparing files...", current_step, total_steps)
@@ -1202,8 +1205,11 @@ def main():
                 
                 # Content-aware analysis
                 content_analyzer = components['content_analyzer']
+                # Pass precomputed analyses to prevent re-loading media and to provide richer context
                 content_analysis = content_analyzer.analyze_content(
-                    video_path, audio_analysis, video_analysis
+                    video_path,
+                    audio_or_text=audio_analysis,
+                    visual_or_metadata=video_analysis
                 )
                 
                 # Adapt suggestions based on content type
@@ -1221,12 +1227,12 @@ def main():
                 
                 # Music synchronization (if music detected)
                 music_sync = components['music_sync']
-                if content_analysis.get('has_music', False):
-                    music_data = music_sync.analyze_music_structure(audio_path)
-                    music_suggestions = music_sync.generate_beat_synchronized_cuts(
+                if content_analysis.get('has_music', False) and audio_path:
+                    # Perform full music analysis and snap cuts to beats
+                    music_data = music_sync.analyze_music(audio_path)
+                    final_suggestions = music_sync.generate_beat_synchronized_cuts(
                         adapted_suggestions, music_data
                     )
-                    final_suggestions = music_suggestions
                 else:
                     final_suggestions = adapted_suggestions
                 
@@ -1247,7 +1253,7 @@ def main():
                     {
                         'content_type': content_analysis.get('content_type'),
                         'suggestion_count': len(personalized_suggestions),
-                        'processing_time': time.time() - current_step
+                        'processing_time': time.time() - st.session_state.get('processing_start_ts', time.time())
                     },
                     {
                         'video_duration': audio_analysis.get('features', {}).get('duration'),

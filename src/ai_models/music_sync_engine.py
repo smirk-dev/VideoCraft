@@ -39,6 +39,8 @@ class MusicSyncEngine:
         # Beat detection sensitivity
         self.beat_threshold = 0.3
         self.tempo_tolerance = 0.1
+        # Keep last analysis for UI components
+        self._last_analysis: Dict = {}
         
     def analyze_musical_structure(self, audio_path: str) -> MusicalStructure:
         """
@@ -76,6 +78,35 @@ class MusicSyncEngine:
         except Exception as e:
             logger.error(f"Musical analysis failed: {e}")
             return MusicalStructure([], [], [], [])
+
+    # Backwards-compatible wrapper to match usage in main.py
+    def analyze_music_structure(self, audio_path: str) -> MusicalStructure:
+        return self.analyze_musical_structure(audio_path)
+
+    def analyze_music(self, audio_path: str) -> Dict:
+        """High-level analysis that returns both structure and beats and caches results."""
+        try:
+            structure = self.analyze_musical_structure(audio_path)
+            # Re-load audio for beats to ensure consistent sample rate
+            y, sr = librosa.load(audio_path, sr=self.sample_rate)
+            beat_info = self._detect_beats(y, sr)
+            duration = float(len(y) / sr) if sr else 0.0
+            beat_viz = self.create_beat_visualization(beat_info, duration)
+            self._last_analysis = {
+                'structure': structure,
+                'beats': beat_info,
+                'visualization': beat_viz,
+                'duration': duration
+            }
+            return self._last_analysis
+        except Exception as e:
+            logger.error(f"Music analysis failed: {e}")
+            self._last_analysis = {}
+            return {}
+
+    def get_last_analysis_data(self) -> Dict:
+        """Return last computed music analysis data for UI visualization."""
+        return self._last_analysis
     
     def _detect_beats(self, y: np.ndarray, sr: int) -> List[BeatInfo]:
         """Detect beats with detailed information."""
@@ -353,6 +384,71 @@ class MusicSyncEngine:
         cuts = self._remove_duplicate_cuts(cuts, tolerance=0.5)  # 500ms tolerance
         
         return cuts
+
+    def generate_beat_synchronized_cuts(self, 
+                                        suggestions: List[Dict],
+                                        music_data: Dict,
+                                        snap_tolerance: float = 0.1) -> List[Dict]:
+        """
+        Align existing suggestions to nearest strong beats when appropriate.
+        If no suggestions are provided, generate new cuts from music data.
+
+        Args:
+            suggestions: Existing AI suggestions (CutSuggestion or dict-like).
+            music_data: Result from analyze_music() or a dict with 'structure' and 'beats'.
+            snap_tolerance: Max seconds to snap a cut to the nearest beat.
+
+        Returns:
+            List of adapted suggestion dicts.
+        """
+        try:
+            if not music_data:
+                return suggestions
+
+            structure = music_data.get('structure')
+            beats: List[BeatInfo] = music_data.get('beats', [])
+
+            # If there are no beats, just return as-is
+            if not beats:
+                return suggestions
+
+            beat_times = np.array([b.timestamp for b in beats], dtype=float)
+
+            adapted: List[Dict] = []
+            for s in suggestions:
+                # Safe getters for both dict and CutSuggestion
+                ts = s.get('timestamp', 0.0) if hasattr(s, 'get') else s.get('timestamp', 0.0)
+                conf = s.get('confidence', 0.5) if hasattr(s, 'get') else s.get('confidence', 0.5)
+
+                # Find nearest beat within tolerance
+                if beat_times.size > 0:
+                    idx = int(np.argmin(np.abs(beat_times - ts)))
+                    nearest = float(beat_times[idx])
+                    if abs(nearest - ts) <= snap_tolerance:
+                        # Snap and boost confidence slightly
+                        if hasattr(s, 'copy'):
+                            new_s = s.copy()
+                            new_s['timestamp'] = nearest
+                            new_s['confidence'] = min(1.0, conf + 0.05)
+                            new_s['is_music_synced'] = True
+                            new_s['sync_type'] = getattr(beats[idx], 'beat_type', 'beat')
+                            adapted.append(new_s)
+                        else:
+                            new_s = dict(s)
+                            new_s['timestamp'] = nearest
+                            new_s['confidence'] = min(1.0, conf + 0.05)
+                            new_s['is_music_synced'] = True
+                            new_s['sync_type'] = getattr(beats[idx], 'beat_type', 'beat')
+                            adapted.append(new_s)
+                        continue
+
+                # No snapping, keep original
+                adapted.append(s)
+
+            return adapted
+        except Exception as e:
+            logger.error(f"Beat synchronization failed: {e}")
+            return suggestions
     
     def _detect_energy_changes(self, energy_profile: List[Tuple[float, float]]) -> List[Dict]:
         """Detect significant energy changes for cut suggestions."""

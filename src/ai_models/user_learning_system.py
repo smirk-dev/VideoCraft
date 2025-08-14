@@ -419,11 +419,21 @@ class AIUserLearningSystem:
                 help="Keep learned preferences across sessions"
             )
             
+            # Safe confirmation flow without relying on unavailable st.confirm
             if st.button("🔄 Reset Learning Data"):
-                if st.confirm("Are you sure? This will delete all learned preferences."):
-                    self._reset_learning_data()
-                    st.success("Learning data reset successfully!")
-                    st.rerun()
+                st.session_state['__confirm_reset_learning'] = True
+            if st.session_state.get('__confirm_reset_learning'):
+                st.warning("This will delete all learned preferences. This action cannot be undone.")
+                col_c1, col_c2 = st.columns(2)
+                with col_c1:
+                    if st.button("✅ Confirm Reset"):
+                        self._reset_learning_data()
+                        st.success("Learning data reset successfully!")
+                        st.session_state['__confirm_reset_learning'] = False
+                        st.rerun()
+                with col_c2:
+                    if st.button("Cancel"):
+                        st.session_state['__confirm_reset_learning'] = False
             
             if st.button("📤 Export Profile"):
                 profile_data = self._export_user_profile()
