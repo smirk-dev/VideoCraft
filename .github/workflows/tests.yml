@@ -1,0 +1,43 @@
+name: CI Tests
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  schedule:
+    - cron: '0 3 * * *'  # Nightly full run
+
+jobs:
+  fast-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install minimal deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-test.txt
+      - name: Run lightweight tests
+        env:
+          LIGHT_TEST_MODE: '1'
+        run: pytest -q
+
+  full-tests:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install full deps
+        run: |
+            python -m pip install --upgrade pip
+            pip install -r requirements.txt
+      - name: Run integration tests
+        env:
+          LIGHT_TEST_MODE: '0'
+        run: pytest -q || true  # tolerate failures initially

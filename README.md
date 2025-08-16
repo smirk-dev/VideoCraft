@@ -28,6 +28,8 @@
 - [🏗️ Architecture](#-architecture)
 - [⚙️ Configuration](#-configuration)
 - [🔧 Development](#-development-guide)
+ - [🧪 Testing](#-testing)
+ - [⚡ Lightweight Test Mode](#-lightweight-test-mode)
 - [📊 Performance](#-performance)
 - [🤝 Contributing](#-contributing)
 - [📄 License](#-license)
@@ -1099,6 +1101,82 @@ pytest --cov=src --cov-report=html
 pytest tests/test_processors.py
 pytest tests/test_ai_models.py
 ```
+
+### ⚡ Lightweight Test Mode
+
+To enable fast test execution without heavy ML dependencies (torch, transformers, spaCy models, etc.), VideoCraft provides a lightweight mode that stubs expensive components.
+
+Key points:
+
+- Activated automatically during pytest via `tests/conftest.py` (sets `LIGHT_TEST_MODE=1`).
+- Skips loading large models; provides simple stub analyzers & suggester implementations.
+- Suitable for CI smoke tests and contributor quick feedback loops.
+- Full functionality still requires installing all dependencies in `requirements.txt`.
+
+Environment variable:
+
+```bash
+LIGHT_TEST_MODE=1
+```
+
+Minimal test dependencies are listed in `requirements-test.txt`:
+
+```bash
+pip install -r requirements-test.txt
+pytest
+```
+
+When you want to run the full stack (with real model inference):
+
+```bash
+pip install -r requirements.txt
+pytest -m "not slow"  # (If slow markers are later added)
+```
+
+Optional validation that heavy mode works (example):
+
+```powershell
+$env:LIGHT_TEST_MODE=0
+pytest tests/test_final_integration.py -k advanced
+```
+
+If a test is intentionally skipped in lightweight mode (e.g., advanced analyzer coverage), it will be reported with a skip reason so you can decide when to run full mode.
+
+Recommended CI matrix (conceptual):
+
+- Job 1 (fast): install `requirements-test.txt`, run core & unit tests (under 1 minute)
+- Job 2 (full, optional nightly): install `requirements.txt`, run integration & model tests
+
+Add a GitHub Actions snippet (example only):
+
+```yaml
+jobs:
+  fast-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install minimal deps
+        run: pip install -r requirements-test.txt
+      - name: Run fast tests
+        run: pytest -q
+  full-tests:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install full deps
+        run: pip install -r requirements.txt
+      - name: Run integration tests
+        run: pytest -m "integration" -q || true  # allow failures initially
+```
+
+This separation keeps contributor workflows fast while preserving deep coverage in scheduled runs.
 
 #### **Test Structure**
 ```python

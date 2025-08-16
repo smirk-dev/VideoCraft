@@ -1,12 +1,12 @@
-import torch
+import os
 import cv2
 import numpy as np
 from typing import Dict, List, Tuple, Optional
-from transformers import pipeline, AutoModel, AutoTokenizer
 import logging
 from dataclasses import dataclass
 from enum import Enum
 from datetime import datetime
+from .model_registry import ModelRegistry
 
 logger = logging.getLogger(__name__)
 
@@ -39,8 +39,7 @@ class IntelligentContentAnalyzer:
     
     def __init__(self, config: dict):
         self.config = config
-        
-        # Load advanced models
+        # Load / register models (or skip in light mode)
         self._load_models()
         
         # Content-specific editing rules
@@ -72,33 +71,25 @@ class IntelligentContentAnalyzer:
         }
     
     def _load_models(self):
-        """Load content analysis models."""
-        try:
-            # Video content classifier
-            self.content_classifier = pipeline(
-                "zero-shot-classification",
-                model="facebook/bart-large-mnli"
-            )
-            
-            # Object detection for content understanding
-            self.object_detector = pipeline(
-                "object-detection",
-                model="facebook/detr-resnet-50"
-            )
-            
-            # Text analysis for content type
-            self.text_analyzer = pipeline(
-                "text-classification",
-                model="microsoft/DialoGPT-medium"
-            )
-            
-            logger.info("Content analysis models loaded successfully")
-            
-        except Exception as e:
-            logger.error(f"Failed to load content models: {e}")
+        if os.getenv("LIGHT_TEST_MODE") == "1":
             self.content_classifier = None
             self.object_detector = None
             self.text_analyzer = None
+            logger.debug("Skipping heavy content models in LIGHT_TEST_MODE")
+            return
+        self.content_classifier = ModelRegistry.get_pipeline(
+            "zero-shot-classification", "facebook/bart-large-mnli"
+        )
+        self.object_detector = ModelRegistry.get_pipeline(
+            "object-detection", "facebook/detr-resnet-50"
+        )
+        self.text_analyzer = ModelRegistry.get_pipeline(
+            "text-classification", "distilbert-base-uncased-finetuned-sst-2-english"
+        )
+        logger.info(
+            "Content model availability: classifier=%s object_detector=%s text_analyzer=%s",
+            bool(self.content_classifier), bool(self.object_detector), bool(self.text_analyzer)
+        )
     
     def analyze_content_type(self, 
                            video_path: str,
@@ -276,29 +267,33 @@ class IntelligentContentAnalyzer:
             'question_ratio': 0
         }
         
-        if not text or not self.text_analyzer:
+        if not text:
             return indicators
-        
+        sentences = [s for s in text.split('.') if s.strip()]
+        question_count = text.count('?')
+        instruction_words = ['step', 'first', 'next', 'then', 'finally', 'how to', 'tutorial']
+        indicators['question_ratio'] = question_count / len(sentences) if sentences else 0.0
+        indicators['instruction_words'] = sum(1 for word in instruction_words if word.lower() in text.lower())
         try:
-            # Analyze formality and style
-            sentences = text.split('.')
-            question_count = text.count('?')
-            instruction_words = ['step', 'first', 'next', 'then', 'finally', 'how to', 'tutorial']
-            
-            indicators['question_ratio'] = question_count / len(sentences) if sentences else 0
-            indicators['instruction_words'] = sum(1 for word in instruction_words if word.lower() in text.lower())
-            
-            # Classify emotional tone
-            if len(text) > 50:
+            if self.text_analyzer:
+                preds = self.text_analyzer(text[:512])
+                if isinstance(preds, list) and preds:
+                    top = preds[0]
+                    if isinstance(top, dict) and 'label' in top:
+                        indicators['emotional_tone'] = top['label'].lower()
+            elif self.content_classifier:
                 tone_result = self.content_classifier(
-                    text[:500],  # First 500 chars
-                    candidate_labels=['positive', 'negative', 'neutral', 'educational', 'entertaining']
+                    text[:500],
+                    candidate_labels=['educational', 'entertaining', 'informative', 'emotional', 'neutral']
                 )
-                indicators['emotional_tone'] = tone_result['labels'][0]
-            
-        except Exception as e:
-            logger.error(f"Text analysis failed: {e}")
-        
+                indicators['emotional_tone'] = tone_result['labels'][0].lower()
+            else:
+                if indicators['instruction_words'] > 2:
+                    indicators['emotional_tone'] = 'educational'
+                elif indicators['question_ratio'] > 0.3:
+                    indicators['emotional_tone'] = 'conversational'
+        except Exception as e:  # noqa: BLE001
+            logger.debug("Tone analysis failed, using heuristics: %s", e)
         return indicators
     
     def _classify_content_type(self, visual: Dict, audio: Dict, text: Dict, metadata: Optional[Dict]) -> Dict:
