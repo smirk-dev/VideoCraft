@@ -16,14 +16,21 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-fast-${{ hashFiles('requirements-test.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-fast-
       - name: Install minimal deps
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements-test.txt
-      - name: Run lightweight tests
+      - name: Run lightweight tests with coverage
         env:
           LIGHT_TEST_MODE: '1'
-        run: pytest -q
+        run: pytest -q --cov=src --cov-report=term-missing:skip-covered --maxfail=1 -m "not heavy"
 
   full-tests:
     if: github.event_name == 'schedule'
@@ -33,6 +40,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-full-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-full-
       - name: Install full deps
         run: |
             python -m pip install --upgrade pip
@@ -40,4 +54,4 @@ jobs:
       - name: Run integration tests
         env:
           LIGHT_TEST_MODE: '0'
-        run: pytest -q || true  # tolerate failures initially
+        run: pytest -q -m "integration or heavy" || true  # tolerate failures initially

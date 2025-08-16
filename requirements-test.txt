@@ -1,6 +1,7 @@
 # Minimal dependencies for running lightweight tests
 pytest>=8.0.0
 pytest-asyncio>=0.21.0
+pytest-cov>=5.0.0
 PyYAML>=6.0.0
 streamlit>=1.32.0
 opencv-python-headless>=4.8.0
