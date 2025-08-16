@@ -194,6 +194,36 @@ def initialize_components(config):
                 def parse_script_file(self, path):
                     return []
             script_parser = _BasicParser()
+        # Lightweight content analyzer stub
+        class _StubContentAnalyzer:
+            def __init__(self, *_a, **_k):
+                self._is_fallback = True
+            def analyze_content(self, video_path, audio_or_text=None, visual_or_metadata=None):
+                return {
+                    'content_type': 'generic',
+                    'confidence': 0.5,
+                    'has_music': False,
+                    'insights': []
+                }
+            def adapt_suggestions_to_content(self, suggestions, content_analysis):
+                return suggestions
+        # Lightweight cut suggester stub (if real one unavailable)
+        try:
+            from src.suggestions.cut_suggester import CutSuggester as _RealCutSuggester
+            cut_suggester = _RealCutSuggester({'suggestions': {}})
+        except Exception:
+            class _StubCutSuggester:
+                def __init__(self, *_a, **_k):
+                    self._is_fallback = True
+                def generate_suggestions(self, *_, **__):
+                    return []
+            cut_suggester = _StubCutSuggester()
+        return {
+            'script_parser': script_parser,
+            'content_analyzer': _StubContentAnalyzer(),
+            'cut_suggester': cut_suggester,
+            'offline_manager': offline_manager
+        }
         return {
             'script_parser': script_parser,
             'offline_manager': offline_manager

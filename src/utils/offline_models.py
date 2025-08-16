@@ -3,7 +3,14 @@ Offline AI Models Manager - Handles model loading with fallbacks when internet i
 """
 
 import os
-import torch
+# Optional torch import (not required in LIGHT_TEST_MODE)
+try:  # pragma: no cover - optional dependency
+    import torch  # type: ignore
+except Exception:  # noqa: BLE001
+    class _TorchStub:  # minimal interface guards
+        def __getattr__(self, _):
+            raise RuntimeError("Torch not available in lightweight mode")
+    torch = _TorchStub()  # type: ignore
 import numpy as np
 from pathlib import Path
 import logging
