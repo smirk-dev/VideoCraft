@@ -53,6 +53,14 @@ const UploadPage = () => {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
+          timeout: 10 * 60 * 1000, // 10 minutes timeout for large files
+          onUploadProgress: (progressEvent) => {
+            if (progressEvent.lengthComputable) {
+              const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+              console.log(`Upload progress: ${percentCompleted}%`);
+              // You can add progress state here if needed
+            }
+          },
         });
 
         if (response.status === 201) {
