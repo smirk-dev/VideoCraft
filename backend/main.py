@@ -10,10 +10,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
 import uvicorn
 
-from app.api import upload
-# Temporarily commenting out AI-dependent imports for initial setup
-# from app.api import video_analysis, audio_analysis, emotion_detection
-# from app.api import music_recommendation, background_removal, video_editing
+from app.api import upload, video_analysis, audio_analysis, emotion_detection
+from app.api import music_recommendation, background_removal, video_editing
 from app.core.config import settings
 from app.core.logging_config import setup_logging
 
@@ -61,13 +59,12 @@ app.add_middleware(
 
 # Include API routers
 app.include_router(upload.router, prefix="/api/upload", tags=["upload"])
-# Temporarily commenting out AI-dependent routers for initial setup
-# app.include_router(video_analysis.router, prefix="/api/analyze", tags=["video-analysis"])
-# app.include_router(audio_analysis.router, prefix="/api/audio", tags=["audio-analysis"])
-# app.include_router(emotion_detection.router, prefix="/api/emotion", tags=["emotion-detection"])
-# app.include_router(music_recommendation.router, prefix="/api/music", tags=["music-recommendation"])
-# app.include_router(background_removal.router, prefix="/api/background", tags=["background-removal"])
-# app.include_router(video_editing.router, prefix="/api/edit", tags=["video-editing"])
+app.include_router(video_analysis.router, prefix="/api/analyze", tags=["video-analysis"])
+app.include_router(audio_analysis.router, prefix="/api/audio", tags=["audio-analysis"])
+app.include_router(emotion_detection.router, prefix="/api/emotion", tags=["emotion-detection"])
+app.include_router(music_recommendation.router, prefix="/api/music", tags=["music-recommendation"])
+app.include_router(background_removal.router, prefix="/api/background", tags=["background-removal"])
+app.include_router(video_editing.router, prefix="/api/edit", tags=["video-editing"])
 
 # Serve static files
 app.mount("/static", StaticFiles(directory="static"), name="static")
