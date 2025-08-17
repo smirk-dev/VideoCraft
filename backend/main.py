@@ -166,5 +166,10 @@ if __name__ == "__main__":
         host=settings.HOST,
         port=settings.PORT,
         reload=settings.DEBUG,
-        log_level="info" if not settings.DEBUG else "debug"
+        log_level="info" if not settings.DEBUG else "debug",
+        # Configuration for large file uploads
+        timeout_keep_alive=120,  # 2 minutes
+        h11_max_incomplete_event_size=2 * 1024 * 1024 * 1024,  # 2GB
+        limit_max_requests=1000,
+        backlog=2048
     )
