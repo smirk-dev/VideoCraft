@@ -3,7 +3,12 @@ Configuration settings for VideoCraft AI Video Editor
 """
 import os
 from typing import List
-from pydantic_settings import BaseSettings
+
+try:
+    from pydantic_settings import BaseSettings
+except ImportError:
+    # Fallback for compatibility issues
+    from pydantic import BaseSettings
 
 
 class Settings(BaseSettings):
