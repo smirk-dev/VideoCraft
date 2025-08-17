@@ -142,7 +142,7 @@ const UploadPage = () => {
           {uploading ? <CircularProgress size={24} /> : 'Choose Files'}
         </Button>
         <Typography variant="caption" display="block" sx={{ mt: 2 }}>
-          Maximum file size: 500MB
+          Maximum file size: 2GB
         </Typography>
       </Paper>
 
