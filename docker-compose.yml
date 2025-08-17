@@ -1,7 +1,5 @@
 # docker-compose.yml for VideoCraft AI Video Editor
 
-version: '3.8'
-
 services:
   # Backend FastAPI Service
   backend:
