@@ -32,7 +32,7 @@ class Settings(BaseSettings):
     ]
     
     # File Upload Settings
-    MAX_UPLOAD_SIZE: int = 500 * 1024 * 1024  # 500MB
+    MAX_UPLOAD_SIZE: int = 2 * 1024 * 1024 * 1024  # 2GB
     ALLOWED_VIDEO_EXTENSIONS: List[str] = [
         ".mp4", ".avi", ".mov", ".mkv", ".wmv", 
         ".flv", ".webm", ".m4v", ".3gp", ".ogv"

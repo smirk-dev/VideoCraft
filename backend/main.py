@@ -48,6 +48,9 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+# Configure request size limits for large file uploads (2GB)
+app.max_request_size = 2 * 1024 * 1024 * 1024  # 2GB
+
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
