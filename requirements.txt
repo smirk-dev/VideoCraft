@@ -18,7 +18,7 @@ huggingface-hub==0.19.4
 
 # Computer Vision and Image Processing
 opencv-python==4.8.1.78
-Pillow==10.1.0
+Pillow>=9.0.1,<10.1.0
 mediapipe==0.10.8
 scikit-image==0.22.0
 
@@ -30,7 +30,7 @@ whisper==1.1.10
 
 # Video Processing
 moviepy==1.0.3
-imageio[ffmpeg]==2.31.6
+imageio[ffmpeg]>=2.31.6,<2.35.0
 imageio-ffmpeg==0.4.9
 
 # Web Framework and API
