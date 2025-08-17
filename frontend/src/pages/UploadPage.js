@@ -27,7 +27,7 @@ import {
 import { useDropzone } from 'react-dropzone';
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8001';
 
 const UploadPage = () => {
   const [uploadedFiles, setUploadedFiles] = useState([]);
@@ -85,7 +85,7 @@ const UploadPage = () => {
       'audio/*': ['.mp3', '.wav', '.aac', '.flac', '.ogg', '.m4a']
     },
     multiple: true,
-    maxSize: 500 * 1024 * 1024 // 500MB
+    maxSize: 2 * 1024 * 1024 * 1024 // 2GB
   });
 
   const formatFileSize = (bytes) => {
