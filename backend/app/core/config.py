@@ -19,8 +19,14 @@ class Settings(BaseSettings):
     # CORS Settings
     ALLOWED_HOSTS: List[str] = [
         "http://localhost:3000",  # React development server
+        "http://localhost:3001",  # Alternative React port
+        "http://localhost:3002",  # Alternative React port  
+        "http://localhost:3080",  # Alternative React port
         "http://localhost:8080",  # Alternative frontend port
         "http://127.0.0.1:3000",
+        "http://127.0.0.1:3001",
+        "http://127.0.0.1:3002",
+        "http://127.0.0.1:3080",
         "http://127.0.0.1:8080",
         "*"  # Allow all origins in development (change for production)
     ]
