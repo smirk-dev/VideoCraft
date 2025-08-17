@@ -96,10 +96,6 @@ class Settings:
     # Logging Settings
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
     LOG_FILE: str = "logs/videocraft.log"
-    
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
 
 
 # Create global settings instance
