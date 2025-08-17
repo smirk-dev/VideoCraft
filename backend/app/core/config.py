@@ -4,14 +4,8 @@ Configuration settings for VideoCraft AI Video Editor
 import os
 from typing import List
 
-try:
-    from pydantic_settings import BaseSettings
-except ImportError:
-    # Fallback for compatibility issues
-    from pydantic import BaseSettings
 
-
-class Settings(BaseSettings):
+class Settings:
     # Application Settings
     APP_NAME: str = "VideoCraft AI Video Editor"
     VERSION: str = "1.0.0"
@@ -19,7 +13,7 @@ class Settings(BaseSettings):
     
     # Server Settings
     HOST: str = os.getenv("HOST", "0.0.0.0")
-    PORT: int = int(os.getenv("PORT", "8000"))
+    PORT: int = int(os.getenv("PORT", "8001"))
     
     # CORS Settings
     ALLOWED_HOSTS: List[str] = [
