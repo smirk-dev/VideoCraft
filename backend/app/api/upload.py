@@ -34,10 +34,12 @@ def generate_unique_filename(original_filename: str) -> str:
 
 
 async def save_upload_file(upload_file: UploadFile, destination: str) -> str:
-    """Save uploaded file to destination"""
+    """Save uploaded file to destination with optimized chunking for large files"""
     try:
         async with aiofiles.open(destination, 'wb') as f:
-            while chunk := await upload_file.read(8192):  # Read in 8KB chunks
+            # Use larger chunk size for better performance with large files
+            chunk_size = 1024 * 1024  # 1MB chunks for better performance
+            while chunk := await upload_file.read(chunk_size):
                 await f.write(chunk)
         return destination
     except Exception as e:
@@ -74,7 +76,7 @@ async def upload_video(
     if file.size and file.size > settings.MAX_UPLOAD_SIZE:
         raise HTTPException(
             status_code=413, 
-            detail=f"File too large. Maximum size: {settings.MAX_UPLOAD_SIZE / (1024*1024):.1f}MB"
+            detail=f"File too large. Maximum size: {settings.MAX_UPLOAD_SIZE / (1024*1024*1024):.1f}GB"
         )
     
     try:
