@@ -1,157 +1,595 @@
-# VideoCraft - AI-Powered Video Editing Assistant
+# 🎬 VideoCraft AI - Professional Video Editing Assistant
 
-A comprehensive video editing platform powered by Python and HuggingFace AI models.
+A comprehensive AI-powered video editing platform that revolutionizes content creation with intelligent analysis, automated editing suggestions, and professional-grade tools. Built with Python, FastAPI, React, and powered by state-of-the-art HuggingFace AI models.
 
-## Features
+## ✨ Key Features
 
-### 🤖 AI-Powered Analysis
-- **Video Analysis**: Automatic scene detection, object recognition, and content analysis
-- **Emotion Detection**: Real-time emotion analysis using facial recognition and audio sentiment
-- **Script Analysis**: NLP-powered script improvement suggestions and structure analysis
-- **Audio Analysis**: Speech-to-text, noise detection, and audio quality assessment
+### 🤖 AI-Powered Video Analysis
+- **Scene Detection**: Automatic identification of scene changes and transitions
+- **Object Recognition**: Real-time detection and tracking of objects, people, and elements
+- **Content Analysis**: Intelligent video content understanding and categorization
+- **Quality Assessment**: Automated video quality analysis and enhancement suggestions
 
-### 🎵 Smart Recommendations
-- **Music Recommendation**: Context-aware music suggestions based on video content and mood
-- **Cut Suggestions**: AI-powered editing suggestions for optimal pacing and flow
-- **Color Grading**: Automatic color correction and enhancement recommendations
+### 😊 Emotion & Sentiment Analysis
+- **Facial Emotion Detection**: Real-time emotion analysis from facial expressions
+- **Audio Sentiment Analysis**: Voice tone and emotional content analysis
+- **Mood Classification**: Comprehensive mood detection for better storytelling
+- **Emotion Timeline**: Track emotional changes throughout the video
 
-### ✨ Advanced Editing Tools
+### 🎵 Smart Audio Processing
+- **Speech-to-Text**: High-accuracy transcription using Whisper AI
+- **Music Recommendation**: Context-aware music suggestions based on content and mood
+- **Audio Enhancement**: Noise reduction and audio quality improvement
+- **Sound Analysis**: Audio level monitoring and optimization suggestions
+
+### 🖼️ Advanced Visual Tools
 - **Background Removal**: AI-powered background removal and replacement
-- **In-Browser Editing**: Timeline-based video editing with real-time preview
-- **Smart Cropping**: Intelligent video cropping and aspect ratio optimization
-- **Text & Subtitle Generation**: Automatic subtitle generation and text overlay suggestions
+- **Color Grading**: Automatic color correction and cinematic enhancement
+- **Smart Cropping**: Intelligent aspect ratio optimization
+- **Visual Effects**: AI-assisted visual enhancement and filtering
 
-## Architecture
+### ⚡ Professional Editing Suite
+- **Timeline Editor**: Professional timeline-based editing interface
+- **Real-time Preview**: Instant video preview with applied changes
+- **Cut Suggestions**: AI-powered editing recommendations for optimal pacing
+- **Batch Processing**: Handle multiple videos with automated workflows
+- **Project Management**: Organize and manage editing projects efficiently
+
+### 📊 Analytics & Insights
+- **Performance Metrics**: Detailed video performance analysis
+- **Engagement Prediction**: AI-powered audience engagement forecasting
+- **Content Optimization**: Suggestions for improving video performance
+- **Export Analytics**: Comprehensive reports on video metrics
+
+## 🏗️ Project Architecture
 
 ```
-VideoCraft/
-├── backend/                 # FastAPI Python backend
+VideoCraft1/
+├── 🐍 backend/                    # FastAPI Python Backend
 │   ├── app/
-│   │   ├── api/            # API endpoints
-│   │   ├── models/         # Data models
-│   │   ├── services/       # Business logic
-│   │   └── core/           # Core utilities
-│   ├── requirements.txt
-│   └── main.py
-├── ai_models/              # HuggingFace AI models and processors
-│   ├── video_analysis/     # Video content analysis
-│   ├── emotion_detection/  # Emotion and sentiment analysis
-│   ├── audio_processing/   # Audio analysis and transcription
-│   ├── background_removal/ # Background removal models
-│   └── music_recommendation/ # Music suggestion algorithms
-├── frontend/               # React frontend (minimal, focused on UI)
+│   │   ├── api/                   # REST API Endpoints
+│   │   │   ├── upload.py          # File upload handling (2GB support)
+│   │   │   ├── video_analysis.py  # Video AI analysis
+│   │   │   ├── emotion_detection.py # Emotion & sentiment analysis
+│   │   │   ├── audio_analysis.py  # Audio processing & transcription
+│   │   │   ├── music_recommendation.py # Smart music suggestions
+│   │   │   ├── background_removal.py # AI background processing
+│   │   │   └── video_editing.py   # Video editing operations
+│   │   ├── core/
+│   │   │   ├── config.py          # Application configuration
+│   │   │   └── logging_config.py  # Logging setup
+│   │   └── models/                # Data models and schemas
+│   ├── requirements.txt           # Python dependencies
+│   ├── main.py                   # FastAPI application entry point
+│   └── test_upload_server.py     # Simplified test server
+├── ⚛️ frontend/                   # React Frontend Application
 │   ├── src/
 │   │   ├── components/
+│   │   │   └── Navbar.js         # Navigation component
 │   │   ├── pages/
-│   │   └── services/
-│   └── package.json
-├── uploads/                # Temporary file storage
-├── processed/              # Processed video output
-└── requirements.txt        # Main Python dependencies
+│   │   │   ├── HomePage.js       # Landing page with features
+│   │   │   ├── UploadPage.js     # File upload interface (2GB support)
+│   │   │   ├── EditorPage.js     # Timeline-based video editor
+│   │   │   ├── AnalysisPage.js   # AI analysis dashboard
+│   │   │   └── ProjectsPage.js   # Project management
+│   │   ├── App.js               # Main React application
+│   │   └── index.js             # React DOM entry point
+│   ├── public/                  # Static assets
+│   ├── package.json            # Node.js dependencies
+│   └── .env.local              # Environment configuration
+├── 📁 uploads/                  # Uploaded files storage (gitignored)
+├── 📁 processed/               # Processed video outputs (gitignored)
+├── 📁 temp/                    # Temporary processing files (gitignored)
+├── 📁 static/                  # Static web assets
+├── 📁 logs/                    # Application logs (gitignored)
+├── 🐳 Docker files             # Container configuration
+│   ├── Dockerfile.backend
+│   ├── Dockerfile.frontend
+│   └── docker-compose.yml
+├── 🚀 Startup Scripts          # Easy project launching
+│   ├── start-custom-ports.bat  # Windows batch script
+│   ├── start-custom-ports.ps1  # PowerShell script
+│   └── start.bat              # Simple Windows launcher
+├── 📋 Configuration Files
+│   ├── .gitignore             # Git exclusion rules
+│   ├── .env                   # Environment variables
+│   ├── requirements.txt       # Main Python dependencies
+│   └── setup.py              # Python package setup
+└── 📚 Documentation
+    ├── README.md              # This file
+    ├── DEVELOPMENT.md         # Development guidelines
+    └── LICENSE               # MIT License
 ```
 
-## Technology Stack
+## 🛠️ Technology Stack
 
-### Backend (Python)
-- **FastAPI**: High-performance web framework
-- **HuggingFace Transformers**: Pre-trained AI models
-- **OpenCV**: Video processing and computer vision
-- **MoviePy**: Video editing and manipulation
-- **Librosa**: Audio analysis and processing
-- **MediaPipe**: Real-time perception pipeline
-- **PyTorch**: Deep learning framework
+### Backend Technologies
+| Technology | Purpose | Version |
+|------------|---------|---------|
+| **FastAPI** | High-performance web framework | Latest |
+| **Python** | Core backend language | 3.8+ |
+| **HuggingFace Transformers** | Pre-trained AI models | 4.36+ |
+| **PyTorch** | Deep learning framework | 2.1+ |
+| **OpenCV** | Computer vision and video processing | 4.8+ |
+| **MoviePy** | Video editing and manipulation | 1.0+ |
+| **Librosa** | Audio analysis and processing | 0.10+ |
+| **Whisper** | Speech recognition and transcription | Latest |
+| **MediaPipe** | Real-time perception pipeline | 0.10+ |
+| **Uvicorn** | ASGI server for FastAPI | Latest |
 
-### Frontend (React)
-- **React 18**: Modern UI framework
-- **Material-UI**: Component library
-- **Axios**: HTTP client for API communication
-- **React Router**: Navigation and routing
+### Frontend Technologies
+| Technology | Purpose | Version |
+|------------|---------|---------|
+| **React** | Modern UI framework | 18.2+ |
+| **Material-UI (MUI)** | Component library and design system | 5.14+ |
+| **React Router** | Client-side routing | 6.8+ |
+| **Axios** | HTTP client for API communication | 1.6+ |
+| **React Dropzone** | File upload with drag & drop | 14.2+ |
 
-### AI Models (HuggingFace)
-- **facebook/detr-resnet-50**: Object detection
-- **microsoft/DialoGPT-medium**: Conversational AI
-- **openai/whisper-base**: Speech recognition
-- **cardiffnlp/twitter-roberta-base-emotion**: Emotion analysis
-- **facebook/musicgen-small**: Music generation
+### AI Models & Services
+| Model | Provider | Use Case |
+|-------|----------|----------|
+| **DETR ResNet-50** | Facebook | Object detection and recognition |
+| **Whisper Base** | OpenAI | Speech-to-text transcription |
+| **RoBERTa Emotion** | Cardiff NLP | Emotion classification |
+| **U2Net** | Various | Background removal |
+| **MediaPipe Face** | Google | Facial landmark detection |
+| **Various Audio Models** | HuggingFace | Audio analysis and enhancement |
 
-## Installation
+### Development & Deployment
+| Tool | Purpose |
+|------|---------|
+| **Docker** | Containerization and deployment |
+| **Git** | Version control |
+| **PowerShell/Batch** | Startup automation scripts |
+| **Nginx** | Production web server (optional) |
+
+## 🚀 Quick Start Guide
 
 ### Prerequisites
-- Python 3.8+
-- Node.js 16+
-- FFmpeg (for video processing)
+Before you begin, ensure you have the following installed:
 
-### Setup
+- **Python 3.8+** - [Download Python](https://www.python.org/downloads/)
+- **Node.js 16+** - [Download Node.js](https://nodejs.org/)
+- **Git** - [Download Git](https://git-scm.com/)
+- **FFmpeg** (Optional) - For advanced video processing
 
-1. **Clone and navigate to project**
+### 📥 Installation
+
+#### Method 1: Automated Setup (Recommended)
+
+1. **Clone the Repository**
 ```bash
-git clone <repository-url>
+git clone https://github.com/your-username/VideoCraft1.git
 cd VideoCraft1
 ```
 
-2. **Install Python dependencies**
+2. **Run the Automated Startup Script**
+
+**Windows (PowerShell):**
+```powershell
+powershell -ExecutionPolicy Bypass -File start-custom-ports.ps1
+```
+
+**Windows (Command Prompt):**
+```batch
+start-custom-ports.bat
+```
+
+The script will:
+- Set up Python virtual environment
+- Install all dependencies
+- Configure ports to avoid conflicts
+- Launch both backend and frontend servers
+
+#### Method 2: Manual Setup
+
+1. **Clone and Navigate**
 ```bash
+git clone https://github.com/your-username/VideoCraft1.git
+cd VideoCraft1
+```
+
+2. **Setup Python Environment**
+```bash
+# Create virtual environment
+python -m venv .venv
+
+# Activate virtual environment
+# Windows:
+.venv\Scripts\activate
+# macOS/Linux:
+source .venv/bin/activate
+```
+
+3. **Install Backend Dependencies**
+```bash
+cd backend
 pip install -r requirements.txt
 ```
 
-3. **Install frontend dependencies**
+4. **Install Frontend Dependencies**
 ```bash
+cd ../frontend
 npm install
 ```
 
-4. **Start the development servers**
-```bash
-# Backend (Python FastAPI)
-cd backend
-uvicorn main:app --reload --port 8000
+5. **Start the Servers**
 
-# Frontend (React)
+**Terminal 1 - Backend:**
+```bash
+cd backend
+python main.py
+```
+
+**Terminal 2 - Frontend:**
+```bash
+cd frontend
 npm start
 ```
 
-## Usage
+### 🌐 Access the Application
 
-1. **Upload Video**: Drag and drop videos or use the upload interface
-2. **AI Analysis**: Automatic analysis provides insights and suggestions
-3. **Edit**: Use the timeline editor with AI-powered recommendations
-4. **Export**: Generate and download your enhanced video
+- **Frontend Interface**: http://localhost:3001
+- **Backend API**: http://localhost:8001
+- **API Documentation**: http://localhost:8001/api/docs
+- **Alternative API Docs**: http://localhost:8001/api/redoc
 
-## API Endpoints
+### 🎯 Port Configuration
 
-- `POST /api/upload` - Upload video files
-- `POST /api/analyze/video` - Analyze video content
-- `POST /api/analyze/emotion` - Detect emotions in video
-- `POST /api/analyze/audio` - Process audio content
-- `POST /api/recommend/music` - Get music recommendations
-- `POST /api/edit/background-remove` - Remove video backgrounds
-- `GET /api/projects` - List user projects
+The application uses custom ports to avoid conflicts:
+- **Backend**: Port 8001 (instead of default 8000)
+- **Frontend**: Port 3001 (instead of default 3000)
+- **Alternative ports**: 8002/3002, 8080/3080 available via startup scripts
 
-## Development
+## 📖 Usage Guide
 
-### Running Tests
+### 1. 📤 Upload Videos
+- **Drag & Drop**: Simply drag video files onto the upload area
+- **File Selection**: Click to browse and select files
+- **Supported Formats**: MP4, AVI, MOV, MKV, WMV, FLV, WebM, M4V, 3GP
+- **File Size**: Up to 2GB per file
+- **Batch Upload**: Upload multiple files simultaneously
+
+### 2. 🤖 AI Analysis
+Once uploaded, your videos are automatically analyzed:
+
+- **Scene Detection**: Identifies scene changes and transitions
+- **Emotion Analysis**: Detects emotions in faces and voice
+- **Audio Transcription**: Converts speech to text
+- **Content Recognition**: Identifies objects, people, and activities
+- **Quality Assessment**: Analyzes video and audio quality
+
+### 3. ✂️ Video Editing
+Use the professional timeline editor:
+
+- **Timeline Interface**: Drag and drop clips on the timeline
+- **Real-time Preview**: See changes instantly
+- **AI Suggestions**: Get intelligent editing recommendations
+- **Cut Tools**: Precise cutting and trimming
+- **Transitions**: Add smooth transitions between clips
+- **Effects**: Apply filters and visual effects
+
+### 4. 🎨 Enhancement Tools
+Apply AI-powered enhancements:
+
+- **Background Removal**: Remove or replace backgrounds
+- **Color Correction**: Automatic color grading
+- **Audio Enhancement**: Noise reduction and audio improvement
+- **Smart Cropping**: Optimize for different aspect ratios
+
+### 5. 📊 Analytics & Insights
+View comprehensive analysis:
+
+- **Emotion Timeline**: Track emotional changes
+- **Scene Breakdown**: Detailed scene analysis
+- **Audio Metrics**: Volume levels and speech quality
+- **Engagement Predictions**: AI-powered performance forecasts
+
+### 6. 💾 Export & Share
+Download your enhanced videos:
+
+- **Multiple Formats**: Export in various video formats
+- **Quality Options**: Choose from different quality settings
+- **Quick Share**: Generate shareable links
+- **Project Saving**: Save projects for future editing
+
+## 🔧 Configuration Options
+
+### Environment Variables
+Create a `.env` file in the root directory:
+
+```env
+# Server Configuration
+HOST=0.0.0.0
+PORT=8001
+DEBUG=false
+
+# File Upload Settings
+MAX_UPLOAD_SIZE=2147483648  # 2GB in bytes
+
+# AI Model Settings
+USE_GPU=false
+HF_CACHE_DIR=./models_cache
+
+# Database (Optional)
+DATABASE_URL=sqlite:///./videocraft.db
+```
+
+### Frontend Configuration
+Edit `frontend/.env.local`:
+
+```env
+REACT_APP_API_URL=http://localhost:8001
+PORT=3001
+BROWSER=none
+```
+
+## 🔌 API Reference
+
+### Upload Endpoints
+| Method | Endpoint | Description | Max Size |
+|--------|----------|-------------|----------|
+| `POST` | `/api/upload/video` | Upload video files | 2GB |
+| `POST` | `/api/upload/audio` | Upload audio files | 2GB |
+| `POST` | `/api/upload/multiple` | Batch upload files | 10 files |
+| `GET` | `/api/upload/list` | List uploaded files | - |
+| `DELETE` | `/api/upload/delete/{filename}` | Delete uploaded file | - |
+
+### Analysis Endpoints
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/analyze/video` | Comprehensive video analysis |
+| `POST` | `/api/analyze/scenes` | Scene detection and classification |
+| `POST` | `/api/analyze/objects` | Object detection and tracking |
+| `POST` | `/api/analyze/quality` | Video quality assessment |
+
+### Emotion & Audio Endpoints
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/emotion/detect` | Facial emotion detection |
+| `POST` | `/api/emotion/timeline` | Emotion analysis over time |
+| `POST` | `/api/audio/transcribe` | Speech-to-text conversion |
+| `POST` | `/api/audio/analyze` | Audio quality and metrics |
+| `POST` | `/api/audio/enhance` | Audio enhancement and cleanup |
+
+### Enhancement Endpoints
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/background/remove` | AI background removal |
+| `POST` | `/api/background/replace` | Background replacement |
+| `POST` | `/api/edit/color-correct` | Automatic color correction |
+| `POST` | `/api/edit/enhance` | Video quality enhancement |
+
+### Music & Recommendations
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/music/recommend` | Get music recommendations |
+| `POST` | `/api/music/analyze` | Analyze music compatibility |
+| `GET` | `/api/music/genres` | List available music genres |
+
+### Project Management
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/projects` | List user projects |
+| `POST` | `/api/projects` | Create new project |
+| `PUT` | `/api/projects/{id}` | Update project |
+| `DELETE` | `/api/projects/{id}` | Delete project |
+
+### System Endpoints
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/health` | Health check |
+| `GET` | `/api/info` | API information |
+| `GET` | `/` | Web interface |
+| `GET` | `/api/docs` | Swagger documentation |
+
+## 🐳 Docker Deployment
+
+### Using Docker Compose (Recommended)
+
+1. **Build and Run**
 ```bash
-# Backend tests
-cd backend
-pytest
+docker-compose up --build
+```
 
-# Frontend tests
+2. **Access Application**
+- Frontend: http://localhost:3000
+- Backend: http://localhost:8000
+
+### Manual Docker Build
+
+**Backend:**
+```bash
+docker build -f Dockerfile.backend -t videocraft-backend .
+docker run -p 8001:8001 videocraft-backend
+```
+
+**Frontend:**
+```bash
+docker build -f Dockerfile.frontend -t videocraft-frontend .
+docker run -p 3001:3001 videocraft-frontend
+```
+
+## 🧪 Testing
+
+### Backend Testing
+```bash
+cd backend
+pip install pytest pytest-asyncio
+pytest tests/ -v
+```
+
+### Frontend Testing
+```bash
+cd frontend
 npm test
 ```
 
-### Adding New AI Models
-1. Add model configuration in `ai_models/`
-2. Create service class in `backend/app/services/`
-3. Add API endpoint in `backend/app/api/`
-4. Update frontend interface
+### API Testing
+Use the interactive API documentation:
+- **Swagger UI**: http://localhost:8001/api/docs
+- **ReDoc**: http://localhost:8001/api/redoc
 
-## Contributing
+### Manual Testing Checklist
+- [ ] File upload (small and large files up to 2GB)
+- [ ] Video analysis processing
+- [ ] Emotion detection accuracy
+- [ ] Audio transcription quality
+- [ ] Background removal functionality
+- [ ] Timeline editor responsiveness
+- [ ] Export functionality
 
+## 🔧 Development
+
+### Project Structure Guidelines
+- **Backend**: Follow FastAPI best practices
+- **Frontend**: Use React functional components with hooks
+- **AI Models**: Implement lazy loading for better performance
+- **API**: RESTful design with clear error handling
+
+### Adding New Features
+
+1. **Backend Endpoint**
+```python
+# backend/app/api/new_feature.py
+from fastapi import APIRouter
+
+router = APIRouter()
+
+@router.post("/new-endpoint")
+async def new_endpoint():
+    return {"message": "New feature"}
+```
+
+2. **Frontend Integration**
+```javascript
+// frontend/src/services/api.js
+export const newFeatureAPI = async (data) => {
+  return await axios.post('/api/new-endpoint', data);
+};
+```
+
+### Code Style
+- **Python**: Follow PEP 8, use Black formatter
+- **JavaScript**: Use ESLint and Prettier
+- **Commits**: Follow conventional commit format
+
+### Performance Optimization
+- Use async/await for I/O operations
+- Implement caching for AI model results
+- Optimize file handling for large uploads
+- Use React.memo for expensive components
+
+## 🚨 Troubleshooting
+
+### Common Issues
+
+**🔍 Server Won't Start**
+```bash
+# Check if ports are available
+netstat -ano | findstr :8001
+netstat -ano | findstr :3001
+
+# Use alternative ports
+python main.py --port 8002
+npm start -- --port 3002
+```
+
+**🔍 Upload Fails for Large Files**
+- Ensure 2GB limit is configured in both frontend and backend
+- Check available disk space
+- Verify network stability for large uploads
+
+**🔍 AI Models Not Loading**
+```bash
+# Clear HuggingFace cache
+rm -rf ~/.cache/huggingface/
+
+# Reinstall transformers
+pip uninstall transformers
+pip install transformers
+```
+
+**🔍 Frontend Build Errors**
+```bash
+# Clear npm cache
+npm cache clean --force
+
+# Delete node_modules and reinstall
+rm -rf node_modules package-lock.json
+npm install
+```
+
+**🔍 Permission Errors (Windows)**
+```powershell
+# Run PowerShell as Administrator
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+
+### Getting Help
+- **Issues**: Create a GitHub issue with detailed description
+- **Discussions**: Use GitHub Discussions for questions
+- **Documentation**: Check `/api/docs` for API reference
+
+## 🤝 Contributing
+
+We welcome contributions! Here's how to get started:
+
+### Development Setup
 1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Make your changes
+4. Add tests for new functionality
+5. Ensure all tests pass
+6. Commit with conventional commit format
+7. Push to your fork: `git push origin feature/amazing-feature`
+8. Create a Pull Request
 
-## License
+### Contribution Guidelines
+- **Code Quality**: Maintain high code quality standards
+- **Testing**: Add tests for new features
+- **Documentation**: Update documentation for changes
+- **Performance**: Consider performance impact
+- **Compatibility**: Ensure cross-platform compatibility
 
-MIT License - see LICENSE file for details.
+### Areas for Contribution
+- 🆕 New AI models integration
+- 🎨 UI/UX improvements
+- 📱 Mobile responsiveness
+- 🔧 Performance optimizations
+- 📚 Documentation improvements
+- 🧪 Test coverage expansion
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+### Third-Party Licenses
+- HuggingFace Transformers: Apache 2.0
+- FastAPI: MIT
+- React: MIT
+- Material-UI: MIT
+
+## 🙏 Acknowledgments
+
+- **HuggingFace** for providing excellent pre-trained models
+- **OpenAI** for Whisper speech recognition
+- **Google** for MediaPipe framework
+- **Facebook** for PyTorch and computer vision models
+- **React** and **FastAPI** communities for excellent frameworks
+
+## 📊 Project Stats
+
+- **Languages**: Python, JavaScript, TypeScript
+- **Backend**: FastAPI with 15+ AI models
+- **Frontend**: React with Material-UI
+- **File Support**: 2GB uploads, 10+ video formats
+- **AI Features**: 6 major AI capabilities
+- **API Endpoints**: 25+ RESTful endpoints
+
+---
+
+**Made with ❤️ by the VideoCraft AI Team**
+
+For more information, visit our [documentation](./DEVELOPMENT.md) or check out the [live demo](http://localhost:3001).
