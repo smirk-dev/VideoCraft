@@ -44,7 +44,7 @@ A comprehensive AI-powered video editing platform that revolutionizes content cr
 ## 🏗️ Project Architecture
 
 ```
-VideoCraft1/
+VideoCraft/
 ├── 🐍 backend/                    # FastAPI Python Backend
 │   ├── app/
 │   │   ├── api/                   # REST API Endpoints
@@ -160,8 +160,8 @@ Before you begin, ensure you have the following installed:
 
 1. **Clone the Repository**
 ```bash
-git clone https://github.com/your-username/VideoCraft1.git
-cd VideoCraft1
+git clone https://github.com/your-username/VideoCraft.git
+cd VideoCraft
 ```
 
 2. **Run the Automated Startup Script**
@@ -186,8 +186,8 @@ The script will:
 
 1. **Clone and Navigate**
 ```bash
-git clone https://github.com/your-username/VideoCraft1.git
-cd VideoCraft1
+git clone https://github.com/your-username/VideoCraft.git
+cd VideoCraft
 ```
 
 2. **Setup Python Environment**
