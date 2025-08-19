@@ -298,7 +298,13 @@ const ProjectsPage = () => {
             <Grid item xs={12} sm={2}>
               <Typography variant="body2" color="text.secondary">
                 {filteredProjects.length} project{filteredProjects.length !== 1 ? 's' : ''}
+                {searchQuery && ` (filtered)`}
               </Typography>
+              {searchQuery && (
+                <Typography variant="caption" color="primary" display="block">
+                  Searching: "{searchQuery}"
+                </Typography>
+              )}
             </Grid>
           </Grid>
         </Paper>
