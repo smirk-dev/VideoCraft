@@ -52,9 +52,11 @@ import { useNavigate } from 'react-router-dom';
 import { useVideo } from '../context/VideoContext';
 
 const AnalysisPage = () => {
+  const navigate = useNavigate();
+  const { hasVideo, currentVideo, videoMetadata, videoUrl } = useVideo();
+  
   const [analysisData, setAnalysisData] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [selectedFile, setSelectedFile] = useState(null);
 
   // Mock analysis data for demonstration
   const mockAnalysisData = {
