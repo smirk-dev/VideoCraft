@@ -188,6 +188,8 @@ const AnalysisPage = () => {
       }
     };
   };
+
+  const generateMockAnalysisData = () => {
     const duration = videoMetadata?.duration || 165; // fallback to 2:45
     const formatDuration = (seconds) => {
       const mins = Math.floor(seconds / 60);
