@@ -58,66 +58,81 @@ const AnalysisPage = () => {
   const [analysisData, setAnalysisData] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // Mock analysis data for demonstration
-  const mockAnalysisData = {
-    videoMetrics: {
-      duration: '2:45',
-      resolution: '1920x1080',
-      fps: 30,
-      fileSize: '150 MB',
-      bitrate: '8.5 Mbps',
-    },
-    emotions: [
-      { emotion: 'Happy', confidence: 0.85, timestamp: '0:15' },
-      { emotion: 'Neutral', confidence: 0.65, timestamp: '0:45' },
-      { emotion: 'Excited', confidence: 0.92, timestamp: '1:20' },
-      { emotion: 'Calm', confidence: 0.78, timestamp: '2:10' },
-    ],
-    sceneChanges: [
-      { timestamp: '0:00', confidence: 1.0, type: 'Cut' },
-      { timestamp: '0:32', confidence: 0.88, type: 'Fade' },
-      { timestamp: '1:15', confidence: 0.94, type: 'Cut' },
-      { timestamp: '2:01', confidence: 0.76, type: 'Dissolve' },
-    ],
-    audioAnalysis: {
-      avgVolume: 72,
-      peakVolume: 95,
-      silentSegments: 3,
-      musicDetected: true,
-      speechQuality: 'Good',
-    },
-    aiSuggestions: [
-      {
-        type: 'Cut Suggestion',
-        timestamp: '0:23',
-        reason: 'Long pause detected',
-        confidence: 0.82,
+  // Generate mock analysis data based on actual video
+  const generateMockAnalysisData = () => {
+    const duration = videoMetadata?.duration || 165; // fallback to 2:45
+    const formatDuration = (seconds) => {
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.floor(seconds % 60);
+      return `${mins}:${secs.toString().padStart(2, '0')}`;
+    };
+
+    return {
+      videoMetrics: {
+        duration: formatDuration(duration),
+        resolution: `${videoMetadata?.width || 1920}x${videoMetadata?.height || 1080}`,
+        fps: 30,
+        fileSize: videoMetadata?.size ? `${(videoMetadata.size / (1024 * 1024)).toFixed(1)} MB` : '150 MB',
+        bitrate: '8.5 Mbps',
       },
-      {
-        type: 'Music Addition',
-        timestamp: '1:45',
-        reason: 'Silent segment could benefit from background music',
-        confidence: 0.75,
+      emotions: [
+        { emotion: 'Happy', confidence: 0.85, timestamp: '0:15' },
+        { emotion: 'Neutral', confidence: 0.65, timestamp: formatDuration(duration * 0.25) },
+        { emotion: 'Excited', confidence: 0.92, timestamp: formatDuration(duration * 0.5) },
+        { emotion: 'Calm', confidence: 0.78, timestamp: formatDuration(duration * 0.8) },
+      ],
+      sceneChanges: [
+        { timestamp: '0:00', confidence: 1.0, type: 'Cut' },
+        { timestamp: formatDuration(duration * 0.2), confidence: 0.88, type: 'Fade' },
+        { timestamp: formatDuration(duration * 0.45), confidence: 0.94, type: 'Cut' },
+        { timestamp: formatDuration(duration * 0.75), confidence: 0.76, type: 'Dissolve' },
+      ],
+      audioAnalysis: {
+        avgVolume: 72,
+        peakVolume: 95,
+        silentSegments: 3,
+        musicDetected: true,
+        speechQuality: 'Good',
       },
-      {
-        type: 'Color Correction',
-        timestamp: '0:45',
-        reason: 'Scene appears underexposed',
-        confidence: 0.68,
-      },
-    ],
+      aiSuggestions: [
+        {
+          type: 'Cut Suggestion',
+          timestamp: formatDuration(duration * 0.15),
+          reason: 'Long pause detected',
+          confidence: 0.82,
+        },
+        {
+          type: 'Music Addition',
+          timestamp: formatDuration(duration * 0.65),
+          reason: 'Silent segment could benefit from background music',
+          confidence: 0.75,
+        },
+        {
+          type: 'Color Correction',
+          timestamp: formatDuration(duration * 0.3),
+          reason: 'Scene appears underexposed',
+          confidence: 0.68,
+        },
+      ],
+    };
   };
 
-  const handleFileAnalysis = async (file) => {
+  const handleVideoAnalysis = async () => {
     setLoading(true);
-    setSelectedFile(file);
 
-    // Simulate API call
+    // Simulate API call with the existing video
     setTimeout(() => {
-      setAnalysisData(mockAnalysisData);
+      setAnalysisData(generateMockAnalysisData());
       setLoading(false);
     }, 2000);
   };
+
+  // Auto-analyze when component loads if video exists
+  useEffect(() => {
+    if (hasVideo() && !analysisData && !loading) {
+      handleVideoAnalysis();
+    }
+  }, [hasVideo, analysisData, loading]);
 
   const getEmotionIcon = (emotion) => {
     switch (emotion.toLowerCase()) {
@@ -157,36 +172,49 @@ const AnalysisPage = () => {
             📊 Video Analysis
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            AI-powered video content analysis and insights
+            {hasVideo() 
+              ? `Analyzing: ${currentVideo} • AI-powered content analysis and insights`
+              : 'AI-powered video content analysis and insights'
+            }
           </Typography>
         </Box>
 
-        {!analysisData && !loading && (
+        {!hasVideo() && (
           <Paper sx={{ p: 4, textAlign: 'center' }}>
             <Analytics sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
             <Typography variant="h6" gutterBottom>
-              Upload a video to start analysis
+              No video loaded for analysis
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              Please upload a video first to begin AI analysis
+            </Typography>
+            <Button
+              variant="contained"
+              size="large"
+              startIcon={<Upload />}
+              onClick={() => navigate('/upload')}
+            >
+              Upload Video
+            </Button>
+          </Paper>
+        )}
+
+        {hasVideo() && !analysisData && !loading && (
+          <Paper sx={{ p: 4, textAlign: 'center' }}>
+            <Analytics sx={{ fontSize: 64, color: 'primary.main', mb: 2 }} />
+            <Typography variant="h6" gutterBottom>
+              Ready to analyze: {currentVideo}
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
               Our AI will analyze emotions, detect scenes, and provide intelligent suggestions
             </Typography>
             <Button
               variant="contained"
-              component="label"
               size="large"
               startIcon={<Analytics />}
+              onClick={handleVideoAnalysis}
             >
-              Choose Video File
-              <input
-                type="file"
-                accept="video/*"
-                hidden
-                onChange={(e) => {
-                  if (e.target.files[0]) {
-                    handleFileAnalysis(e.target.files[0]);
-                  }
-                }}
-              />
+              Start Analysis
             </Button>
           </Paper>
         )}
@@ -195,10 +223,10 @@ const AnalysisPage = () => {
           <Paper sx={{ p: 4, textAlign: 'center' }}>
             <CircularProgress size={60} sx={{ mb: 2 }} />
             <Typography variant="h6" gutterBottom>
-              Analyzing Video...
+              Analyzing {currentVideo}...
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              This may take a few moments
+              Processing video content • This may take a few moments
             </Typography>
             <LinearProgress sx={{ mt: 2, maxWidth: 400, mx: 'auto' }} />
           </Paper>
