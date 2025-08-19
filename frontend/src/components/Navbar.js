@@ -90,9 +90,9 @@ const Navbar = () => {
           VideoCraft AI
         </Typography>
         
-        {/* Video Indicator */}
+        {/* Video Indicator & Export */}
         {hasVideo() && (
-          <Box sx={{ mr: 2 }}>
+          <Box sx={{ mr: 2, display: 'flex', gap: 1, alignItems: 'center' }}>
             <Tooltip title={`Click to edit: ${currentVideo} (${formatDuration(videoMetadata?.duration || 0)})`}>
               <Chip
                 icon={<PlayCircleOutline />}
@@ -110,6 +110,13 @@ const Navbar = () => {
                 onDelete={handleVideoClick}
               />
             </Tooltip>
+            <ExportButton
+              videoData={getVideoData()}
+              variant="contained"
+              size="small"
+            >
+              Export
+            </ExportButton>
           </Box>
         )}
         
