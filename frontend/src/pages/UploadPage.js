@@ -25,11 +25,15 @@ import {
   Info
 } from '@mui/icons-material';
 import { useDropzone } from 'react-dropzone';
+import { useNavigate } from 'react-router-dom';
+import { useVideo } from '../context/VideoContext';
 import axios from 'axios';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8001';
 
 const UploadPage = () => {
+  const navigate = useNavigate();
+  const { uploadVideo, isProcessing } = useVideo();
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState(null);
@@ -42,6 +46,25 @@ const UploadPage = () => {
 
     for (const file of acceptedFiles) {
       try {
+        // If it's a video file, use the global video context
+        if (file.type.includes('video')) {
+          const result = await uploadVideo(file);
+          
+          if (result.success) {
+            setSuccess(`${file.name} loaded successfully! Redirecting to editor...`);
+            
+            // Redirect to editor after a short delay
+            setTimeout(() => {
+              navigate('/editor');
+            }, 1500);
+            
+            return; // Exit early for video files since we're redirecting
+          } else {
+            throw new Error(result.error);
+          }
+        }
+
+        // For audio files, continue with the original upload logic
         const formData = new FormData();
         formData.append('file', file);
         formData.append('title', file.name);
@@ -58,7 +81,6 @@ const UploadPage = () => {
             if (progressEvent.lengthComputable) {
               const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
               console.log(`Upload progress: ${percentCompleted}%`);
-              // You can add progress state here if needed
             }
           },
         });
@@ -84,7 +106,7 @@ const UploadPage = () => {
     }
 
     setUploading(false);
-  }, []);
+  }, [uploadVideo, navigate]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -146,8 +168,8 @@ const UploadPage = () => {
         <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
           or click to select files
         </Typography>
-        <Button variant="contained" disabled={uploading}>
-          {uploading ? <CircularProgress size={24} /> : 'Choose Files'}
+        <Button variant="contained" disabled={uploading || isProcessing}>
+          {(uploading || isProcessing) ? <CircularProgress size={24} /> : 'Choose Files'}
         </Button>
         <Typography variant="caption" display="block" sx={{ mt: 2 }}>
           Maximum file size: 2GB
