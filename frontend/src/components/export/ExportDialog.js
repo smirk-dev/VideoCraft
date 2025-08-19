@@ -48,6 +48,7 @@ const ExportDialog = ({
     url: videoUrl,
     metadata: projectData = {},
     editingData: videoEditingData = {},
+    analysisData = null,
     timeline = {}
   } = videoData;
   
