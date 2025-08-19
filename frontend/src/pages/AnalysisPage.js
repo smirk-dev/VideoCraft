@@ -144,6 +144,89 @@ const AnalysisPage = () => {
     }
   }, [hasVideo, analysisData, loading]);
 
+  // Prepare video data for export
+  const getVideoData = () => {
+    if (!hasVideo()) return null;
+    
+    return {
+      filename: currentVideo,
+      url: videoUrl,
+      metadata: videoMetadata || {},
+      editingData: editingData || {},
+      analysisData: analysisData,
+      timeline: {
+        duration: videoMetadata?.duration || 0,
+        currentTime: 0,
+        trimStart: editingData?.trimStart || 0,
+        trimEnd: editingData?.trimEnd || videoMetadata?.duration || 0,
+        cuts: editingData?.cuts || []
+      }
+    };
+  };
+
+  // Share functionality
+  const handleShareClick = (event) => {
+    setShareMenuAnchor(event.currentTarget);
+  };
+
+  const handleShareClose = () => {
+    setShareMenuAnchor(null);
+  };
+
+  const handleCopyLink = () => {
+    const analysisUrl = `${window.location.origin}/analysis?video=${encodeURIComponent(currentVideo)}`;
+    navigator.clipboard.writeText(analysisUrl).then(() => {
+      setSnackbarMessage('Analysis link copied to clipboard!');
+      setSnackbarOpen(true);
+    });
+    handleShareClose();
+  };
+
+  const handleEmailShare = () => {
+    const subject = `Video Analysis Report - ${currentVideo}`;
+    const body = `Check out this video analysis report for "${currentVideo}":\n\n${window.location.origin}/analysis?video=${encodeURIComponent(currentVideo)}`;
+    window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
+    handleShareClose();
+  };
+
+  const generateAnalysisReport = () => {
+    if (!analysisData) return '';
+    
+    let report = `Video Analysis Report - ${currentVideo}\n`;
+    report += `Generated on: ${new Date().toLocaleDateString()}\n\n`;
+    
+    report += `VIDEO METRICS:\n`;
+    report += `Duration: ${analysisData.videoMetrics.duration}\n`;
+    report += `Resolution: ${analysisData.videoMetrics.resolution}\n`;
+    report += `File Size: ${analysisData.videoMetrics.fileSize}\n\n`;
+    
+    report += `EMOTION ANALYSIS:\n`;
+    analysisData.emotions.forEach(emotion => {
+      report += `- ${emotion.emotion} (${(emotion.confidence * 100).toFixed(1)}% confidence) at ${emotion.timestamp}\n`;
+    });
+    
+    report += `\nSCENE CHANGES:\n`;
+    analysisData.sceneChanges.forEach(scene => {
+      report += `- ${scene.type} at ${scene.timestamp} (${(scene.confidence * 100).toFixed(1)}% confidence)\n`;
+    });
+    
+    report += `\nAI SUGGESTIONS:\n`;
+    analysisData.aiSuggestions.forEach(suggestion => {
+      report += `- ${suggestion.type}: ${suggestion.reason} (at ${suggestion.timestamp})\n`;
+    });
+    
+    return report;
+  };
+
+  const handleShareAsText = () => {
+    const report = generateAnalysisReport();
+    navigator.clipboard.writeText(report).then(() => {
+      setSnackbarMessage('Analysis report copied to clipboard!');
+      setSnackbarOpen(true);
+    });
+    handleShareClose();
+  };
+
   const getEmotionIcon = (emotion) => {
     switch (emotion.toLowerCase()) {
       case 'happy':
