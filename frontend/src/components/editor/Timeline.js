@@ -280,7 +280,7 @@ const Timeline = ({
                 left: getPixelPosition(time) + 20,
                 width: 1,
                 height: 10,
-                backgroundColor: '#666'
+                backgroundColor: '#333'
               }}
             />
             <Typography
@@ -290,7 +290,8 @@ const Timeline = ({
                 top: 67,
                 left: getPixelPosition(time) + 12,
                 fontSize: '10px',
-                color: '#666'
+                color: '#333',
+                fontWeight: 'bold'
               }}
             >
               {formatTime(time)}
