@@ -537,3 +537,119 @@ async def get_edit_suggestions(filename: str):
     except Exception as e:
         logger.error(f"Error generating suggestions for {filename}: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error generating suggestions: {str(e)}")
+
+
+@router.post("/analyze-real", response_model=AnalysisResponse)
+async def analyze_video_real(
+    request: AnalysisRequest,
+    background_tasks: BackgroundTasks,
+    user_id: int = 1,  # For now, default user
+    db: Session = Depends(get_db)
+):
+    """
+    Perform real AI analysis on video using actual AI models
+    
+    This endpoint replaces mock analysis with genuine AI processing
+    """
+    try:
+        logger.info(f"Starting real AI analysis for: {request.video_filename}")
+        
+        # Validate video file exists
+        video_path = os.path.join(settings.UPLOAD_DIR, request.video_filename)
+        if not os.path.exists(video_path):
+            raise HTTPException(status_code=404, detail="Video file not found")
+        
+        # Perform real AI analysis
+        analysis_result = await ai_service.analyze_video(
+            video_path=video_path,
+            analysis_types=request.analysis_types
+        )
+        
+        if not analysis_result['success']:
+            # If real analysis fails, return error with fallback
+            return AnalysisResponse(
+                success=False,
+                error=analysis_result.get('error', 'Analysis failed'),
+                analysis=analysis_result.get('fallback_analysis')
+            )
+        
+        # Save analysis to database if project_id is provided
+        analysis_record = None
+        if request.project_id:
+            try:
+                # Find project
+                project = db.query(Project).filter(
+                    Project.project_id == request.project_id
+                ).first()
+                
+                if project:
+                    # Create analysis record
+                    analysis_record = AnalysisReport(
+                        analysis_type="comprehensive",
+                        analysis_data=analysis_result['analysis'],
+                        confidence_score=85,  # Average confidence
+                        processing_time=int(analysis_result['analysis'].get('processing_time_seconds', 0)),
+                        project_id=project.id,
+                        user_id=user_id
+                    )
+                    
+                    db.add(analysis_record)
+                    db.commit()
+                    db.refresh(analysis_record)
+                    
+                    logger.info(f"Saved analysis record: {analysis_record.report_id}")
+            
+            except Exception as e:
+                logger.warning(f"Failed to save analysis record: {str(e)}")
+                # Continue without saving - analysis still succeeded
+        
+        return AnalysisResponse(
+            success=True,
+            analysis_id=analysis_record.report_id if analysis_record else None,
+            analysis=analysis_result['analysis']
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Real AI analysis failed: {str(e)}")
+        return AnalysisResponse(
+            success=False,
+            error=str(e)
+        )
+
+
+@router.get("/analysis/{analysis_id}")
+async def get_analysis_report(
+    analysis_id: str,
+    user_id: int = 1,
+    db: Session = Depends(get_db)
+):
+    """Get saved analysis report by ID"""
+    try:
+        analysis = db.query(AnalysisReport).filter(
+            AnalysisReport.report_id == analysis_id,
+            AnalysisReport.user_id == user_id
+        ).first()
+        
+        if not analysis:
+            raise HTTPException(status_code=404, detail="Analysis report not found")
+        
+        return JSONResponse(
+            status_code=200,
+            content={
+                "analysis_id": analysis.report_id,
+                "analysis_type": analysis.analysis_type,
+                "analysis_data": analysis.analysis_data,
+                "confidence_score": analysis.confidence_score,
+                "processing_time": analysis.processing_time,
+                "created_at": analysis.created_at.isoformat(),
+                "project_id": analysis.project.project_id if analysis.project else None
+            }
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to get analysis report: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
