@@ -22,6 +22,7 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useVideo } from '../context/VideoContext';
+import ExportButton from './common/ExportButton';
 
 const Navbar = () => {
   const navigate = useNavigate();
