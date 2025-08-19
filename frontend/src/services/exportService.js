@@ -1,4 +1,4 @@
-import { jsPDF } from 'jspdf';
+import jsPDF from 'jspdf';
 
 class ExportService {
   // Export video with editing applied (client-side processing)

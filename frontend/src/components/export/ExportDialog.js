@@ -40,11 +40,27 @@ import ExportService from '../../services/exportService';
 const ExportDialog = ({ 
   open, 
   onClose, 
-  videoFile, 
-  editingData, 
-  projectData,
-  videoName 
+  videoData = {}
 }) => {
+  // Extract data from videoData prop with defaults
+  const {
+    filename = 'video',
+    url: videoFile,
+    metadata: projectData = {},
+    editingData: videoEditingData = {},
+    timeline = {}
+  } = videoData;
+  
+  // Use videoEditingData with fallbacks
+  const editingData = {
+    trimStart: 0,
+    trimEnd: projectData.duration || 0,
+    cuts: [],
+    filters: [],
+    ...videoEditingData
+  };
+  
+  const videoName = filename;
   const [currentTab, setCurrentTab] = useState(0);
   const [videoQuality, setVideoQuality] = useState('720p');
   const [isExporting, setIsExporting] = useState(false);
