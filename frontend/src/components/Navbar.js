@@ -57,6 +57,26 @@ const Navbar = () => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // Prepare video data for export in navbar
+  const getVideoData = () => ({
+    filename: currentVideo,
+    url: videoUrl,
+    metadata: videoMetadata,
+    editingData: editingData || {
+      trimStart: 0,
+      trimEnd: videoMetadata?.duration || 0,
+      cuts: [],
+      filters: []
+    },
+    timeline: {
+      duration: videoMetadata?.duration || 0,
+      currentTime: 0,
+      trimStart: editingData?.trimStart || 0,
+      trimEnd: editingData?.trimEnd || videoMetadata?.duration || 0,
+      cuts: editingData?.cuts || []
+    }
+  });
+
   return (
     <AppBar position="static" sx={{ backgroundColor: '#1a1a1a' }}>
       <Toolbar>
