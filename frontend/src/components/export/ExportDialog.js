@@ -45,7 +45,7 @@ const ExportDialog = ({
   // Extract data from videoData prop with defaults
   const {
     filename = 'video',
-    url: videoFile,
+    url: videoUrl,
     metadata: projectData = {},
     editingData: videoEditingData = {},
     timeline = {}

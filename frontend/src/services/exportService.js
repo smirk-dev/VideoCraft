@@ -30,13 +30,26 @@ class ExportService {
       const fileName = `edited_video_${editInfo}.mp4`;
       
       // Create download link
-      const url = URL.createObjectURL(videoFile);
+      let url;
+      if (videoFile instanceof File || videoFile instanceof Blob) {
+        // If it's a File/Blob, create object URL
+        url = URL.createObjectURL(videoFile);
+      } else if (typeof videoFile === 'string') {
+        // If it's a URL string, use it directly
+        url = videoFile;
+      } else {
+        throw new Error('Invalid video file format');
+      }
+      
       const a = document.createElement('a');
       a.href = url;
       a.download = fileName;
       a.click();
       
-      URL.revokeObjectURL(url);
+      // Only revoke if we created the URL
+      if (videoFile instanceof File || videoFile instanceof Blob) {
+        URL.revokeObjectURL(url);
+      }
       
       return {
         success: true,
