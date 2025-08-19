@@ -243,6 +243,8 @@ const ProjectsPage = () => {
                 placeholder="Search projects..."
                 variant="outlined"
                 size="small"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 InputProps={{
                   startAdornment: <Search sx={{ mr: 1, color: 'text.secondary' }} />,
                 }}
