@@ -115,56 +115,98 @@ const HomePage = () => {
   ];
 
   return (
-    <Container maxWidth="lg">
-      {/* Hero Section */}
-      <Box
-        sx={{
-          textAlign: 'center',
-          py: 8,
-          background: 'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)',
-          borderRadius: 2,
-          mb: 6,
-          color: 'white'
-        }}
-      >
-        <Typography variant="h2" component="h1" gutterBottom fontWeight="bold">
-          VideoCraft AI
-        </Typography>
-        <Typography variant="h5" component="p" sx={{ mb: 4, opacity: 0.9 }}>
-          The Future of AI-Powered Video Editing
-        </Typography>
-        <Typography variant="body1" sx={{ mb: 4, maxWidth: 600, mx: 'auto' }}>
-          Create, edit, and enhance videos with intelligent AI suggestions. 
-          From automatic scene detection to emotion analysis and smart music recommendations.
-        </Typography>
-        <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
-          <Button
-            variant="contained"
-            size="large"
-            startIcon={<CloudUpload />}
-            onClick={() => navigate('/upload')}
-            sx={{ 
-              backgroundColor: 'white', 
-              color: '#1976d2',
-              '&:hover': { backgroundColor: '#f5f5f5' }
+    <div {...getRootProps()} style={{ outline: 'none' }}>
+      <input {...getInputProps()} />
+      <Container maxWidth="lg">
+        {/* Upload Messages */}
+        {uploadMessage && (
+          <Alert severity="info" sx={{ mb: 2 }}>
+            {uploadMessage}
+          </Alert>
+        )}
+        {uploadError && (
+          <Alert severity="error" sx={{ mb: 2 }} onClose={() => setUploadError(null)}>
+            {uploadError}
+          </Alert>
+        )}
+
+        {/* Drag Overlay */}
+        {isDragActive && (
+          <Paper
+            sx={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(33, 150, 243, 0.1)',
+              border: '3px dashed #2196f3',
+              zIndex: 9999,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexDirection: 'column'
             }}
           >
-            Start Creating
-          </Button>
-          <Button
-            variant="outlined"
-            size="large"
-            onClick={() => navigate('/editor')}
-            sx={{ 
-              borderColor: 'white', 
-              color: 'white',
-              '&:hover': { backgroundColor: 'rgba(255,255,255,0.1)' }
-            }}
-          >
-            Try Editor
-          </Button>
+            <CloudUpload sx={{ fontSize: 80, color: 'primary.main', mb: 2 }} />
+            <Typography variant="h4" color="primary">
+              Drop your video here to start editing!
+            </Typography>
+          </Paper>
+        )}
+
+        {/* Hero Section */}
+        <Box
+          sx={{
+            textAlign: 'center',
+            py: 8,
+            background: 'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)',
+            borderRadius: 2,
+            mb: 6,
+            color: 'white'
+          }}
+        >
+          <Typography variant="h2" component="h1" gutterBottom fontWeight="bold">
+            VideoCraft AI
+          </Typography>
+          <Typography variant="h5" component="p" sx={{ mb: 4, opacity: 0.9 }}>
+            The Future of AI-Powered Video Editing
+          </Typography>
+          <Typography variant="body1" sx={{ mb: 4, maxWidth: 600, mx: 'auto' }}>
+            Create, edit, and enhance videos with intelligent AI suggestions. 
+            From automatic scene detection to emotion analysis and smart music recommendations.
+          </Typography>
+          <Typography variant="body2" sx={{ mb: 4, opacity: 0.8, fontStyle: 'italic' }}>
+            💡 Tip: Drag and drop a video anywhere on this page to start editing immediately!
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <Button
+              variant="contained"
+              size="large"
+              startIcon={<CloudUpload />}
+              onClick={() => navigate('/upload')}
+              sx={{ 
+                backgroundColor: 'white', 
+                color: '#1976d2',
+                '&:hover': { backgroundColor: '#f5f5f5' }
+              }}
+            >
+              Start Creating
+            </Button>
+            <Button
+              variant="outlined"
+              size="large"
+              onClick={() => navigate('/editor')}
+              sx={{ 
+                borderColor: 'white', 
+                color: 'white',
+                '&:hover': { backgroundColor: 'rgba(255,255,255,0.1)' }
+              }}
+            >
+              Try Editor
+            </Button>
+          </Box>
         </Box>
-      </Box>
 
       {/* Stats Section */}
       <Box sx={{ mb: 6 }}>
