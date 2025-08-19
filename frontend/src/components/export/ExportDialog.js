@@ -152,9 +152,10 @@ const ExportDialog = ({
 
   const getEditingSummary = () => {
     const summary = [];
+    const duration = projectData?.duration || 0;
     
-    if (editingData.trimStart > 0 || editingData.trimEnd < projectData.duration) {
-      summary.push(`Trimmed: ${formatTime(editingData.trimStart)} - ${formatTime(editingData.trimEnd || projectData.duration)}`);
+    if (editingData.trimStart > 0 || editingData.trimEnd < duration) {
+      summary.push(`Trimmed: ${formatTime(editingData.trimStart)} - ${formatTime(editingData.trimEnd || duration)}`);
     }
     
     if (editingData.cuts && editingData.cuts.length > 0) {
@@ -195,7 +196,7 @@ const ExportDialog = ({
             Project: {videoName}
           </Typography>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 1 }}>
-            <Chip label={`Duration: ${formatTime(projectData.duration || 0)}`} size="small" />
+            <Chip label={`Duration: ${formatTime(projectData?.duration || 0)}`} size="small" />
             {getEditingSummary().map((item, index) => (
               <Chip key={index} label={item} size="small" color="primary" />
             ))}

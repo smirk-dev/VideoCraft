@@ -20,6 +20,11 @@ const ExportButton = ({
     setExportDialogOpen(false);
   };
 
+  // Don't render if no video data
+  if (!videoData || !videoData.filename) {
+    return null;
+  }
+
   return (
     <>
       <Button
