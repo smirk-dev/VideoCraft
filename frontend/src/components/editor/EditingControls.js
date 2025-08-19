@@ -250,7 +250,7 @@ const EditingControls = ({
           {/* Cut Points Display */}
           {cuts.length > 0 && (
             <Box sx={{ mt: 2 }}>
-              <Typography variant="body2" sx={{ mb: 1 }}>
+              <Typography variant="body2" sx={{ mb: 1, color: '#333', fontWeight: 'medium' }}>
                 Cut Points:
               </Typography>
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
@@ -333,7 +333,7 @@ const EditingControls = ({
               />
             </Grid>
           </Grid>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+          <Typography variant="body2" sx={{ mt: 2, color: '#333', fontWeight: 'medium' }}>
             Resulting duration: {formatTime(Math.max(0, tempTrimEnd - tempTrimStart))}
           </Typography>
         </DialogContent>
