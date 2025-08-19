@@ -46,6 +46,7 @@ import {
   FilterList,
   Search,
   Sort,
+  Clear,
 } from '@mui/icons-material';
 
 const ProjectsPage = () => {
