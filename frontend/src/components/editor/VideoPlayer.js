@@ -239,7 +239,7 @@ const VideoPlayer = ({
       </Box>
 
       {/* Controls */}
-      <Box sx={{ p: 2, backgroundColor: '#f5f5f5' }}>
+      <Box sx={{ p: 2, backgroundColor: '#ffffff', borderTop: '1px solid #e0e0e0' }}>
         {/* Seek Bar */}
         <Box sx={{ mb: 2 }}>
           <Slider
@@ -256,10 +256,10 @@ const VideoPlayer = ({
             }}
           />
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
-            <Typography variant="caption" color="text.secondary">
+            <Typography variant="caption" sx={{ color: '#333', fontWeight: 'medium' }}>
               {formatTime(currentTime)}
             </Typography>
-            <Typography variant="caption" color="text.secondary">
+            <Typography variant="caption" sx={{ color: '#333', fontWeight: 'medium' }}>
               {formatTime(duration)}
             </Typography>
           </Box>
@@ -287,7 +287,7 @@ const VideoPlayer = ({
           </Box>
 
           {/* Time Display */}
-          <Typography variant="body2" sx={{ ml: 'auto', mr: 2 }}>
+          <Typography variant="body2" sx={{ ml: 'auto', mr: 2, color: '#333', fontWeight: 'medium' }}>
             {formatTime(currentTime)} / {formatTime(duration)}
           </Typography>
 
