@@ -1,5 +1,5 @@
 """
-Video Editing API with AI-powered features
+Video Editing API with AI-powered features and real video processing
 """
 import os
 import cv2
@@ -9,16 +9,39 @@ from typing import List, Dict, Any, Optional, Tuple
 from pathlib import Path
 import json
 
-from fastapi import APIRouter, HTTPException, BackgroundTasks
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, HTTPException, BackgroundTasks, File, UploadFile, Form
+from fastapi.responses import JSONResponse, FileResponse
 import moviepy.editor as mp
 from moviepy.video.fx import resize, crop
+from pydantic import BaseModel
 
 from ..core.config import settings
 from ..core.logging_config import get_logger
+from ..services.video_processor import VideoProcessor
 
 router = APIRouter()
 logger = get_logger("video_editing")
+
+# Initialize video processor
+video_processor = VideoProcessor()
+
+
+class VideoProcessingRequest(BaseModel):
+    """Request model for video processing"""
+    video_filename: str
+    editing_data: Dict[str, Any]
+    output_filename: Optional[str] = None
+
+
+class VideoProcessingResponse(BaseModel):
+    """Response model for video processing"""
+    success: bool
+    output_path: Optional[str] = None
+    output_filename: Optional[str] = None
+    video_info: Optional[Dict] = None
+    processing_time: Optional[str] = None
+    applied_operations: Optional[Dict] = None
+    error: Optional[str] = None
 
 
 def validate_video_file(filename: str) -> str:
