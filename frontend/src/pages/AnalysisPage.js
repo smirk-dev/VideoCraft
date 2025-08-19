@@ -567,18 +567,19 @@ const AnalysisPage = () => {
                 </List>
 
                 <Box sx={{ mt: 3 }}>
-                  <Button
-                    fullWidth
+                  <ExportButton
+                    videoData={getVideoData()}
                     variant="contained"
-                    startIcon={<Download />}
+                    fullWidth={true}
                     sx={{ mb: 1 }}
                   >
                     Export Report
-                  </Button>
+                  </ExportButton>
                   <Button
                     fullWidth
                     variant="outlined"
                     startIcon={<Share />}
+                    onClick={handleShareClick}
                   >
                     Share Analysis
                   </Button>
@@ -587,6 +588,48 @@ const AnalysisPage = () => {
             </Grid>
           </Grid>
         )}
+
+        {/* Share Menu */}
+        <Menu
+          anchorEl={shareMenuAnchor}
+          open={Boolean(shareMenuAnchor)}
+          onClose={handleShareClose}
+          anchorOrigin={{
+            vertical: 'top',
+            horizontal: 'left',
+          }}
+          transformOrigin={{
+            vertical: 'bottom',
+            horizontal: 'left',
+          }}
+        >
+          <MenuItem onClick={handleCopyLink}>
+            <ListItemIcon>
+              <Link fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>Copy Analysis Link</ListItemText>
+          </MenuItem>
+          <MenuItem onClick={handleEmailShare}>
+            <ListItemIcon>
+              <Email fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>Share via Email</ListItemText>
+          </MenuItem>
+          <MenuItem onClick={handleShareAsText}>
+            <ListItemIcon>
+              <ContentCopy fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>Copy Report as Text</ListItemText>
+          </MenuItem>
+        </Menu>
+
+        {/* Success Snackbar */}
+        <Snackbar
+          open={snackbarOpen}
+          autoHideDuration={3000}
+          onClose={() => setSnackbarOpen(false)}
+          message={snackbarMessage}
+        />
       </Container>
     </Box>
   );
