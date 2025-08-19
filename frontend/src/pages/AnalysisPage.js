@@ -47,9 +47,13 @@ import {
   Download,
   Share,
   Upload,
+  Link,
+  Email,
+  ContentCopy
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useVideo } from '../context/VideoContext';
+import ExportButton from '../components/common/ExportButton';
 
 const AnalysisPage = () => {
   const navigate = useNavigate();
