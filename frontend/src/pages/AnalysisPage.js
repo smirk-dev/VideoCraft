@@ -46,7 +46,10 @@ import {
   Assessment,
   Download,
   Share,
+  Upload,
 } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
+import { useVideo } from '../context/VideoContext';
 
 const AnalysisPage = () => {
   const [analysisData, setAnalysisData] = useState(null);
