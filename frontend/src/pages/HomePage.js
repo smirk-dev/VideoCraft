@@ -330,6 +330,7 @@ const HomePage = () => {
         </Button>
       </Box>
     </Container>
+    </div>
   );
 };
 
