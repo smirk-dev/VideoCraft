@@ -912,3 +912,78 @@ async def create_video_collage_endpoint(
     except Exception as e:
         logger.error(f"Error creating video collage: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error creating video collage: {str(e)}")
+
+
+@router.post("/process", response_model=VideoProcessingResponse)
+async def process_video_real(request: VideoProcessingRequest):
+    """
+    Process video with real trimming, cutting, and filters using FFmpeg
+    
+    This endpoint replaces the simulation-based processing with actual video manipulation.
+    """
+    try:
+        logger.info(f"Processing video: {request.video_filename}")
+        
+        # Validate input file exists
+        input_path = validate_video_file(request.video_filename)
+        
+        # Process video with real operations
+        result = await video_processor.process_video(
+            input_path=input_path,
+            editing_data=request.editing_data,
+            output_filename=request.output_filename
+        )
+        
+        return VideoProcessingResponse(**result)
+        
+    except Exception as e:
+        logger.error(f"Video processing failed: {str(e)}")
+        return VideoProcessingResponse(
+            success=False,
+            error=str(e)
+        )
+
+
+@router.get("/download/{filename}")
+async def download_processed_video(filename: str):
+    """Download processed video file"""
+    try:
+        file_path = Path("processed") / filename
+        
+        if not file_path.exists():
+            raise HTTPException(status_code=404, detail="File not found")
+        
+        return FileResponse(
+            path=str(file_path),
+            filename=filename,
+            media_type="video/mp4"
+        )
+        
+    except Exception as e:
+        logger.error(f"Download failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/extract-thumbnail/{filename}")
+async def extract_video_thumbnail(filename: str, timestamp: float = 1.0):
+    """Extract thumbnail from video at specified timestamp"""
+    try:
+        input_path = validate_video_file(filename)
+        
+        thumbnail_path = await video_processor.extract_thumbnail(
+            video_path=input_path,
+            timestamp=timestamp
+        )
+        
+        return JSONResponse(
+            status_code=200,
+            content={
+                "message": "Thumbnail extracted successfully",
+                "thumbnail_path": thumbnail_path,
+                "timestamp": timestamp
+            }
+        )
+        
+    except Exception as e:
+        logger.error(f"Thumbnail extraction failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
