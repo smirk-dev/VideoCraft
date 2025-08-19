@@ -69,7 +69,7 @@ const ProjectsPage = () => {
     {
       id: 1,
       name: 'Summer Vacation 2024',
-      description: 'Family vacation highlights with background music',
+      description: 'Family vacation highlights with background music and beautiful beach scenes',
       thumbnail: '/api/placeholder/320/180',
       dateCreated: '2024-07-15',
       dateModified: '2024-07-20',
@@ -81,7 +81,7 @@ const ProjectsPage = () => {
     {
       id: 2,
       name: 'Product Demo Video',
-      description: 'Marketing video for new product launch',
+      description: 'Marketing video for new product launch with testimonials',
       thumbnail: '/api/placeholder/320/180',
       dateCreated: '2024-07-10',
       dateModified: '2024-07-18',
@@ -93,7 +93,7 @@ const ProjectsPage = () => {
     {
       id: 3,
       name: 'Birthday Party Montage',
-      description: 'Quick montage with automatic cuts and transitions',
+      description: 'Quick montage with automatic cuts and transitions, lots of fun moments',
       thumbnail: '/api/placeholder/320/180',
       dateCreated: '2024-06-25',
       dateModified: '2024-07-01',
@@ -105,7 +105,7 @@ const ProjectsPage = () => {
     {
       id: 4,
       name: 'Tutorial Series - Episode 1',
-      description: 'Educational content with screen recording',
+      description: 'Educational content with screen recording and voice narration',
       thumbnail: '/api/placeholder/320/180',
       dateCreated: '2024-06-20',
       dateModified: '2024-06-22',
@@ -113,6 +113,30 @@ const ProjectsPage = () => {
       status: 'draft',
       fileSize: '890 MB',
       clips: 25,
+    },
+    {
+      id: 5,
+      name: 'Wedding Highlights',
+      description: 'Beautiful wedding ceremony and reception moments with music',
+      thumbnail: '/api/placeholder/320/180',
+      dateCreated: '2024-05-15',
+      dateModified: '2024-05-20',
+      duration: '8:15',
+      status: 'completed',
+      fileSize: '450 MB',
+      clips: 18,
+    },
+    {
+      id: 6,
+      name: 'Corporate Training Video',
+      description: 'Employee onboarding and training materials with presentations',
+      thumbnail: '/api/placeholder/320/180',
+      dateCreated: '2024-04-10',
+      dateModified: '2024-04-15',
+      duration: '15:45',
+      status: 'in-progress',
+      fileSize: '720 MB',
+      clips: 30,
     },
   ];
 
