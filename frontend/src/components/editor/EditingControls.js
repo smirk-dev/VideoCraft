@@ -23,6 +23,7 @@ import {
   Stop,
   Info
 } from '@mui/icons-material';
+import ExportButton from '../common/ExportButton';
 
 const EditingControls = ({ 
   currentTime,
@@ -34,7 +35,10 @@ const EditingControls = ({
   onAddCut,
   onRemoveCut,
   onClearAllCuts,
-  videoName
+  videoName,
+  videoUrl,
+  videoMetadata,
+  editingData
 }) => {
   const [trimDialog, setTrimDialog] = useState(false);
   const [tempTrimStart, setTempTrimStart] = useState(trimStart);
