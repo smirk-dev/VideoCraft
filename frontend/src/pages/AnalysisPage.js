@@ -90,7 +90,7 @@ const AnalysisPage = () => {
       }, 500);
 
       // Call real AI analysis API
-      const response = await fetch(`${API_BASE_URL}/api/video-analysis/analyze-real`, {
+      const response = await fetch(`${API_BASE_URL}/api/analyze/analyze-real`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
