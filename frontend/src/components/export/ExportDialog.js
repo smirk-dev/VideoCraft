@@ -302,8 +302,39 @@ const ExportDialog = ({
             </Box>
           )}
 
+          {/* Analysis Report Tab */}
+          {analysisData && currentTab === 2 && (
+            <Box>
+              <Typography variant="h6" sx={{ mb: 2 }}>Export Analysis Report</Typography>
+              
+              <List>
+                <ListItem>
+                  <ListItemIcon><Analytics /></ListItemIcon>
+                  <ListItemText 
+                    primary="AI Analysis Report" 
+                    secondary="Comprehensive PDF report including emotion analysis, scene detection, and AI suggestions"
+                  />
+                </ListItem>
+                <Divider />
+                <ListItem>
+                  <ListItemIcon><Info /></ListItemIcon>
+                  <ListItemText 
+                    primary="Includes:" 
+                    secondary="Video metrics, emotion timeline, scene changes, audio analysis, and optimization suggestions"
+                  />
+                </ListItem>
+              </List>
+
+              <Alert severity="info" sx={{ mt: 2 }}>
+                <Typography variant="body2">
+                  Professional analysis report perfect for sharing insights or documentation.
+                </Typography>
+              </Alert>
+            </Box>
+          )}
+
           {/* Project Data Tab */}
-          {currentTab === 2 && (
+          {currentTab === (analysisData ? 3 : 2) && (
             <Box>
               <Typography variant="h6" sx={{ mb: 2 }}>Export Project Data</Typography>
               
