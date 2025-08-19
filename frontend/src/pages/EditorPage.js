@@ -16,7 +16,8 @@ import {
   Save,
   Download,
   Upload,
-  Info
+  Info,
+  GetApp
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useVideo } from '../context/VideoContext';
@@ -24,6 +25,7 @@ import VideoPlayer from '../components/editor/VideoPlayer';
 import Timeline from '../components/editor/Timeline';
 import EditingControls from '../components/editor/EditingControls';
 import FilterControls from '../components/editor/FilterControls';
+import ExportDialog from '../components/export/ExportDialog';
 
 function TabPanel({ children, value, index }) {
   return (
@@ -53,6 +55,7 @@ const EditorPage = () => {
   const [currentTab, setCurrentTab] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
 
   // Initialize editing data when video loads
   useEffect(() => {
