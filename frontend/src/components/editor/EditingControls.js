@@ -324,6 +324,14 @@ const EditingControls = ({
           >
             Reset All
           </Button>
+          <ExportButton
+            videoData={getVideoData()}
+            variant="contained"
+            size="small"
+            color="primary"
+          >
+            Export
+          </ExportButton>
         </Box>
       </Paper>
 
