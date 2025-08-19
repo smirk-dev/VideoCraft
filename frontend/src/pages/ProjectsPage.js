@@ -130,7 +130,10 @@ const ProjectsPage = () => {
       filtered = filtered.filter(project => 
         project.name.toLowerCase().includes(query) ||
         project.description.toLowerCase().includes(query) ||
-        project.status.toLowerCase().includes(query)
+        project.status.toLowerCase().includes(query) ||
+        project.duration.includes(query) ||
+        project.fileSize.toLowerCase().includes(query) ||
+        project.clips.toString().includes(query)
       );
     }
 
@@ -305,14 +308,25 @@ const ProjectsPage = () => {
           <Paper sx={{ p: 4, textAlign: 'center' }}>
             <VideoLibrary sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
             <Typography variant="h6" gutterBottom>
-              No projects found
+              {searchQuery ? 'No projects found' : 'No projects found'}
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-              {filterBy === 'all' 
-                ? "Create your first video project to get started"
-                : `No projects match the current filter: ${filterBy}`
+              {searchQuery 
+                ? `No projects match "${searchQuery}". Try a different search term.`
+                : filterBy === 'all' 
+                  ? "Create your first video project to get started"
+                  : `No projects match the current filter: ${filterBy}`
               }
             </Typography>
+            {searchQuery ? (
+              <Button
+                variant="outlined"
+                onClick={() => setSearchQuery('')}
+                sx={{ mr: 2 }}
+              >
+                Clear Search
+              </Button>
+            ) : null}
             <Button
               variant="contained"
               startIcon={<Add />}
