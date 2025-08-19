@@ -57,10 +57,11 @@ import ExportButton from '../components/common/ExportButton';
 
 const AnalysisPage = () => {
   const navigate = useNavigate();
-  const { hasVideo, currentVideo, videoMetadata, videoUrl } = useVideo();
+  const { hasVideo, currentVideo, videoMetadata, videoUrl, editingData } = useVideo();
   
   const [analysisData, setAnalysisData] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [shareMenuAnchor, setShareMenuAnchor] = useState(null);
 
   // Generate mock analysis data based on actual video
   const generateMockAnalysisData = () => {
