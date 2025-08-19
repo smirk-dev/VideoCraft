@@ -248,6 +248,15 @@ const ProjectsPage = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 InputProps={{
                   startAdornment: <Search sx={{ mr: 1, color: 'text.secondary' }} />,
+                  endAdornment: searchQuery && (
+                    <IconButton
+                      size="small"
+                      onClick={() => setSearchQuery('')}
+                      sx={{ mr: -1 }}
+                    >
+                      <Clear fontSize="small" />
+                    </IconButton>
+                  ),
                 }}
               />
             </Grid>
