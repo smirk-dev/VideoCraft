@@ -302,17 +302,17 @@ const Timeline = ({
 
       {/* Timeline Info */}
       <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="body2" sx={{ color: '#333', fontWeight: 'medium' }}>
           Trim: {formatTime(trimStart)} - {formatTime(trimEnd || duration)} 
           ({formatTime((trimEnd || duration) - trimStart)} duration)
         </Typography>
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="body2" sx={{ color: '#333', fontWeight: 'medium' }}>
           {cuts.length} cut{cuts.length !== 1 ? 's' : ''}
         </Typography>
       </Box>
 
       {/* Instructions */}
-      <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+      <Typography variant="caption" sx={{ mt: 1, display: 'block', color: '#555', fontWeight: 'medium' }}>
         💡 Click to seek • Double-click to add/remove cuts • Drag handles to trim • Drag playhead to scrub
       </Typography>
     </Paper>
