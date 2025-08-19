@@ -230,15 +230,7 @@ const EditorPage = () => {
                   color="primary"
                   onClick={handleExportClick}
                 >
-                  Export Video/Report
-                </Button>
-                <Button
-                  startIcon={<Download />}
-                  variant="outlined"
-                  color="primary"
-                  onClick={handleExportClick}
-                >
-                  Quick Export
+                  Export Video & Reports
                 </Button>
                 <Button
                   variant="outlined"
