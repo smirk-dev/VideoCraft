@@ -1,5 +1,5 @@
 """
-Video Analysis API endpoints using HuggingFace models
+Video Analysis API endpoints using real AI models
 """
 import os
 import cv2
@@ -9,21 +9,37 @@ from datetime import datetime
 from typing import List, Dict, Any, Optional
 from pathlib import Path
 
-from fastapi import APIRouter, HTTPException, BackgroundTasks
+from fastapi import APIRouter, HTTPException, BackgroundTasks, Depends
 from fastapi.responses import JSONResponse
-from transformers import (
-    AutoProcessor, AutoModelForObjectDetection,
-    pipeline, AutoTokenizer, AutoModel
-)
+from sqlalchemy.orm import Session
+from pydantic import BaseModel
 
 from ..core.config import settings
 from ..core.logging_config import get_logger
+from ..services.ai_analysis import RealAIAnalysisService
+from ..database import get_db
+from ..models.database import AnalysisReport, Project
 
 router = APIRouter()
 logger = get_logger("video_analysis")
 
-# Global model cache to avoid reloading
-model_cache = {}
+# Initialize real AI analysis service
+ai_service = RealAIAnalysisService()
+
+
+class AnalysisRequest(BaseModel):
+    """Request model for video analysis"""
+    video_filename: str
+    analysis_types: Optional[List[str]] = ['objects', 'scenes', 'emotions', 'motion']
+    project_id: Optional[str] = None
+
+
+class AnalysisResponse(BaseModel):
+    """Response model for video analysis"""
+    success: bool
+    analysis_id: Optional[str] = None
+    analysis: Optional[Dict[str, Any]] = None
+    error: Optional[str] = None
 
 
 def load_object_detection_model():
