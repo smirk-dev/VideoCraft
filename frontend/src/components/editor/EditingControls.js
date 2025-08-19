@@ -61,24 +61,30 @@ const EditingControls = ({
   };
 
   // Prepare video data for export
-  const getVideoData = () => ({
-    filename: videoName,
-    url: videoUrl,
-    metadata: videoMetadata,
-    editingData: editingData || {
-      trimStart,
-      trimEnd: trimEnd || duration,
-      cuts,
-      filters: []
-    },
-    timeline: {
-      duration,
-      currentTime,
-      trimStart,
-      trimEnd: trimEnd || duration,
-      cuts
+  const getVideoData = () => {
+    if (!videoName || !videoUrl) {
+      return null;
     }
-  });
+    
+    return {
+      filename: videoName,
+      url: videoUrl,
+      metadata: videoMetadata || {},
+      editingData: editingData || {
+        trimStart,
+        trimEnd: trimEnd || duration,
+        cuts,
+        filters: []
+      },
+      timeline: {
+        duration: duration || 0,
+        currentTime: currentTime || 0,
+        trimStart: trimStart || 0,
+        trimEnd: trimEnd || duration || 0,
+        cuts: cuts || []
+      }
+    };
+  };
 
   const handleTrimToCurrentTime = () => {
     setTempTrimStart(0);
