@@ -180,7 +180,62 @@ Before you begin, ensure you have the following installed:
 - **Git** - [Download Git](https://git-scm.com/)
 - **FFmpeg** (Optional) - For advanced video processing
 
-### 📥 Installation
+### � Quick Setup (Real Implementation)
+
+#### Automated Setup (Recommended)
+
+1. **Clone the Repository**
+```bash
+git clone https://github.com/your-username/VideoCraft.git
+cd VideoCraft
+```
+
+2. **Run Real Implementation Setup**
+
+**Windows:**
+```powershell
+python setup_real_implementation.py
+```
+
+**Or use PowerShell script:**
+```powershell
+powershell -ExecutionPolicy Bypass -File setup_real_implementation.ps1
+```
+
+3. **Start the Application**
+
+**Backend (Terminal 1):**
+```bash
+cd backend
+.\venv\Scripts\Activate.ps1  # Windows
+# source venv/bin/activate    # macOS/Linux
+python main.py
+```
+
+**Frontend (Terminal 2):**
+```bash
+cd frontend
+npm start
+```
+
+#### What the Setup Includes
+
+✅ **Real Video Processing**: FFmpeg integration for actual video editing  
+✅ **AI Models**: HuggingFace transformers for genuine analysis  
+✅ **Database**: SQLAlchemy with SQLite for project persistence  
+✅ **Full API**: Complete REST API with all endpoints functional  
+✅ **Dependencies**: All required Python and Node.js packages  
+
+### 📥 Manual Installation
+
+#### Prerequisites
+
+- **Python 3.8+** - [Download Python](https://www.python.org/)
+- **Node.js 16+** - [Download Node.js](https://nodejs.org/)
+- **Git** - [Download Git](https://git-scm.com/)
+- **FFmpeg** - [Download FFmpeg](https://ffmpeg.org/) (Required for video processing)
+
+### �📥 Installation
 
 #### Method 1: Automated Setup (Recommended)
 
