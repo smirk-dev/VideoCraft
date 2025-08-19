@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   Container,
   Typography,
@@ -8,7 +8,9 @@ import {
   CardContent,
   Button,
   Chip,
-  Avatar
+  Avatar,
+  Paper,
+  Alert
 } from '@mui/material';
 import {
   VideoLibrary,
@@ -19,10 +21,52 @@ import {
   Analytics,
   CloudUpload
 } from '@mui/icons-material';
+import { useDropzone } from 'react-dropzone';
 import { useNavigate } from 'react-router-dom';
+import { useVideo } from '../context/VideoContext';
 
 const HomePage = () => {
   const navigate = useNavigate();
+  const { uploadVideo } = useVideo();
+  const [uploadMessage, setUploadMessage] = useState(null);
+  const [uploadError, setUploadError] = useState(null);
+
+  const onDrop = useCallback(async (acceptedFiles) => {
+    const videoFile = acceptedFiles.find(file => file.type.includes('video'));
+    
+    if (videoFile) {
+      setUploadError(null);
+      setUploadMessage('Uploading video...');
+      
+      try {
+        const result = await uploadVideo(videoFile);
+        
+        if (result.success) {
+          setUploadMessage(`${videoFile.name} loaded successfully! Redirecting to editor...`);
+          setTimeout(() => {
+            navigate('/editor');
+          }, 1500);
+        } else {
+          throw new Error(result.error);
+        }
+      } catch (error) {
+        setUploadError(`Failed to upload ${videoFile.name}: ${error.message}`);
+        setUploadMessage(null);
+      }
+    } else {
+      setUploadError('Please upload a video file');
+    }
+  }, [uploadVideo, navigate]);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      'video/*': ['.mp4', '.avi', '.mov', '.mkv', '.wmv', '.flv', '.webm']
+    },
+    multiple: false,
+    maxSize: 2 * 1024 * 1024 * 1024, // 2GB
+    noClick: true // We'll handle clicks manually
+  });
 
   const features = [
     {
