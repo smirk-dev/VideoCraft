@@ -65,6 +65,8 @@ const AnalysisPage = () => {
   const [analysisData, setAnalysisData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [shareMenuAnchor, setShareMenuAnchor] = useState(null);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
 
   // Generate mock analysis data based on actual video
   const generateMockAnalysisData = () => {
