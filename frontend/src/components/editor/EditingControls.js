@@ -116,40 +116,40 @@ const EditingControls = ({
         </Typography>
 
         {/* Video Info */}
-        <Box sx={{ mb: 3, p: 2, backgroundColor: '#f5f5f5', borderRadius: 1 }}>
-          <Typography variant="subtitle2" gutterBottom>
+        <Box sx={{ mb: 3, p: 2, backgroundColor: '#ffffff', borderRadius: 1, border: '1px solid #e0e0e0' }}>
+          <Typography variant="subtitle2" gutterBottom sx={{ color: '#333', fontWeight: 'medium' }}>
             Video: {videoName}
           </Typography>
           <Grid container spacing={2}>
             <Grid item xs={6} sm={3}>
-              <Typography variant="caption" color="text.secondary">
+              <Typography variant="caption" sx={{ color: '#333', fontWeight: 'medium' }}>
                 Original Duration
               </Typography>
-              <Typography variant="body2" fontWeight="bold">
+              <Typography variant="body2" sx={{ fontWeight: 'bold', color: '#222' }}>
                 {formatTime(duration)}
               </Typography>
             </Grid>
             <Grid item xs={6} sm={3}>
-              <Typography variant="caption" color="text.secondary">
+              <Typography variant="caption" sx={{ color: '#333', fontWeight: 'medium' }}>
                 Trimmed Duration
               </Typography>
-              <Typography variant="body2" fontWeight="bold">
+              <Typography variant="body2" sx={{ fontWeight: 'bold', color: '#222' }}>
                 {formatTime(getTrimmedDuration())}
               </Typography>
             </Grid>
             <Grid item xs={6} sm={3}>
-              <Typography variant="caption" color="text.secondary">
+              <Typography variant="caption" sx={{ color: '#333', fontWeight: 'medium' }}>
                 Final Duration
               </Typography>
-              <Typography variant="body2" fontWeight="bold">
+              <Typography variant="body2" sx={{ fontWeight: 'bold', color: '#222' }}>
                 {formatTime(getFinalDuration())}
               </Typography>
             </Grid>
             <Grid item xs={6} sm={3}>
-              <Typography variant="caption" color="text.secondary">
+              <Typography variant="caption" sx={{ color: '#333', fontWeight: 'medium' }}>
                 Segments
               </Typography>
-              <Typography variant="body2" fontWeight="bold">
+              <Typography variant="body2" sx={{ fontWeight: 'bold', color: '#222' }}>
                 {getSegmentCount()}
               </Typography>
             </Grid>
@@ -203,8 +203,8 @@ const EditingControls = ({
           </Grid>
 
           {/* Current Trim Display */}
-          <Box sx={{ mt: 2, p: 2, backgroundColor: '#e3f2fd', borderRadius: 1 }}>
-            <Typography variant="body2">
+          <Box sx={{ mt: 2, p: 2, backgroundColor: '#f0f8ff', borderRadius: 1, border: '1px solid #2196f3' }}>
+            <Typography variant="body2" sx={{ color: '#333', fontWeight: 'medium' }}>
               Current Trim: {formatTime(trimStart)} - {formatTime(trimEnd || duration)} 
               <Chip 
                 label={`${formatTime(getTrimmedDuration())} remaining`} 
