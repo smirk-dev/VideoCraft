@@ -137,6 +137,26 @@ const ExportDialog = ({
     }
   };
 
+  const handleAnalysisExport = async () => {
+    setIsExporting(true);
+    setExportResult(null);
+
+    try {
+      const result = await ExportService.exportAnalysisReport(
+        { filename: videoName, ...projectData },
+        analysisData
+      );
+      setExportResult(result);
+    } catch (error) {
+      setExportResult({
+        success: false,
+        error: error.message
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const handleClose = () => {
     if (!isExporting) {
       setExportResult(null);
