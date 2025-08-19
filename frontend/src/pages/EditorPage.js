@@ -225,11 +225,20 @@ const EditorPage = () => {
                   Save Project
                 </Button>
                 <Button
+                  startIcon={<GetApp />}
+                  variant="contained"
+                  color="primary"
+                  onClick={handleExportClick}
+                >
+                  Export Video/Report
+                </Button>
+                <Button
                   startIcon={<Download />}
                   variant="outlined"
                   color="primary"
+                  onClick={handleExportClick}
                 >
-                  Export Video
+                  Quick Export
                 </Button>
                 <Button
                   variant="outlined"
@@ -331,6 +340,13 @@ const EditorPage = () => {
             </Paper>
           </Grid>
         </Grid>
+
+        {/* Export Dialog */}
+        <ExportDialog
+          open={exportDialogOpen}
+          onClose={handleExportClose}
+          videoData={getVideoData()}
+        />
       </Container>
     </Box>
   );
