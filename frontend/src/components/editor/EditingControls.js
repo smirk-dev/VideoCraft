@@ -60,6 +60,26 @@ const EditingControls = ({
     return parseFloat(timeString) || 0;
   };
 
+  // Prepare video data for export
+  const getVideoData = () => ({
+    filename: videoName,
+    url: videoUrl,
+    metadata: videoMetadata,
+    editingData: editingData || {
+      trimStart,
+      trimEnd: trimEnd || duration,
+      cuts,
+      filters: []
+    },
+    timeline: {
+      duration,
+      currentTime,
+      trimStart,
+      trimEnd: trimEnd || duration,
+      cuts
+    }
+  });
+
   const handleTrimToCurrentTime = () => {
     setTempTrimStart(0);
     setTempTrimEnd(currentTime);
