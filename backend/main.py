@@ -1,5 +1,5 @@
 """
-VideoCraft AI Video Editor - Main FastAPI Application
+VideoCraft AI Video Editor - Main FastAPI Application with Real Functionality
 """
 import os
 import logging
@@ -11,10 +11,10 @@ from fastapi.responses import HTMLResponse
 import uvicorn
 
 from app.api import upload, video_analysis, audio_analysis, emotion_detection
-from app.api import music_recommendation, background_removal, video_editing
+from app.api import music_recommendation, background_removal, video_editing, projects
 from app.core.config import settings
 from app.core.logging_config import setup_logging
-
+from app.database import create_tables
 
 # Setup logging
 setup_logging()
@@ -23,26 +23,32 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan manager"""
-    logger.info("🚀 Starting VideoCraft AI Video Editor...")
+    logger.info("🚀 Starting VideoCraft AI Video Editor with Real Functionality...")
     
     # Create necessary directories
     os.makedirs("uploads", exist_ok=True)
     os.makedirs("processed", exist_ok=True)
     os.makedirs("temp", exist_ok=True)
     
+    # Initialize database
+    try:
+        create_tables()
+        logger.info("📊 Database tables created successfully")
+    except Exception as e:
+        logger.error(f"Database initialization failed: {e}")
+    
     # Initialize AI models (lazy loading for better startup time)
-    logger.info("📦 AI models will be loaded on first use...")
+    logger.info("🤖 AI models will be loaded on first use...")
     
     yield
     
     logger.info("🔄 Shutting down VideoCraft...")
 
-
 # Create FastAPI app
 app = FastAPI(
     title="VideoCraft AI Video Editor",
-    description="Comprehensive AI-powered video editing platform with intelligent analysis and recommendations",
-    version="1.0.0",
+    description="Comprehensive AI-powered video editing platform with real processing capabilities",
+    version="2.0.0",
     docs_url="/api/docs",
     redoc_url="/api/redoc",
     lifespan=lifespan
