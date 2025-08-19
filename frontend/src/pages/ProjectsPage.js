@@ -123,7 +123,17 @@ const ProjectsPage = () => {
   useEffect(() => {
     let filtered = [...projects];
 
-    // Apply filters
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(project => 
+        project.name.toLowerCase().includes(query) ||
+        project.description.toLowerCase().includes(query) ||
+        project.status.toLowerCase().includes(query)
+      );
+    }
+
+    // Apply status filter
     if (filterBy !== 'all') {
       filtered = filtered.filter(project => project.status === filterBy);
     }
@@ -145,7 +155,7 @@ const ProjectsPage = () => {
     });
 
     setFilteredProjects(filtered);
-  }, [projects, sortBy, filterBy]);
+  }, [projects, sortBy, filterBy, searchQuery]);
 
   const handleCreateProject = () => {
     const project = {
