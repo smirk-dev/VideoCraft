@@ -310,5 +310,3 @@ const EditorPage = () => {
 };
 
 export default EditorPage;
-
-export default EditorPage;
