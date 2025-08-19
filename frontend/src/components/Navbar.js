@@ -27,7 +27,7 @@ import ExportButton from './common/ExportButton';
 const Navbar = () => {
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
-  const { hasVideo, currentVideo, videoMetadata } = useVideo();
+  const { hasVideo, currentVideo, videoMetadata, videoUrl, editingData } = useVideo();
 
   const handleProfileMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
