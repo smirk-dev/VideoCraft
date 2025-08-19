@@ -106,6 +106,30 @@ const EditorPage = () => {
     return videoMetadata?.duration || 0;
   };
 
+  // Handle export functions
+  const handleExportClick = () => {
+    setExportDialogOpen(true);
+  };
+
+  const handleExportClose = () => {
+    setExportDialogOpen(false);
+  };
+
+  // Prepare video data for export
+  const getVideoData = () => ({
+    filename: currentVideo,
+    url: videoUrl,
+    metadata: videoMetadata,
+    editingData: editingData,
+    timeline: {
+      duration: getDuration(),
+      currentTime: currentTime,
+      trimStart: editingData.trimStart,
+      trimEnd: editingData.trimEnd,
+      cuts: editingData.cuts
+    }
+  });
+
   // If no video is loaded, show upload prompt
   if (!hasVideo()) {
     return (
