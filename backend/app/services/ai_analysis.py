@@ -159,7 +159,7 @@ class RealAIAnalysisService:
     
     async def _analyze_objects(self, frames: List[np.ndarray]) -> Dict[str, Any]:
         """Analyze objects in video frames"""
-        if 'object_detection' not in self.models:
+        if not self.models_available or 'object_detection' not in self.models:
             return self._mock_object_detection()
         
         try:
@@ -209,7 +209,7 @@ class RealAIAnalysisService:
     
     async def _analyze_scenes(self, frames: List[np.ndarray]) -> Dict[str, Any]:
         """Analyze scene types in video frames"""
-        if 'scene_classification' not in self.models:
+        if not self.models_available or 'scene_classification' not in self.models:
             return self._mock_scene_analysis()
         
         try:
