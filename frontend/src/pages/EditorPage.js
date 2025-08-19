@@ -272,6 +272,9 @@ const EditorPage = () => {
                   onRemoveCut={handleRemoveCut}
                   onClearAllCuts={handleClearAllCuts}
                   videoName={currentVideo}
+                  videoUrl={videoUrl}
+                  videoMetadata={videoMetadata}
+                  editingData={editingData}
                 />
               </TabPanel>
 
