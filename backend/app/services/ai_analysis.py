@@ -5,8 +5,6 @@ Replaces mock analysis with actual AI processing
 import cv2
 import numpy as np
 from typing import Dict, List, Any, Optional
-import torch
-from transformers import pipeline, AutoProcessor, AutoModelForObjectDetection
 from datetime import datetime
 import asyncio
 
@@ -20,40 +18,46 @@ class RealAIAnalysisService:
     
     def __init__(self):
         self.models = {}
+        self.models_available = False
         self._initialize_models()
     
     def _initialize_models(self):
         """Initialize AI models for analysis"""
         try:
-            logger.info("Initializing AI models...")
+            logger.info("Attempting to initialize AI models...")
             
-            # Object detection model
-            self.models['object_detection'] = pipeline(
-                "object-detection",
-                model="facebook/detr-resnet-50",
-                return_tensors="pt"
-            )
-            
-            # Image classification for scene detection
-            self.models['scene_classification'] = pipeline(
-                "image-classification",
-                model="microsoft/resnet-50"
-            )
-            
-            # Emotion detection
-            self.models['emotion_detection'] = pipeline(
-                "image-classification",
-                model="j-hartmann/emotion-english-distilroberta-base"
-            )
-            
-            logger.info("AI models initialized successfully")
+            # Try to import and initialize models
+            try:
+                from transformers import pipeline
+                
+                # Object detection model
+                self.models['object_detection'] = pipeline(
+                    "object-detection",
+                    model="facebook/detr-resnet-50",
+                    return_tensors="pt"
+                )
+                
+                # Image classification for scene detection
+                self.models['scene_classification'] = pipeline(
+                    "image-classification",
+                    model="microsoft/resnet-50"
+                )
+                
+                self.models_available = True
+                logger.info("AI models initialized successfully")
+                
+            except ImportError as e:
+                logger.warning(f"HuggingFace transformers not available: {e}")
+                self.models_available = False
+            except Exception as e:
+                logger.warning(f"AI models could not be loaded: {e}")
+                self.models_available = False
             
         except Exception as e:
             logger.error(f"Failed to initialize AI models: {str(e)}")
-            # Fallback to mock analysis if models fail to load
-            self.models = {}
+            self.models_available = False
     
-    async def analyze_video(self, video_path: str, analysis_types: List[str] = None) -> Dict[str, Any]:
+    async def analyze_video(self, video_path: str, analysis_types: Optional[List[str]] = None) -> Dict[str, Any]:
         """
         Perform comprehensive AI analysis on video
         
