@@ -1,60 +1,67 @@
 import jsPDF from 'jspdf';
 
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8001';
+
 class ExportService {
-  // Export video with editing applied (client-side processing)
+  // Real video export with backend processing
   static async exportVideo(videoFile, editingData, quality = '720p', onProgress = null) {
     try {
-      // For demo purposes, we'll simulate video processing
-      // In a real app, this would use FFmpeg.js or send to backend
-      
       if (onProgress) onProgress(0);
       
-      // Create a canvas to process the video
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
+      // Get the filename from the video context or file
+      const filename = videoFile?.name || videoFile;
       
-      // Set canvas dimensions based on quality
-      const dimensions = this.getQualityDimensions(quality);
-      canvas.width = dimensions.width;
-      canvas.height = dimensions.height;
-      
-      // Simulate processing progress
-      for (let i = 0; i <= 100; i += 10) {
-        await new Promise(resolve => setTimeout(resolve, 200));
-        if (onProgress) onProgress(i);
+      // Prepare processing request for backend
+      const processingRequest = {
+        video_filename: filename,
+        editing_data: editingData,
+        output_filename: `exported_${Date.now()}.mp4`
+      };
+
+      if (onProgress) onProgress(20);
+
+      // Send to backend for real video processing
+      const response = await fetch(`${API_BASE_URL}/api/video-editing/process`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(processingRequest)
+      });
+
+      if (onProgress) onProgress(60);
+
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.error || 'Video processing failed');
       }
+
+      if (onProgress) onProgress(90);
+
+      // Download the processed video
+      const downloadUrl = `${API_BASE_URL}/api/video-editing/download/${result.output_filename}`;
       
-      // For now, we'll just download the original file with a new name
-      // indicating the edits applied
-      const editInfo = this.generateEditSummary(editingData);
-      const fileName = `edited_video_${editInfo}.mp4`;
+      const downloadResponse = await fetch(downloadUrl);
+      const blob = await downloadResponse.blob();
       
       // Create download link
-      let url;
-      if (videoFile instanceof File || videoFile instanceof Blob) {
-        // If it's a File/Blob, create object URL
-        url = URL.createObjectURL(videoFile);
-      } else if (typeof videoFile === 'string') {
-        // If it's a URL string, use it directly
-        url = videoFile;
-      } else {
-        throw new Error('Invalid video file format');
-      }
-      
+      const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = fileName;
+      a.download = result.output_filename;
       a.click();
       
-      // Only revoke if we created the URL
-      if (videoFile instanceof File || videoFile instanceof Blob) {
-        URL.revokeObjectURL(url);
-      }
+      URL.revokeObjectURL(url);
+
+      if (onProgress) onProgress(100);
       
       return {
         success: true,
-        fileName,
-        message: 'Video exported successfully!'
+        fileName: result.output_filename,
+        message: 'Video exported successfully with real processing!',
+        videoInfo: result.video_info,
+        appliedOperations: result.applied_operations
       };
       
     } catch (error) {
