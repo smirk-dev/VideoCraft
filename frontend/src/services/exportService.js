@@ -294,6 +294,127 @@ class ExportService {
            '0:00' + ' '.repeat(width - 8) + this.formatTime(duration) + '\n' +
            'Legend: [ = trim start, ] = trim end, | = cut point';
   }
+
+  // Export analysis report as PDF
+  static async exportAnalysisReport(videoData, analysisData) {
+    try {
+      const pdf = new jsPDF();
+      
+      // Title
+      pdf.setFontSize(20);
+      pdf.text('Video Analysis Report', 20, 30);
+      
+      // Video Information
+      pdf.setFontSize(14);
+      pdf.text('Video Information', 20, 50);
+      pdf.setFontSize(10);
+      pdf.text(`Video: ${videoData.filename || 'Untitled Video'}`, 20, 60);
+      pdf.text(`Analysis Date: ${new Date().toLocaleDateString()}`, 20, 70);
+      pdf.text(`Analysis Time: ${new Date().toLocaleTimeString()}`, 20, 80);
+      
+      let yPos = 90;
+      
+      // Video Metrics
+      if (analysisData.videoMetrics) {
+        pdf.setFontSize(14);
+        pdf.text('Video Metrics', 20, yPos);
+        yPos += 10;
+        pdf.setFontSize(10);
+        
+        pdf.text(`Duration: ${analysisData.videoMetrics.duration}`, 20, yPos);
+        yPos += 10;
+        pdf.text(`Resolution: ${analysisData.videoMetrics.resolution}`, 20, yPos);
+        yPos += 10;
+        pdf.text(`File Size: ${analysisData.videoMetrics.fileSize}`, 20, yPos);
+        yPos += 10;
+        pdf.text(`Frame Rate: ${analysisData.videoMetrics.fps} FPS`, 20, yPos);
+        yPos += 20;
+      }
+      
+      // Emotion Analysis
+      if (analysisData.emotions) {
+        pdf.setFontSize(14);
+        pdf.text('Emotion Analysis', 20, yPos);
+        yPos += 10;
+        pdf.setFontSize(10);
+        
+        analysisData.emotions.forEach(emotion => {
+          pdf.text(`• ${emotion.emotion} (${(emotion.confidence * 100).toFixed(1)}% confidence) at ${emotion.timestamp}`, 20, yPos);
+          yPos += 10;
+        });
+        yPos += 10;
+      }
+      
+      // Scene Changes
+      if (analysisData.sceneChanges) {
+        pdf.setFontSize(14);
+        pdf.text('Scene Detection', 20, yPos);
+        yPos += 10;
+        pdf.setFontSize(10);
+        
+        analysisData.sceneChanges.forEach(scene => {
+          pdf.text(`• ${scene.type} at ${scene.timestamp} (${(scene.confidence * 100).toFixed(1)}% confidence)`, 20, yPos);
+          yPos += 10;
+        });
+        yPos += 10;
+      }
+      
+      // Check if we need a new page
+      if (yPos > 250) {
+        pdf.addPage();
+        yPos = 30;
+      }
+      
+      // Audio Analysis
+      if (analysisData.audioAnalysis) {
+        pdf.setFontSize(14);
+        pdf.text('Audio Analysis', 20, yPos);
+        yPos += 10;
+        pdf.setFontSize(10);
+        
+        const audio = analysisData.audioAnalysis;
+        pdf.text(`• Average Volume: ${audio.avgVolume}%`, 20, yPos);
+        yPos += 10;
+        pdf.text(`• Peak Volume: ${audio.peakVolume}%`, 20, yPos);
+        yPos += 10;
+        pdf.text(`• Silent Segments: ${audio.silentSegments}`, 20, yPos);
+        yPos += 10;
+        pdf.text(`• Music Detected: ${audio.musicDetected ? 'Yes' : 'No'}`, 20, yPos);
+        yPos += 10;
+        pdf.text(`• Speech Quality: ${audio.speechQuality}`, 20, yPos);
+        yPos += 20;
+      }
+      
+      // AI Suggestions
+      if (analysisData.aiSuggestions) {
+        pdf.setFontSize(14);
+        pdf.text('AI Suggestions', 20, yPos);
+        yPos += 10;
+        pdf.setFontSize(10);
+        
+        analysisData.aiSuggestions.forEach(suggestion => {
+          pdf.text(`• ${suggestion.type}: ${suggestion.reason}`, 20, yPos);
+          yPos += 10;
+          pdf.text(`  At ${suggestion.timestamp} (${(suggestion.confidence * 100).toFixed(0)}% confidence)`, 20, yPos);
+          yPos += 10;
+        });
+      }
+      
+      // Save the PDF
+      const fileName = `analysis_report_${videoData.filename.replace(/\.[^/.]+$/, "")}_${new Date().toISOString().split('T')[0]}.pdf`;
+      pdf.save(fileName);
+      
+      return {
+        success: true,
+        fileName,
+        message: 'Analysis report exported successfully!'
+      };
+      
+    } catch (error) {
+      console.error('Analysis export error:', error);
+      throw new Error('Failed to export analysis report: ' + error.message);
+    }
+  }
 }
 
 export default ExportService;
