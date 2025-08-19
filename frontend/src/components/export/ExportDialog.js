@@ -79,7 +79,7 @@ const ExportDialog = ({
 
     try {
       const result = await ExportService.exportVideo(
-        videoFile,
+        videoUrl,
         editingData,
         videoQuality,
         (progress) => setExportProgress(progress)
