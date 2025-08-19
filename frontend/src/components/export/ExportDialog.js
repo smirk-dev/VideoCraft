@@ -33,7 +33,8 @@ import {
   Error,
   Movie,
   PictureAsPdf,
-  Code
+  Code,
+  Analytics
 } from '@mui/icons-material';
 import ExportService from '../../services/exportService';
 
@@ -228,6 +229,7 @@ const ExportDialog = ({
         <Tabs value={currentTab} onChange={handleTabChange} variant="fullWidth">
           <Tab icon={<VideoFile />} label="Video Export" />
           <Tab icon={<Description />} label="Project Report" />
+          {analysisData && <Tab icon={<Analytics />} label="Analysis Report" />}
           <Tab icon={<DataObject />} label="Project Data" />
         </Tabs>
 
