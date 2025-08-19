@@ -61,6 +61,7 @@ const ProjectsPage = () => {
   const [selectedProject, setSelectedProject] = useState(null);
   const [sortBy, setSortBy] = useState('dateModified');
   const [filterBy, setFilterBy] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Mock project data
   const mockProjects = [
