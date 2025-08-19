@@ -392,18 +392,21 @@ const ExportDialog = ({
           onClick={
             currentTab === 0 ? handleVideoExport :
             currentTab === 1 ? handleReportExport :
+            (analysisData && currentTab === 2) ? handleAnalysisExport :
             handleDataExport
           }
           disabled={isExporting}
           startIcon={
             currentTab === 0 ? <Movie /> :
             currentTab === 1 ? <PictureAsPdf /> :
+            (analysisData && currentTab === 2) ? <Analytics /> :
             <DataObject />
           }
         >
           {isExporting ? 'Exporting...' : 
            currentTab === 0 ? 'Export Video' :
            currentTab === 1 ? 'Export Report' :
+           (analysisData && currentTab === 2) ? 'Export Analysis' :
            'Export Data'}
         </Button>
       </DialogActions>
