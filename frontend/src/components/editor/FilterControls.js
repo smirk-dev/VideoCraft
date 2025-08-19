@@ -18,7 +18,7 @@ import {
   Brightness6,
   Contrast,
   Palette,
-  Blur,
+  BlurOn,
   ExpandMore,
   Delete,
   Refresh
@@ -66,7 +66,7 @@ const FilterControls = ({ filters, onFiltersChange }) => {
     {
       key: 'blur',
       label: 'Blur',
-      icon: <Blur />,
+      icon: <BlurOn />,
       min: 0,
       max: 10,
       default: 0,
