@@ -46,12 +46,34 @@ const UploadPage = () => {
 
     for (const file of acceptedFiles) {
       try {
-        // If it's a video file, use the global video context
+        // For video files, use the global video context AND create project
         if (file.type.includes('video')) {
           const result = await uploadVideo(file);
           
           if (result.success) {
-            setSuccess(`${file.name} loaded successfully! Redirecting to editor...`);
+            // Create project record in backend
+            try {
+              const projectResponse = await axios.post(`${API_BASE_URL}/api/projects/`, {
+                title: file.name.replace(/\.[^/.]+$/, ""),
+                description: `Video project created from ${file.name}`,
+                original_filename: file.name,
+                video_path: result.url,
+                video_metadata: result.metadata,
+                editing_data: {
+                  trimStart: 0,
+                  trimEnd: result.metadata.duration,
+                  cuts: [],
+                  filters: []
+                },
+                tags: ['new'],
+                category: 'video'
+              });
+
+              setSuccess(`${file.name} uploaded and project created successfully! Redirecting to editor...`);
+            } catch (projectError) {
+              console.warn('Project creation failed, but video upload succeeded:', projectError);
+              setSuccess(`${file.name} loaded successfully! Redirecting to editor...`);
+            }
             
             // Redirect to editor after a short delay
             setTimeout(() => {
