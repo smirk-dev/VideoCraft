@@ -6,8 +6,11 @@
   "scripts": {
     "start": "set PORT=3001 && react-scripts start",
     "build": "react-scripts build",
+    "build:production": "set GENERATE_SOURCEMAP=false && react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "serve": "serve -s build -l 3000",
+    "analyze": "npm run build && npx serve -s build"
   },
   "dependencies": {
     "@emotion/react": "^11.11.0",
