@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: videocraft-backend
+    env: python
+    region: oregon
+    plan: free
+    branch: main
+    buildCommand: cd backend && pip install -r requirements.txt
+    startCommand: cd backend && python simple_main_backup.py --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: DEBUG
+        value: false
+      - key: MAX_UPLOAD_SIZE
+        value: 104857600
+      - key: CORS_ORIGINS
+        value: '["https://videocraft.vercel.app"]'
+      - key: PYTHONPATH
+        value: /opt/render/project/src/backend
+    disk:
+      name: videocraft-storage
+      mountPath: /opt/render/project/src/backend/uploads
+      sizeGB: 1
+
+databases:
+  - name: videocraft-db
+    databaseName: videocraft
+    user: videocraft_user
+    plan: free
