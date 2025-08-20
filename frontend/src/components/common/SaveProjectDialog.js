@@ -154,7 +154,11 @@ const SaveProjectDialog = ({
               disabled={isProcessing}
             />
 
-            <FormControl fullWidth sx={{ mb: 2 }}>
+            <FormControl fullWidth sx={{ 
+              mb: 2,
+              '& .MuiInputLabel-root': { color: 'text.primary' },
+              '& .MuiSelect-select': { color: 'text.primary' }
+            }}>
               <InputLabel>Project Status</InputLabel>
               <Select
                 value={status}
