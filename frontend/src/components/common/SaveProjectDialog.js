@@ -73,7 +73,11 @@ const SaveProjectDialog = ({
       maxWidth="sm" 
       fullWidth
       PaperProps={{
-        sx: { borderRadius: 2 }
+        sx: { 
+          borderRadius: 2,
+          bgcolor: 'background.paper',
+          color: 'text.primary'
+        }
       }}
     >
       <DialogTitle sx={{ pb: 1 }}>
@@ -163,10 +167,10 @@ const SaveProjectDialog = ({
               border: '1px solid',
               borderColor: 'grey.200'
             }}>
-              <Typography variant="subtitle2" gutterBottom color="text.secondary">
+              <Typography variant="subtitle2" gutterBottom sx={{ color: 'text.primary' }}>
                 💡 Save Tips:
               </Typography>
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                 • Your project will be saved with all current edits and settings<br/>
                 • You can load and continue editing anytime from the Projects page<br/>
                 • Changes are saved locally and will persist between sessions
