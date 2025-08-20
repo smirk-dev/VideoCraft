@@ -414,7 +414,7 @@ const ExportDialog = ({
             (analysisData && currentTab === 2) ? handleAnalysisExport :
             handleDataExport
           }
-          disabled={isExporting || (currentTab === 0 && (!filename || videoUrl?.startsWith('blob:')))}
+          disabled={isExporting}
           startIcon={
             currentTab === 0 ? <Movie /> :
             currentTab === 1 ? <PictureAsPdf /> :
@@ -423,7 +423,7 @@ const ExportDialog = ({
           }
         >
           {isExporting ? 'Exporting...' : 
-           currentTab === 0 ? ((!filename || videoUrl?.startsWith('blob:')) ? 'Upload Video First' : 'Export Video') :
+           currentTab === 0 ? 'Export Video' :
            currentTab === 1 ? 'Export Report' :
            (analysisData && currentTab === 2) ? 'Export Analysis' :
            'Export Data'}
