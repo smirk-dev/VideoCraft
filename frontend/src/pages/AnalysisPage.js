@@ -637,13 +637,6 @@ const AnalysisPage = () => {
     return suggestions;
   };
 
-  // Auto-analyze when component loads if video exists
-  useEffect(() => {
-    if (hasVideo() && !analysisData && !loading) {
-      performRealAnalysis();
-    }
-  }, [hasVideo, analysisData, loading]);
-
   // Prepare video data for export
   const getVideoData = () => {
     if (!hasVideo()) return null;
