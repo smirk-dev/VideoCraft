@@ -949,7 +949,7 @@ const AnalysisPage = () => {
                           </ListItemIcon>
                           <ListItemText
                             primary="Music Detected"
-                            secondary={analysisData.audioAnalysis.musicDetected ? 'Yes' : 'No'}
+                            secondary={analysisData.audioAnalysis?.musicDetected ? 'Yes' : 'No'}
                           />
                         </ListItem>
                         <ListItem>
