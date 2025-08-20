@@ -92,11 +92,11 @@ const AnalysisPage = () => {
 
   useEffect(() => {
     console.log('Analysis page effect triggered');
-    console.log('hasVideo:', hasVideo);
+    console.log('hasVideo:', hasVideo());
     console.log('currentVideo:', currentVideo);
     console.log('videoMetadata:', videoMetadata);
     
-    if (hasVideo && currentVideo) {
+    if (hasVideo() && currentVideo) {
       console.log('Starting analysis for video:', currentVideo);
       performRealAnalysis();
     } else {
