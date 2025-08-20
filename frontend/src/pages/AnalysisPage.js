@@ -772,7 +772,7 @@ const AnalysisPage = () => {
                         <Typography variant="h6">Duration</Typography>
                       </Box>
                       <Typography variant="h4" color="primary">
-                        {analysisData.videoMetrics.duration}
+                        {analysisData.videoMetrics?.duration || 'Unknown'}
                       </Typography>
                     </CardContent>
                   </Card>
