@@ -13,7 +13,7 @@ $backendEnvContent = @"
 DATABASE_URL=postgresql://railway_generated_url
 RAILWAY_ENVIRONMENT=production
 HOST=0.0.0.0
-PORT=$PORT
+PORT=`$PORT
 DEBUG=false
 MAX_UPLOAD_SIZE=104857600
 CORS_ORIGINS=["https://videocraft.vercel.app"]
@@ -36,49 +36,6 @@ NODE_ENV=production
 
 $frontendEnvContent | Out-File -FilePath "frontend\.env.production" -Encoding UTF8
 Write-Host "✅ Created frontend/.env.production" -ForegroundColor Green
-
-# 2. Update CORS settings in backend
-Write-Host "🔗 Updating CORS settings..." -ForegroundColor Yellow
-
-$corsUpdate = @"
-# Add this to your backend/simple_main_backup.py
-from fastapi.middleware.cors import CORSMiddleware
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "https://videocraft.vercel.app",
-        "https://your-custom-domain.com",
-        "http://localhost:3001"
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-"@
-
-Write-Host "⚠️  Manual Step Required:" -ForegroundColor Red
-Write-Host $corsUpdate -ForegroundColor Gray
-
-# 3. Build frontend for testing
-Write-Host "🏗️  Building frontend for production..." -ForegroundColor Yellow
-Set-Location frontend
-npm run build
-Set-Location ..
-Write-Host "✅ Frontend build complete" -ForegroundColor Green
-
-# 4. Test backend startup
-Write-Host "🧪 Testing backend startup..." -ForegroundColor Yellow
-Set-Location backend
-try {
-    $process = Start-Process python -ArgumentList "simple_main_backup.py --host 0.0.0.0 --port 8000" -PassThru -WindowStyle Hidden
-    Start-Sleep 5
-    $process.Kill()
-    Write-Host "✅ Backend startup test passed" -ForegroundColor Green
-} catch {
-    Write-Host "❌ Backend startup test failed" -ForegroundColor Red
-}
-Set-Location ..
 
 Write-Host ""
 Write-Host "🎉 Deployment preparation complete!" -ForegroundColor Green
