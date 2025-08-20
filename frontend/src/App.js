@@ -8,6 +8,7 @@ import UploadPage from './pages/UploadPage';
 import EditorPage from './pages/EditorPage';
 import AnalysisPage from './pages/AnalysisPage';
 import ProjectsPage from './pages/ProjectsPage';
+import RecommendationsPage from './pages/RecommendationsPage';
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
             <Route path="/editor" element={<EditorPage />} />
             <Route path="/analysis" element={<AnalysisPage />} />
             <Route path="/projects" element={<ProjectsPage />} />
+            <Route path="/recommendations" element={<RecommendationsPage />} />
           </Routes>
         </Box>
       </Box>

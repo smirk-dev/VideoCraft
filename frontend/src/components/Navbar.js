@@ -48,6 +48,7 @@ const Navbar = () => {
     { label: 'Upload', path: '/upload' },
     { label: 'Editor', path: '/editor' },
     { label: 'Analysis', path: '/analysis' },
+    { label: 'Recommendations', path: '/recommendations' },
     { label: 'Projects', path: '/projects' }
   ];
 
