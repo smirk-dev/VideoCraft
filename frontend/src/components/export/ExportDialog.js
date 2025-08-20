@@ -145,7 +145,7 @@ const ExportDialog = ({
 
     try {
       const result = await ExportService.exportAnalysisReport(
-        { filename: videoName, ...projectData },
+        { filename, ...videoData, ...projectData },
         analysisData
       );
       setExportResult(result);
