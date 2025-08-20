@@ -960,6 +960,7 @@ const AnalysisPage = () => {
               </Paper>
             </Grid>
           </Grid>
+          </>
         )}
 
         {/* Share Menu */}
