@@ -377,6 +377,7 @@ const AnalysisPage = () => {
         timestamp: '0:15'
       }];
     }
+    console.log('Transformed emotions:', emotions);
 
     // Transform objects from backend analysis
     let objects = [];
@@ -395,6 +396,7 @@ const AnalysisPage = () => {
         timestamp: `0:${Math.floor(Math.random() * 45).toString().padStart(2, '0')}`
       }));
     }
+    console.log('Transformed objects:', objects);
 
     // Transform scenes from backend analysis
     let scenes = [];
@@ -421,6 +423,7 @@ const AnalysisPage = () => {
         type: 'Primary'
       }];
     }
+    console.log('Transformed scenes:', scenes);
 
     // Transform scene changes
     let sceneChanges = [];
