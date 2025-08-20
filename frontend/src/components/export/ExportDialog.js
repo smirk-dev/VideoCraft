@@ -371,12 +371,22 @@ const ExportDialog = ({
               <Alert 
                 severity={exportResult.success ? "success" : "error"}
                 icon={exportResult.success ? <CheckCircle /> : <Error />}
+                action={
+                  exportResult.success && exportResult.fileName && (
+                    <Button color="inherit" size="small">
+                      Downloaded: {exportResult.fileName}
+                    </Button>
+                  )
+                }
               >
                 <Typography variant="body2">
                   {exportResult.success 
-                    ? `${exportResult.message} File: ${exportResult.fileName}`
+                    ? exportResult.message
                     : `Export failed: ${exportResult.error}`
                   }
+                  {exportResult.success && exportResult.editingApplied && (
+                    <><br /><strong>✅ Editing parameters were applied to the export</strong></>
+                  )}
                 </Typography>
               </Alert>
             </Box>
