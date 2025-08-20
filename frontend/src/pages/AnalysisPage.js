@@ -69,6 +69,7 @@ const AnalysisPage = () => {
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [analysisError, setAnalysisError] = useState(null);
   const [analysisProgress, setAnalysisProgress] = useState(0);
+  const [isAnalyzing, setIsAnalyzing] = useState(false); // Prevent multiple simultaneous requests
 
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8001';
 
@@ -154,30 +155,36 @@ const AnalysisPage = () => {
   };
 
   useEffect(() => {
-    console.log('Analysis page effect triggered');
-    console.log('hasVideo:', hasVideo());
-    console.log('currentVideo:', currentVideo);
-    console.log('videoMetadata:', videoMetadata);
+    console.log('🔍 AnalysisPage useEffect triggered');
+    console.log('Current video:', currentVideo);
+    console.log('Analysis data exists:', !!analysisData);
+    console.log('Is analyzing:', isAnalyzing);
+    console.log('Loading:', loading);
     
-    if (hasVideo() && currentVideo) {
-      console.log('Starting analysis for video:', currentVideo);
-      alert(`Starting analysis for: ${currentVideo}`); // Debug alert
+    // Only run analysis if we have a video, no existing analysis data, and not already analyzing
+    if (currentVideo && !analysisData && !isAnalyzing && !loading) {
+      console.log('✅ Conditions met, starting analysis...');
       performRealAnalysis();
     } else {
-      console.log('No video available for analysis');
-      if (!hasVideo()) {
-        console.log('hasVideo() returned false');
-      }
-      if (!currentVideo) {
-        console.log('currentVideo is null/undefined');
-      }
+      console.log('❌ Conditions not met for analysis:');
+      console.log('  - Has video:', !!currentVideo);
+      console.log('  - No existing data:', !analysisData);
+      console.log('  - Not analyzing:', !isAnalyzing);
+      console.log('  - Not loading:', !loading);
     }
-  }, [hasVideo, currentVideo]);
+  }, [currentVideo]); // Only depend on currentVideo, not hasVideo function
 
   const performRealAnalysis = async () => {
+    // Prevent multiple simultaneous analysis requests
+    if (isAnalyzing || loading) {
+      console.log('⚠️ Analysis already in progress, skipping...');
+      return;
+    }
+
     let progressInterval = null;
     try {
       console.log('🚀 Starting performRealAnalysis...');
+      setIsAnalyzing(true);
       setLoading(true);
       setAnalysisError(null);
       setAnalysisProgress(0);
@@ -250,6 +257,7 @@ const AnalysisPage = () => {
         clearInterval(progressInterval);
       }
       setLoading(false);
+      setIsAnalyzing(false);
       console.log('✅ performRealAnalysis completed');
     }
   };
