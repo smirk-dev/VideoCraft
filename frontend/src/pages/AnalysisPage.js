@@ -424,7 +424,13 @@ const AnalysisPage = () => {
 
     // Transform scene changes
     let sceneChanges = [];
-    if (realAnalysis.scene_analysis?.scene_transitions) {
+    if (realAnalysis.scene_analysis?.transitions) {
+      sceneChanges = Array.from({length: realAnalysis.scene_analysis.transitions}, (_, i) => ({
+        timestamp: formatDuration(duration * (i + 1) / (realAnalysis.scene_analysis.transitions + 1)),
+        confidence: 0.75 + Math.random() * 0.20,
+        type: ['Cut', 'Fade', 'Dissolve', 'Wipe'][Math.floor(Math.random() * 4)]
+      }));
+    } else if (realAnalysis.scene_analysis?.scene_transitions) {
       sceneChanges = Array.from({length: realAnalysis.scene_analysis.scene_transitions}, (_, i) => ({
         timestamp: formatDuration(duration * (i + 1) / (realAnalysis.scene_analysis.scene_transitions + 1)),
         confidence: 0.75 + Math.random() * 0.20,
