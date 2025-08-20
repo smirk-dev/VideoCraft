@@ -127,7 +127,11 @@ const SaveProjectDialog = ({
               value={projectName}
               onChange={handleNameChange}
               placeholder="Enter a name for your project"
-              sx={{ mb: 2 }}
+              sx={{ 
+                mb: 2,
+                '& .MuiInputLabel-root': { color: 'text.primary' },
+                '& .MuiOutlinedInput-input': { color: 'text.primary' }
+              }}
               disabled={isProcessing}
               error={!projectName.trim() && projectName.length > 0}
               helperText={!projectName.trim() && projectName.length > 0 ? 'Project name is required' : ''}
@@ -142,7 +146,11 @@ const SaveProjectDialog = ({
               value={description}
               onChange={handleDescriptionChange}
               placeholder="Describe what this project contains..."
-              sx={{ mb: 2 }}
+              sx={{ 
+                mb: 2,
+                '& .MuiInputLabel-root': { color: 'text.primary' },
+                '& .MuiOutlinedInput-input': { color: 'text.primary' }
+              }}
               disabled={isProcessing}
             />
 
