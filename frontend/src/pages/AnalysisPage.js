@@ -785,7 +785,7 @@ const AnalysisPage = () => {
                         <Typography variant="h6">Resolution</Typography>
                       </Box>
                       <Typography variant="h4" color="primary">
-                        {analysisData.videoMetrics.resolution}
+                        {analysisData.videoMetrics?.resolution || 'Unknown'}
                       </Typography>
                     </CardContent>
                   </Card>
@@ -798,7 +798,7 @@ const AnalysisPage = () => {
                         <Typography variant="h6">Frame Rate</Typography>
                       </Box>
                       <Typography variant="h4" color="primary">
-                        {analysisData.videoMetrics.fps} FPS
+                        {analysisData.videoMetrics?.fps ? `${analysisData.videoMetrics.fps} FPS` : 'Unknown'}
                       </Typography>
                     </CardContent>
                   </Card>
