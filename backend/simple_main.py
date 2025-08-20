@@ -20,16 +20,32 @@ from pydantic import BaseModel
 import random
 import time
 
-# Import real AI services
+# Import real AI services with better error handling
+AI_AVAILABLE = False
+get_ai_analysis = None
+generate_ai_recommendations = None
+ai_service = None
+
 try:
-    from ai_services import get_ai_analysis, generate_ai_recommendations, ai_service
-    AI_AVAILABLE = True
-    print("✅ Real AI services loaded successfully")
-except ImportError as e:
+    # Try importing AI services
+    import sys
+    import importlib.util
+    
+    spec = importlib.util.spec_from_file_location("ai_services", "ai_services.py")
+    if spec and spec.loader:
+        ai_services = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(ai_services)
+        
+        get_ai_analysis = ai_services.get_ai_analysis
+        generate_ai_recommendations = ai_services.generate_ai_recommendations
+        ai_service = ai_services.ai_service
+        AI_AVAILABLE = True
+        print("✅ Real AI services loaded successfully")
+    else:
+        raise ImportError("Could not find ai_services module")
+        
+except Exception as e:
     AI_AVAILABLE = False
-    get_ai_analysis = None
-    generate_ai_recommendations = None
-    ai_service = None
     print(f"⚠️ AI services not available: {e}")
     print("Using fallback simulation mode")
 from datetime import datetime
