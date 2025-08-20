@@ -18,42 +18,81 @@ class ExportService {
 
       if (onProgress) onProgress(20);
 
-      // Send export request to backend
-      const response = await fetch(`${API_BASE_URL}/export/video`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          video_filename: filename,
-          export_type: 'video',
-          editing_data: editingData || {},
-          quality: quality
-        })
-      });
+      // Try backend export first, fallback to direct download if API not available
+      try {
+        // Send export request to backend
+        const response = await fetch(`${API_BASE_URL}/export/video`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            video_filename: filename,
+            export_type: 'video',
+            editing_data: editingData || {},
+            quality: quality
+          })
+        });
 
-      if (onProgress) onProgress(60);
+        if (onProgress) onProgress(60);
 
-      const result = await response.json();
+        if (!response.ok) {
+          throw new Error(`Backend export failed: ${response.status} ${response.statusText}`);
+        }
 
-      if (!result.success) {
-        throw new Error(result.message || 'Video export failed');
+        const result = await response.json();
+
+        if (!result.success) {
+          throw new Error(result.message || 'Video export failed');
+        }
+
+        if (onProgress) onProgress(80);
+
+        // Download the video file
+        const downloadUrl = `${API_BASE_URL}${result.download_url}`;
+        await this.downloadFile(downloadUrl, result.filename);
+
+        if (onProgress) onProgress(100);
+        
+        return {
+          success: true,
+          fileName: result.filename,
+          message: result.message || 'Video exported successfully!',
+          editingApplied: result.editing_applied || false
+        };
+
+      } catch (backendError) {
+        console.warn('Backend export failed, trying direct download:', backendError);
+        
+        // Fallback: try direct download
+        if (onProgress) onProgress(70);
+        
+        const directUrl = `${API_BASE_URL}/video/${encodeURIComponent(filename)}`;
+        const checkResponse = await fetch(directUrl);
+        
+        if (!checkResponse.ok) {
+          throw new Error('Video file not found on server. Please upload a video file first.');
+        }
+        
+        if (onProgress) onProgress(90);
+        
+        const blob = await checkResponse.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `exported_${filename}`;
+        a.click();
+        URL.revokeObjectURL(url);
+
+        if (onProgress) onProgress(100);
+        
+        return {
+          success: true,
+          fileName: `exported_${filename}`,
+          message: 'Video exported successfully! (Direct download - editing features not applied)',
+          editingApplied: false
+        };
       }
-
-      if (onProgress) onProgress(80);
-
-      // Download the video file
-      const downloadUrl = `${API_BASE_URL}${result.download_url}`;
-      await this.downloadFile(downloadUrl, result.filename);
-
-      if (onProgress) onProgress(100);
-      
-      return {
-        success: true,
-        fileName: result.filename,
-        message: result.message || 'Video exported successfully!',
-        editingApplied: result.editing_applied || false
-      };
       
     } catch (error) {
       console.error('Export failed:', error);
