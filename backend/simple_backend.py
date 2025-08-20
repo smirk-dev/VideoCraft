@@ -11,7 +11,109 @@ import logging
 from pathlib import Path
 from typing import Dict, Any, Optional
 
-from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi import        }
+        
+        logger.info(f"Generated analysis for filename: {filename}")
+        return {"success": True, "analysis": analysis}
+        
+    except Exception as e:
+        logger.error(f"Analysis failed: {str(e)}")
+        return {"success": False, "error": str(e)}
+
+@app.get("/api/videos/list")
+async def list_available_videos():
+    """List available videos in uploads directory"""
+    try:
+        uploads_dir = Path("uploads")
+        video_extensions = {".mp4", ".avi", ".mov", ".mkv", ".wmv", ".flv", ".webm", ".m4v", ".3gp"}
+        
+        videos = []
+        if uploads_dir.exists():
+            for file_path in uploads_dir.iterdir():
+                if file_path.is_file() and file_path.suffix.lower() in video_extensions:
+                    stat = file_path.stat()
+                    videos.append({
+                        "filename": file_path.name,
+                        "size": stat.st_size,
+                        "modified": stat.st_mtime
+                    })
+        
+        return {
+            "success": True,
+            "videos": videos,
+            "count": len(videos)
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to list videos: {str(e)}")
+        return {
+            "success": False,
+            "error": str(e),
+            "videos": [],
+            "count": 0
+        }
+
+@app.post("/api/videos/create-sample")
+async def create_sample_video():
+    """Create a sample video file for testing"""
+    try:
+        sample_filename = "sample_test_video.mp4"
+        sample_path = Path("uploads") / sample_filename
+        
+        # Check if FFmpeg is available for creating a sample video
+        if shutil.which("ffmpeg"):
+            # Create a simple test video using FFmpeg
+            command = [
+                "ffmpeg", "-y",  # Overwrite if exists
+                "-f", "lavfi",   # Use lavfi input
+                "-i", "testsrc=duration=10:size=640x480:rate=30",  # Test pattern
+                "-f", "lavfi",   # Audio input
+                "-i", "sine=frequency=1000:duration=10",  # Test tone
+                "-c:v", "libx264", "-c:a", "aac",  # Codecs
+                "-t", "10",      # Duration 10 seconds
+                str(sample_path)
+            ]
+            
+            result = subprocess.run(command, capture_output=True, text=True)
+            
+            if result.returncode == 0:
+                return {
+                    "success": True,
+                    "message": f"Sample video created: {sample_filename}",
+                    "filename": sample_filename,
+                    "path": str(sample_path)
+                }
+            else:
+                # Fallback: create a dummy file
+                with open(sample_path, 'w') as f:
+                    f.write("# This is a dummy video file for testing\n")
+                
+                return {
+                    "success": True,
+                    "message": f"Dummy sample file created: {sample_filename} (FFmpeg failed)",
+                    "filename": sample_filename,
+                    "path": str(sample_path),
+                    "note": "This is a dummy file, not a real video"
+                }
+        else:
+            # Create a dummy file if FFmpeg is not available
+            with open(sample_path, 'w') as f:
+                f.write("# This is a dummy video file for testing\n")
+            
+            return {
+                "success": True,
+                "message": f"Dummy sample file created: {sample_filename}",
+                "filename": sample_filename,
+                "path": str(sample_path),
+                "note": "This is a dummy file, not a real video. Install FFmpeg for real video creation."
+            }
+    
+    except Exception as e:
+        logger.error(f"Failed to create sample video: {str(e)}")
+        return {
+            "success": False,
+            "error": str(e)
+        }, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
