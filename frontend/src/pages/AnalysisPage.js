@@ -592,9 +592,9 @@ const AnalysisPage = () => {
     report += `Generated on: ${new Date().toLocaleDateString()}\n\n`;
     
     report += `VIDEO METRICS:\n`;
-    report += `Duration: ${analysisData.videoMetrics.duration}\n`;
-    report += `Resolution: ${analysisData.videoMetrics.resolution}\n`;
-    report += `File Size: ${analysisData.videoMetrics.fileSize}\n\n`;
+    report += `Duration: ${analysisData.videoMetrics?.duration || 'Unknown'}\n`;
+    report += `Resolution: ${analysisData.videoMetrics?.resolution || 'Unknown'}\n`;
+    report += `File Size: ${analysisData.videoMetrics?.fileSize || 'Unknown'}\n\n`;
     
     report += `EMOTION ANALYSIS:\n`;
     (analysisData.emotions || []).forEach(emotion => {
