@@ -517,6 +517,7 @@ const ProjectsPage = () => {
                       startIcon={<PlayArrow />}
                       variant="contained"
                       fullWidth
+                      onClick={() => handleOpenProject(project)}
                     >
                       Open Project
                     </Button>
