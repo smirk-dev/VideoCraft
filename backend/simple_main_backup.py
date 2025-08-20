@@ -398,6 +398,10 @@ async def get_analysis(analysis_id: str):
         raise HTTPException(status_code=500, detail=f"Analysis retrieval failed: {str(e)}")
 
 # Export endpoints
+@app.get("/test-export")
+async def test_export():
+    return {"message": "Export endpoints are working!", "success": True}
+
 class ExportRequest(BaseModel):
     video_filename: str
     export_type: str  # 'video', 'report', 'data', 'analysis'
