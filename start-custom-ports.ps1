@@ -9,19 +9,20 @@ Write-Host "╚═════════════════════�
 Write-Host ""
 
 Write-Host "🔧 Port Configuration Options:" -ForegroundColor Yellow
-Write-Host "1. Backend: 8001, Frontend: 3001 (Recommended)" -ForegroundColor Green
-Write-Host "2. Backend: 8002, Frontend: 3002" -ForegroundColor Green  
-Write-Host "3. Backend: 8080, Frontend: 3080" -ForegroundColor Green
-Write-Host "4. Custom ports" -ForegroundColor Green
+Write-Host "1. Backend: 8001, Frontend: 3001 (DEFAULT - Recommended)" -ForegroundColor Green
+Write-Host "2. Backend: 8002, Frontend: 3002" -ForegroundColor Yellow  
+Write-Host "3. Backend: 8080, Frontend: 3080" -ForegroundColor Yellow
+Write-Host "4. Custom ports" -ForegroundColor Yellow
 Write-Host ""
 
-$choice = Read-Host "Enter your choice (1-4)"
+$choice = Read-Host "Enter your choice (1-4, default is 1)"
 
-switch ($choice) {
-    "1" { 
-        $BackendPort = 8001
-        $FrontendPort = 3001
-    }
+# Default to option 1 if no choice or invalid choice
+if ([string]::IsNullOrEmpty($choice) -or $choice -eq "1") {
+    $BackendPort = 8001
+    $FrontendPort = 3001
+    Write-Host "Using DEFAULT ports: Backend 8001, Frontend 3001" -ForegroundColor Green
+}
     "2" { 
         $BackendPort = 8002
         $FrontendPort = 3002
