@@ -240,20 +240,6 @@ const ExportDialog = ({
             <Box>
               <Typography variant="h6" sx={{ mb: 2 }}>Export Edited Video</Typography>
               
-              {/* Check if we have a real uploaded file */}
-              {(!filename || videoUrl?.startsWith('blob:')) && (
-                <Alert severity="warning" sx={{ mb: 2 }}>
-                  <Typography variant="body2">
-                    <strong>📹 Video Export Not Available</strong><br />
-                    You're currently viewing demo/test data. To export videos:<br />
-                    1. Go to the <strong>Upload page</strong><br />
-                    2. Upload a real video file<br />
-                    3. Return here to export<br /><br />
-                    <em>For now, try exporting the Analysis Report or Project Data instead!</em>
-                  </Typography>
-                </Alert>
-              )}
-              
               <FormControl component="fieldset" sx={{ mb: 3 }}>
                 <FormLabel component="legend">Video Quality</FormLabel>
                 <RadioGroup
@@ -272,10 +258,6 @@ const ExportDialog = ({
                 <Typography variant="body2">
                   The exported video will include all your edits: trim points, cuts, and applied filters.
                   Processing time depends on video length and quality.
-                  {!videoUrl && (
-                    <><br /><strong>📹 To export videos: First upload a video file using the Upload page, then analyze it.</strong><br />
-                    For now, you can export the analysis report or project data instead.</>
-                  )}
                 </Typography>
               </Alert>
 
