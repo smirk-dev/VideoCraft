@@ -29,9 +29,12 @@ class ExportService {
   }
 
   // Export video with editing data
-  static async exportVideo(videoData, editingData) {
+  static async exportVideo(videoData, editingData, videoQuality = 'high', progressCallback = null) {
     try {
       const filename = this.extractFilename(videoData) || 'unknown-video';
+      
+      // Report initial progress
+      if (progressCallback) progressCallback(10);
       
       // Try backend first, fallback to direct download
       try {
@@ -43,9 +46,13 @@ class ExportService {
           body: JSON.stringify({
             video_filename: filename,
             export_type: 'video',
-            editing_data: editingData || {}
+            editing_data: editingData || {},
+            quality: videoQuality
           })
         });
+
+        // Report progress
+        if (progressCallback) progressCallback(50);
 
         if (response.ok) {
           const result = await response.json();
