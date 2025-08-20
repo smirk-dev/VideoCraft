@@ -60,7 +60,7 @@ import ExportButton from '../components/common/ExportButton';
 
 const AnalysisPage = () => {
   const navigate = useNavigate();
-  const { hasVideo, currentVideo, videoMetadata, videoUrl, editingData } = useVideo();
+  const { hasVideo, currentVideo, videoMetadata, videoUrl, editingData, setVideo } = useVideo();
   
   const [analysisData, setAnalysisData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -71,6 +71,24 @@ const AnalysisPage = () => {
   const [analysisProgress, setAnalysisProgress] = useState(0);
 
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8001';
+
+  // Test function to set a demo video
+  const setTestVideo = () => {
+    setVideo({
+      video: 'ssvid.net--DJI-MAVIC-PRO-2-4K-D-LOG-H265-10bits_1080p.mp4',
+      file: null, // We don't have an actual file
+      url: null,
+      metadata: {
+        duration: 165,
+        width: 1920,
+        height: 1080,
+        size: 50000000, // 50MB
+        type: 'video/mp4',
+        name: 'ssvid.net--DJI-MAVIC-PRO-2-4K-D-LOG-H265-10bits_1080p.mp4',
+        lastModified: Date.now()
+      }
+    });
+  };
 
   useEffect(() => {
     console.log('Analysis page effect triggered');
@@ -629,14 +647,23 @@ const AnalysisPage = () => {
             <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
               Please upload a video first to begin AI analysis
             </Typography>
-            <Button
-              variant="contained"
-              size="large"
-              startIcon={<Upload />}
-              onClick={() => navigate('/upload')}
-            >
-              Upload Video
-            </Button>
+            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
+              <Button
+                variant="contained"
+                size="large"
+                startIcon={<Upload />}
+                onClick={() => navigate('/upload')}
+              >
+                Upload Video
+              </Button>
+              <Button
+                variant="outlined"
+                size="large"
+                onClick={setTestVideo}
+              >
+                Load Test Video
+              </Button>
+            </Box>
           </Paper>
         )}
 
