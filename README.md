@@ -465,12 +465,15 @@ BROWSER=none
 
 1. **Build and Run**
 ```bash
+cd deployment/
 docker-compose up --build
 ```
 
-2. **Access Application**
-- Frontend: http://localhost:3000
-- Backend: http://localhost:8000
+2. **Production Deployment**
+```bash
+cd deployment/
+docker-compose -f docker-compose.production.yml up -d
+```
 
 ### Manual Docker Build
 
