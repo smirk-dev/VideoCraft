@@ -167,6 +167,17 @@ async def root():
 async def health_check():
     return {"status": "healthy", "service": "VideoCraft Simple Backend"}
 
+@app.get("/api/health")
+async def api_health_check():
+    """API health check for frontend connectivity"""
+    return {
+        "status": "healthy", 
+        "service": "VideoCraft Simple Backend",
+        "api_version": "1.0.0",
+        "endpoints_available": True,
+        "cors_enabled": True
+    }
+
 @app.post("/api/analyze/analyze-real", response_model=AnalysisResponse)
 async def analyze_video_real(request: AnalysisRequest):
     """Perform dynamic analysis on video"""
