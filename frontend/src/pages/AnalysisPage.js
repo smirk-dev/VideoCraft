@@ -127,17 +127,16 @@ const AnalysisPage = () => {
         setAnalysisData(transformAnalysisData(result.analysis));
         console.log('Analysis data set successfully');
       } else {
-        // Use fallback analysis if API fails but still show the error
-        console.warn('API failed, using fallback:', result.error);
-        setAnalysisError(`API analysis failed: ${result.error || 'Unknown error'}. Using fallback analysis.`);
-        setAnalysisData(generateVideoSpecificFallback());
+        // Show error but don't use fallback dummy data
+        console.warn('API failed:', result.error);
+        setAnalysisError(`Analysis failed: ${result.error || 'Unknown error'}. Please check the backend connection.`);
+        // Don't set dummy data - leave analysisData as null so user can retry
       }
 
     } catch (error) {
       console.error('Analysis failed:', error);
-      setAnalysisError(`Connection failed: ${error.message}. Using local analysis.`);
-      // Generate video-specific fallback instead of static mock
-      setAnalysisData(generateVideoSpecificFallback());
+      setAnalysisError(`Connection failed: ${error.message}. Please ensure the backend is running on localhost:8001.`);
+      // Don't set dummy data - leave analysisData as null so user can retry
     } finally {
       setLoading(false);
     }
