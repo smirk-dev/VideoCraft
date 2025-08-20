@@ -105,6 +105,54 @@ const AnalysisPage = () => {
     }
   };
 
+  // Direct API test
+  const testDirectAnalysis = async () => {
+    try {
+      console.log('🔬 Testing direct analysis API...');
+      setLoading(true);
+      const response = await fetch(`${API_BASE_URL}/api/analyze/analyze-filename`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          filename: 'test_video.mp4'
+        })
+      });
+      
+      console.log('Response status:', response.status);
+      const result = await response.json();
+      console.log('Analysis result:', result);
+      
+      if (result.success) {
+        alert(`Direct analysis successful! Analysis ID: ${result.analysis_id}`);
+      } else {
+        alert(`Direct analysis failed: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('❌ Direct analysis failed:', error);
+      alert(`Direct analysis failed: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Debug state
+  const debugState = () => {
+    const state = {
+      hasVideo: hasVideo(),
+      currentVideo: currentVideo,
+      videoMetadata: videoMetadata,
+      videoUrl: videoUrl,
+      API_BASE_URL: API_BASE_URL,
+      loading: loading,
+      analysisData: !!analysisData,
+      analysisError: analysisError
+    };
+    console.log('🐛 Current state:', state);
+    alert(`Debug State:\n${JSON.stringify(state, null, 2)}`);
+  };
+
   useEffect(() => {
     console.log('Analysis page effect triggered');
     console.log('hasVideo:', hasVideo());
@@ -753,6 +801,23 @@ const AnalysisPage = () => {
                 color="secondary"
               >
                 Test Backend
+              </Button>
+              <Button
+                variant="contained"
+                size="large"
+                onClick={testDirectAnalysis}
+                sx={{ ml: 2 }}
+                color="warning"
+              >
+                Direct API Test
+              </Button>
+              <Button
+                variant="outlined"
+                size="large"
+                onClick={debugState}
+                sx={{ ml: 2 }}
+              >
+                Debug State
               </Button>
             </Box>
           </Paper>
