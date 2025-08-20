@@ -18,6 +18,6 @@ Set-Location backend
 python -m uvicorn main:app --host 0.0.0.0 --port 8001 --reload
 
 Write-Host ""
-Write-Host "👋 Backend stopped" -ForegroundColor Yellow
+Write-Host "Backend stopped" -ForegroundColor Yellow
 Write-Host "Press any key to exit..." -ForegroundColor Yellow
 $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
