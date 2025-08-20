@@ -105,71 +105,124 @@ class ExportService {
     try {
       const filename = this.extractFilename(videoData) || 'unknown-video';
       
-      // Get report data from backend
-      const response = await fetch(`${API_BASE_URL}/export/report`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          video_filename: filename,
-          export_type: 'report',
-          editing_data: editingData || {}
-        })
-      });
+      // Try backend first, fallback to local generation
+      try {
+        const response = await fetch(`${API_BASE_URL}/export/report`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            video_filename: filename,
+            export_type: 'report',
+            editing_data: editingData || {}
+          })
+        });
 
-      const result = await response.json();
+        if (response.ok) {
+          const result = await response.json();
 
-      if (!result.success) {
-        throw new Error(result.message || 'Report export failed');
+          if (result.success) {
+            // Generate PDF from the report data
+            const pdf = new jsPDF();
+            const reportData = result.report_data;
+            
+            // Title
+            pdf.setFontSize(20);
+            pdf.text('VideoCraft Project Report', 20, 30);
+            
+            // Video Information
+            pdf.setFontSize(14);
+            pdf.text('Video Information', 20, 50);
+            pdf.setFontSize(10);
+            pdf.text(`Video: ${reportData.video_name}`, 20, 60);
+            pdf.text(`Export Date: ${new Date(reportData.export_date).toLocaleDateString()}`, 20, 70);
+            
+            let yPos = 90;
+            
+            // Editing Summary
+            if (reportData.editing_summary && Object.keys(reportData.editing_summary).length > 0) {
+              pdf.setFontSize(14);
+              pdf.text('Editing Summary', 20, yPos);
+              yPos += 10;
+              pdf.setFontSize(10);
+              
+              Object.entries(reportData.editing_summary).forEach(([key, value]) => {
+                if (yPos > 250) {
+                  pdf.addPage();
+                  yPos = 30;
+                }
+                pdf.text(`${key}: ${JSON.stringify(value)}`, 20, yPos);
+                yPos += 10;
+              });
+              yPos += 10;
+            }
+            
+            // Recommendations
+            if (reportData.recommendations && reportData.recommendations.length > 0) {
+              pdf.setFontSize(14);
+              pdf.text('AI Recommendations', 20, yPos);
+              yPos += 10;
+              pdf.setFontSize(10);
+              
+              reportData.recommendations.slice(0, 5).forEach((rec, index) => {
+                if (yPos > 250) {
+                  pdf.addPage();
+                  yPos = 30;
+                }
+                pdf.text(`${index + 1}. ${rec.type}: ${rec.reason}`, 20, yPos);
+                yPos += 8;
+              });
+            }
+            
+            // Save PDF
+            const fileName = `project_report_${filename.replace('.mp4', '')}_${new Date().toISOString().split('T')[0]}.pdf`;
+            pdf.save(fileName);
+            
+            return {
+              success: true,
+              fileName,
+              message: 'Project report exported successfully!'
+            };
+          }
+        }
+      } catch (backendError) {
+        console.warn('Backend report generation failed, using fallback:', backendError);
       }
 
-      // Generate PDF from the report data
+      // Fallback: Generate local PDF report
       const pdf = new jsPDF();
-      const reportData = result.report_data;
       
       // Title
       pdf.setFontSize(20);
       pdf.text('VideoCraft Project Report', 20, 30);
       
-      // Video Information
+      // Project Info
       pdf.setFontSize(14);
-      pdf.text('Video Information', 20, 50);
+      pdf.text('Project Information', 20, 50);
       pdf.setFontSize(10);
-      pdf.text(`Video: ${reportData.video_name}`, 20, 60);
-      pdf.text(`Export Date: ${new Date(reportData.export_date).toLocaleDateString()}`, 20, 70);
-      
-      let yPos = 90;
+      pdf.text(`Video: ${filename}`, 20, 60);
+      pdf.text(`Export Date: ${new Date().toLocaleDateString()}`, 20, 70);
+      pdf.text(`Export Time: ${new Date().toLocaleTimeString()}`, 20, 80);
       
       // Editing Summary
-      if (reportData.editing_summary && Object.keys(reportData.editing_summary).length > 0) {
-        pdf.setFontSize(14);
-        pdf.text('Editing Summary', 20, yPos);
-        yPos += 10;
-        pdf.setFontSize(10);
-        
-        Object.entries(reportData.editing_summary).forEach(([key, value]) => {
-          pdf.text(`${key}: ${JSON.stringify(value)}`, 20, yPos);
-          yPos += 10;
-        });
-        yPos += 10;
-      }
+      pdf.setFontSize(14);
+      pdf.text('Editing Summary', 20, 100);
+      pdf.setFontSize(10);
       
-      // Recommendations
-      if (reportData.recommendations && reportData.recommendations.length > 0) {
-        pdf.setFontSize(14);
-        pdf.text('AI Recommendations', 20, yPos);
-        yPos += 10;
-        pdf.setFontSize(10);
-        
-        reportData.recommendations.slice(0, 5).forEach((rec, index) => {
+      let yPos = 110;
+      
+      if (editingData && Object.keys(editingData).length > 0) {
+        Object.entries(editingData).forEach(([key, value]) => {
           if (yPos > 250) {
             pdf.addPage();
             yPos = 30;
           }
-          pdf.text(`${index + 1}. ${rec.type}: ${rec.reason}`, 20, yPos);
-          yPos += 8;
+          pdf.text(`${key}: ${JSON.stringify(value)}`, 20, yPos);
+          yPos += 10;
         });
+      } else {
+        pdf.text('No editing data available', 20, yPos);
       }
       
       // Save PDF
@@ -179,7 +232,7 @@ class ExportService {
       return {
         success: true,
         fileName,
-        message: 'Project report exported successfully!'
+        message: 'Project report exported successfully! (Local generation)'
       };
       
     } catch (error) {
