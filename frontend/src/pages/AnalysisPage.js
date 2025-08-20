@@ -811,7 +811,7 @@ const AnalysisPage = () => {
                         <Typography variant="h6">File Size</Typography>
                       </Box>
                       <Typography variant="h4" color="primary">
-                        {analysisData.videoMetrics.fileSize}
+                        {analysisData.videoMetrics?.fileSize || 'Unknown'}
                       </Typography>
                     </CardContent>
                   </Card>
