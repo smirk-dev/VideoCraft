@@ -121,6 +121,29 @@ class ExportService {
         a.click();
         document.body.removeChild(a);
         
+        // Report completion
+        if (progressCallback) progressCallback(100);
+        
+        return {
+          success: true,
+          fileName: `exported_${filename}`,
+          message: 'Video exported successfully! (Direct download)'
+        };
+      }
+      
+      // If we get here, check if videoData has a url property
+      if (videoData && videoData.url) {
+        // Try to download from the URL
+        const a = document.createElement('a');
+        a.href = videoData.url;
+        a.download = `exported_${filename}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        
+        // Report completion
+        if (progressCallback) progressCallback(100);
+        
         return {
           success: true,
           fileName: `exported_${filename}`,
