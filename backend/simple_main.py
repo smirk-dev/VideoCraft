@@ -471,7 +471,7 @@ async def generate_recommendations(request: dict):
                 video_path = path
                 break
         
-        if AI_AVAILABLE and video_path and os.path.exists(video_path):
+        if AI_AVAILABLE and get_ai_analysis and generate_ai_recommendations and video_path and os.path.exists(video_path):
             # Use real AI recommendations
             logger.info(f"🤖 Using REAL AI recommendations on: {video_path}")
             
