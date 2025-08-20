@@ -421,7 +421,7 @@ async def export_video(request: ExportRequest):
             "message": "Video export prepared",
             "download_url": f"/video/{request.video_filename}",
             "filename": f"exported_{request.video_filename}",
-            "editing_applied": len(request.editing_data) > 0
+            "editing_applied": len(request.editing_data or {}) > 0
         }
         
     except HTTPException:
