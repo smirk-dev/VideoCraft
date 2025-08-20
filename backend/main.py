@@ -294,10 +294,24 @@ async def download_processed_video(filename: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
+    import sys
+    
+    # Handle command line arguments for port
+    port = 8001
+    if len(sys.argv) > 1:
+        try:
+            port = int(sys.argv[1])
+        except ValueError:
+            if "--port" in sys.argv:
+                try:
+                    port = int(sys.argv[sys.argv.index("--port") + 1])
+                except (IndexError, ValueError):
+                    pass
+    
     uvicorn.run(
-        "working_backend:app",
+        "main:app",
         host="0.0.0.0",
-        port=8001,
+        port=port,
         reload=True,
         log_level="info"
     )
