@@ -343,6 +343,34 @@ async def delete_project(project_id: str):
             "error": str(e)
         }
 
+# AI Recommendations endpoint
+@app.post("/api/recommendations/generate")
+async def generate_recommendations(request: dict):
+    """Generate AI-powered editing recommendations"""
+    try:
+        filename = request.get("filename", "unknown.mp4")
+        metadata = request.get("metadata", {})
+        
+        logger.info(f"Generating recommendations for: {filename}")
+        
+        # Simulate AI processing time
+        await asyncio.sleep(random.uniform(1.5, 3.0))
+        
+        # Generate dynamic recommendations based on filename and metadata
+        recommendations = generate_dynamic_recommendations(filename, metadata)
+        
+        return {
+            "success": True,
+            "recommendations": recommendations
+        }
+        
+    except Exception as e:
+        logger.error(f"Recommendations generation failed: {str(e)}")
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
 if __name__ == "__main__":
     import sys
     
