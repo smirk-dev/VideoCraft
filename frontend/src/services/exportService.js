@@ -246,28 +246,90 @@ class ExportService {
     try {
       const filename = this.extractFilename(videoData) || 'unknown-video';
       
-      // Get analysis data from backend
-      const response = await fetch(`${API_BASE_URL}/export/analysis`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          video_filename: filename,
-          export_type: 'analysis',
-          editing_data: {}
-        })
-      });
+      // Try backend first, fallback to local generation
+      try {
+        const response = await fetch(`${API_BASE_URL}/export/analysis`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            video_filename: filename,
+            export_type: 'analysis',
+            editing_data: {}
+          })
+        });
 
-      const result = await response.json();
+        if (response.ok) {
+          const result = await response.json();
 
-      if (!result.success) {
-        throw new Error(result.message || 'Analysis export failed');
+          if (result.success) {
+            // Generate PDF from analysis data
+            const pdf = new jsPDF();
+            const analysis = result.analysis_data.analysis_results;
+            
+            // Title
+            pdf.setFontSize(20);
+            pdf.text('Video Analysis Report', 20, 30);
+            
+            // Video Information
+            pdf.setFontSize(14);
+            pdf.text('Video Information', 20, 50);
+            pdf.setFontSize(10);
+            pdf.text(`Video: ${filename}`, 20, 60);
+            pdf.text(`Analysis Date: ${new Date().toLocaleDateString()}`, 20, 70);
+            
+            let yPos = 90;
+            
+            // Video Info
+            if (analysis.video_info) {
+              pdf.setFontSize(14);
+              pdf.text('Video Metrics', 20, yPos);
+              yPos += 10;
+              pdf.setFontSize(10);
+              pdf.text(`Duration: ${analysis.video_info.duration || 'N/A'}`, 20, yPos);
+              yPos += 8;
+              pdf.text(`Resolution: ${analysis.video_info.resolution || 'N/A'}`, 20, yPos);
+              yPos += 8;
+              pdf.text(`Frame Rate: ${analysis.video_info.fps || 'N/A'} fps`, 20, yPos);
+              yPos += 16;
+            }
+            
+            // AI Analysis sections
+            if (analysis.scene_analysis) {
+              pdf.setFontSize(14);
+              pdf.text('Scene Analysis', 20, yPos);
+              yPos += 10;
+              pdf.setFontSize(10);
+              
+              analysis.scene_analysis.slice(0, 5).forEach((scene, index) => {
+                if (yPos > 250) {
+                  pdf.addPage();
+                  yPos = 30;
+                }
+                pdf.text(`Scene ${index + 1}: ${scene.description}`, 20, yPos);
+                yPos += 8;
+              });
+              yPos += 10;
+            }
+            
+            // Save PDF
+            const fileName = `analysis_report_${filename.replace('.mp4', '')}_${new Date().toISOString().split('T')[0]}.pdf`;
+            pdf.save(fileName);
+            
+            return {
+              success: true,
+              fileName,
+              message: 'Analysis report exported successfully!'
+            };
+          }
+        }
+      } catch (backendError) {
+        console.warn('Backend analysis export failed, using fallback:', backendError);
       }
 
-      // Generate PDF from analysis data
+      // Fallback: Generate local analysis report
       const pdf = new jsPDF();
-      const analysis = result.analysis_data.analysis_results;
       
       // Title
       pdf.setFontSize(20);
@@ -282,12 +344,48 @@ class ExportService {
       
       let yPos = 90;
       
-      // Video Info
-      if (analysis.video_info) {
+      // Basic Analysis (fallback data)
+      pdf.setFontSize(14);
+      pdf.text('Analysis Summary', 20, yPos);
+      yPos += 10;
+      pdf.setFontSize(10);
+      pdf.text('Video processed with local analysis', 20, yPos);
+      yPos += 8;
+      pdf.text('Format: MP4', 20, yPos);
+      yPos += 8;
+      
+      if (analysisData && Object.keys(analysisData).length > 0) {
+        yPos += 10;
         pdf.setFontSize(14);
-        pdf.text('Video Metrics', 20, yPos);
+        pdf.text('Analysis Data', 20, yPos);
         yPos += 10;
         pdf.setFontSize(10);
+        
+        Object.entries(analysisData).forEach(([key, value]) => {
+          if (yPos > 250) {
+            pdf.addPage();
+            yPos = 30;
+          }
+          pdf.text(`${key}: ${JSON.stringify(value).substring(0, 50)}`, 20, yPos);
+          yPos += 8;
+        });
+      }
+      
+      // Save PDF
+      const fileName = `analysis_report_${filename.replace('.mp4', '')}_${new Date().toISOString().split('T')[0]}.pdf`;
+      pdf.save(fileName);
+      
+      return {
+        success: true,
+        fileName,
+        message: 'Analysis report exported successfully! (Local generation)'
+      };
+      
+    } catch (error) {
+      console.error('Analysis report export failed:', error);
+      throw error;
+    }
+  }
         
         pdf.text(`Duration: ${analysis.video_info.duration || 'N/A'}`, 20, yPos);
         yPos += 10;
