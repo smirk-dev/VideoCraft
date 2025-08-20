@@ -257,6 +257,9 @@ const ExportDialog = ({
                 <Typography variant="body2">
                   The exported video will include all your edits: trim points, cuts, and applied filters.
                   Processing time depends on video length and quality.
+                  {!videoUrl && (
+                    <strong> Note: Video export requires an uploaded video file. For test videos, try exporting the analysis report instead.</strong>
+                  )}
                 </Typography>
               </Alert>
 
