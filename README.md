@@ -188,12 +188,12 @@ cd VideoCraft
 
 **Windows:**
 ```powershell
-python setup_real_implementation.py
+python scripts/setup_real_implementation.py
 ```
 
 **Or use PowerShell script:**
 ```powershell
-powershell -ExecutionPolicy Bypass -File setup_real_implementation.ps1
+powershell -ExecutionPolicy Bypass -File scripts/setup_real_implementation.ps1
 ```
 
 3. **Start the Application**
