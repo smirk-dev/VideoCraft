@@ -30,6 +30,8 @@ import {
   ListItemText,
   ListItemSecondaryAction,
   Divider,
+  Alert,
+  CircularProgress
 } from '@mui/material';
 import {
   Add,
@@ -47,9 +49,15 @@ import {
   Search,
   Sort,
   Clear,
+  Refresh
 } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
+import { useVideo } from '../context/VideoContext';
 
 const ProjectsPage = () => {
+  const navigate = useNavigate();
+  const { loadProject, setVideo } = useVideo();
+  
   const [projects, setProjects] = useState([]);
   const [filteredProjects, setFilteredProjects] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
@@ -63,87 +71,69 @@ const ProjectsPage = () => {
   const [sortBy, setSortBy] = useState('dateModified');
   const [filterBy, setFilterBy] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Mock project data
+  // Load projects from backend
+  const loadProjects = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8001';
+      const response = await fetch(`${API_BASE_URL}/api/projects/list`);
+      const result = await response.json();
+      
+      if (result.success) {
+        setProjects(result.projects);
+      } else {
+        throw new Error(result.error || 'Failed to load projects');
+      }
+    } catch (err) {
+      console.error('Failed to load projects:', err);
+      setError(err.message);
+      // Fallback to mock data for demo
+      setProjects(mockProjects);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Mock project data (fallback)
   const mockProjects = [
     {
-      id: 1,
+      id: 'mock_1',
       name: 'Summer Vacation 2024',
       description: 'Family vacation highlights with background music and beautiful beach scenes',
       thumbnail: '/api/placeholder/320/180',
-      dateCreated: '2024-07-15',
-      dateModified: '2024-07-20',
+      date_created: '2024-07-15T10:00:00.000Z',
+      date_modified: '2024-07-20T15:30:00.000Z',
       duration: '3:45',
       status: 'completed',
-      fileSize: '250 MB',
+      file_size: '250 MB',
       clips: 12,
     },
     {
-      id: 2,
+      id: 'mock_2',
       name: 'Product Demo Video',
       description: 'Marketing video for new product launch with testimonials',
       thumbnail: '/api/placeholder/320/180',
-      dateCreated: '2024-07-10',
-      dateModified: '2024-07-18',
+      date_created: '2024-07-10T09:00:00.000Z',
+      date_modified: '2024-07-18T14:20:00.000Z',
       duration: '2:30',
       status: 'in-progress',
-      fileSize: '180 MB',
+      file_size: '180 MB',
       clips: 8,
-    },
-    {
-      id: 3,
-      name: 'Birthday Party Montage',
-      description: 'Quick montage with automatic cuts and transitions, lots of fun moments',
-      thumbnail: '/api/placeholder/320/180',
-      dateCreated: '2024-06-25',
-      dateModified: '2024-07-01',
-      duration: '1:55',
-      status: 'completed',
-      fileSize: '120 MB',
-      clips: 15,
-    },
-    {
-      id: 4,
-      name: 'Tutorial Series - Episode 1',
-      description: 'Educational content with screen recording and voice narration',
-      thumbnail: '/api/placeholder/320/180',
-      dateCreated: '2024-06-20',
-      dateModified: '2024-06-22',
-      duration: '12:30',
-      status: 'draft',
-      fileSize: '890 MB',
-      clips: 25,
-    },
-    {
-      id: 5,
-      name: 'Wedding Highlights',
-      description: 'Beautiful wedding ceremony and reception moments with music',
-      thumbnail: '/api/placeholder/320/180',
-      dateCreated: '2024-05-15',
-      dateModified: '2024-05-20',
-      duration: '8:15',
-      status: 'completed',
-      fileSize: '450 MB',
-      clips: 18,
-    },
-    {
-      id: 6,
-      name: 'Corporate Training Video',
-      description: 'Employee onboarding and training materials with presentations',
-      thumbnail: '/api/placeholder/320/180',
-      dateCreated: '2024-04-10',
-      dateModified: '2024-04-15',
-      duration: '15:45',
-      status: 'in-progress',
-      fileSize: '720 MB',
-      clips: 30,
-    },
+    }
   ];
 
   useEffect(() => {
-    setProjects(mockProjects);
-    setFilteredProjects(mockProjects);
+    loadProjects();
   }, []);
+
+  useEffect(() => {
+    setFilteredProjects(projects);
+  }, [projects]);
 
   useEffect(() => {
     let filtered = [...projects];
@@ -156,7 +146,7 @@ const ProjectsPage = () => {
         project.description.toLowerCase().includes(query) ||
         project.status.toLowerCase().includes(query) ||
         project.duration.includes(query) ||
-        project.fileSize.toLowerCase().includes(query) ||
+        project.file_size.toLowerCase().includes(query) ||
         project.clips.toString().includes(query)
       );
     }
@@ -172,9 +162,9 @@ const ProjectsPage = () => {
         case 'name':
           return a.name.localeCompare(b.name);
         case 'dateCreated':
-          return new Date(b.dateCreated) - new Date(a.dateCreated);
+          return new Date(b.date_created) - new Date(a.date_created);
         case 'dateModified':
-          return new Date(b.dateModified) - new Date(a.dateModified);
+          return new Date(b.date_modified) - new Date(a.date_modified);
         case 'duration':
           return b.duration.localeCompare(a.duration);
         default:
@@ -189,11 +179,11 @@ const ProjectsPage = () => {
     const project = {
       ...newProject,
       id: Date.now(),
-      dateCreated: new Date().toISOString().split('T')[0],
-      dateModified: new Date().toISOString().split('T')[0],
+      date_created: new Date().toISOString(),
+      date_modified: new Date().toISOString(),
       duration: '0:00',
       status: 'draft',
-      fileSize: '0 MB',
+      file_size: '0 MB',
       clips: 0,
       thumbnail: '/api/placeholder/320/180',
     };
@@ -201,6 +191,56 @@ const ProjectsPage = () => {
     setProjects([project, ...projects]);
     setOpenDialog(false);
     setNewProject({ name: '', description: '', template: 'blank' });
+  };
+
+  const handleOpenProject = async (project) => {
+    try {
+      // Load the project into the editor
+      const result = await loadProject(project.id);
+      if (result.success) {
+        navigate('/editor');
+      } else {
+        // Fallback: just set the video filename and navigate
+        if (project.video_filename) {
+          setVideo({
+            video: project.video_filename,
+            file: null,
+            url: null,
+            metadata: project.video_metadata || {}
+          });
+        }
+        navigate('/editor');
+      }
+    } catch (err) {
+      console.error('Failed to open project:', err);
+      // Fallback navigation
+      navigate('/editor');
+    }
+  };
+
+  const handleDeleteProject = async () => {
+    try {
+      const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8001';
+      const response = await fetch(`${API_BASE_URL}/api/projects/${selectedProject.id}`, {
+        method: 'DELETE'
+      });
+      
+      const result = await response.json();
+      if (result.success) {
+        // Remove from local state
+        setProjects(projects.filter(p => p.id !== selectedProject.id));
+      } else {
+        console.error('Failed to delete project:', result.error);
+        // Still remove from local state for demo
+        setProjects(projects.filter(p => p.id !== selectedProject.id));
+      }
+    } catch (err) {
+      console.error('Error deleting project:', err);
+      // Still remove from local state for demo
+      setProjects(projects.filter(p => p.id !== selectedProject.id));
+    }
+    
+    handleMenuClose();
   };
 
   const handleMenuOpen = (event, project) => {
@@ -211,11 +251,6 @@ const ProjectsPage = () => {
   const handleMenuClose = () => {
     setAnchorEl(null);
     setSelectedProject(null);
-  };
-
-  const handleDeleteProject = () => {
-    setProjects(projects.filter(p => p.id !== selectedProject.id));
-    handleMenuClose();
   };
 
   const getStatusColor = (status) => {
@@ -238,6 +273,19 @@ const ProjectsPage = () => {
       year: 'numeric',
     });
   };
+
+  if (loading) {
+    return (
+      <Container maxWidth="xl" sx={{ py: 4 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
+          <Box sx={{ textAlign: 'center' }}>
+            <CircularProgress sx={{ mb: 2 }} />
+            <Typography variant="h6">Loading Projects...</Typography>
+          </Box>
+        </Box>
+      </Container>
+    );
+  }
 
   return (
     <Box sx={{ flexGrow: 1, bgcolor: 'background.default', minHeight: '100vh' }}>

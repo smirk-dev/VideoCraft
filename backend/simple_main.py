@@ -5,6 +5,9 @@ This version avoids heavy AI dependencies while providing working endpoints
 import os
 import logging
 import asyncio
+import time
+import random
+from datetime import datetime
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -224,6 +227,117 @@ async def analyze_video_filename(request: dict):
         
     except Exception as e:
         logger.error(f"Analysis failed: {str(e)}")
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+# Project management endpoints
+projects_storage = []  # In-memory storage for demo purposes
+
+@app.post("/api/projects/save")
+async def save_project(request: dict):
+    """Save a video editing project"""
+    try:
+        project_data = {
+            "id": request.get("id") or f"project_{int(time.time())}_{random.randint(1000, 9999)}",
+            "name": request.get("name", "Untitled Project"),
+            "description": request.get("description", ""),
+            "video_filename": request.get("video_filename"),
+            "video_metadata": request.get("video_metadata", {}),
+            "editing_data": request.get("editing_data", {}),
+            "date_created": request.get("date_created") or datetime.now().isoformat(),
+            "date_modified": datetime.now().isoformat(),
+            "status": request.get("status", "draft"),
+            "thumbnail": request.get("thumbnail", "/api/placeholder/320/180"),
+            "duration": request.get("duration", "0:00"),
+            "file_size": request.get("file_size", "0 MB"),
+            "clips": request.get("clips", 1)
+        }
+        
+        # Check if project already exists (update vs create)
+        existing_index = next((i for i, p in enumerate(projects_storage) if p["id"] == project_data["id"]), None)
+        
+        if existing_index is not None:
+            # Update existing project
+            projects_storage[existing_index] = project_data
+            logger.info(f"Updated project: {project_data['name']}")
+        else:
+            # Create new project
+            projects_storage.insert(0, project_data)  # Add to beginning for recent-first order
+            logger.info(f"Created new project: {project_data['name']}")
+        
+        return {
+            "success": True,
+            "project_id": project_data["id"],
+            "message": "Project saved successfully"
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to save project: {str(e)}")
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+@app.get("/api/projects/list")
+async def list_projects():
+    """Get all saved projects"""
+    try:
+        return {
+            "success": True,
+            "projects": projects_storage
+        }
+    except Exception as e:
+        logger.error(f"Failed to list projects: {str(e)}")
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+@app.get("/api/projects/{project_id}")
+async def get_project(project_id: str):
+    """Get a specific project by ID"""
+    try:
+        project = next((p for p in projects_storage if p["id"] == project_id), None)
+        if project:
+            return {
+                "success": True,
+                "project": project
+            }
+        else:
+            return {
+                "success": False,
+                "error": "Project not found"
+            }
+    except Exception as e:
+        logger.error(f"Failed to get project: {str(e)}")
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+@app.delete("/api/projects/{project_id}")
+async def delete_project(project_id: str):
+    """Delete a project by ID"""
+    try:
+        global projects_storage
+        original_length = len(projects_storage)
+        projects_storage = [p for p in projects_storage if p["id"] != project_id]
+        
+        if len(projects_storage) < original_length:
+            logger.info(f"Deleted project: {project_id}")
+            return {
+                "success": True,
+                "message": "Project deleted successfully"
+            }
+        else:
+            return {
+                "success": False,
+                "error": "Project not found"
+            }
+    except Exception as e:
+        logger.error(f"Failed to delete project: {str(e)}")
         return {
             "success": False,
             "error": str(e)

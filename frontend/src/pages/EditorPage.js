@@ -26,6 +26,7 @@ import Timeline from '../components/editor/Timeline';
 import EditingControls from '../components/editor/EditingControls';
 import FilterControls from '../components/editor/FilterControls';
 import ExportDialog from '../components/export/ExportDialog';
+import SaveProjectDialog from '../components/common/SaveProjectDialog';
 
 function TabPanel({ children, value, index }) {
   return (
@@ -49,13 +50,17 @@ const EditorPage = () => {
     removeCut,
     addFilter,
     removeFilter,
-    isProcessing
+    isProcessing,
+    currentProject,
+    saveProject,
+    error
   } = useVideo();
 
   const [currentTab, setCurrentTab] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
+  const [saveProjectDialogOpen, setSaveProjectDialogOpen] = useState(false);
 
   // Initialize editing data when video loads
   useEffect(() => {
@@ -113,6 +118,20 @@ const EditorPage = () => {
 
   const handleExportClose = () => {
     setExportDialogOpen(false);
+  };
+
+  // Handle save project functions
+  const handleSaveProjectClick = () => {
+    setSaveProjectDialogOpen(true);
+  };
+
+  const handleSaveProjectClose = () => {
+    setSaveProjectDialogOpen(false);
+  };
+
+  const handleSaveProject = async (projectName, description, status) => {
+    const result = await saveProject(projectName, description);
+    return result;
   };
 
   // Prepare video data for export
@@ -221,8 +240,10 @@ const EditorPage = () => {
                 <Button
                   startIcon={<Save />}
                   variant="contained"
+                  onClick={handleSaveProjectClick}
+                  disabled={isProcessing}
                 >
-                  Save Project
+                  {currentProject ? 'Update Project' : 'Save Project'}
                 </Button>
                 <Button
                   startIcon={<GetApp />}
@@ -239,6 +260,15 @@ const EditorPage = () => {
                   Analyze Video
                 </Button>
               </Box>
+              {currentProject && (
+                <Alert severity="info" sx={{ mt: 2 }}>
+                  <Typography variant="body2">
+                    <strong>Current Project:</strong> {currentProject.name}
+                    <br />
+                    <strong>Last Modified:</strong> {new Date(currentProject.date_modified).toLocaleString()}
+                  </Typography>
+                </Alert>
+              )}
             </Paper>
           </Grid>
 
@@ -341,6 +371,16 @@ const EditorPage = () => {
           open={exportDialogOpen}
           onClose={handleExportClose}
           videoData={getVideoData()}
+        />
+
+        {/* Save Project Dialog */}
+        <SaveProjectDialog
+          open={saveProjectDialogOpen}
+          onClose={handleSaveProjectClose}
+          onSave={handleSaveProject}
+          currentProject={currentProject}
+          isProcessing={isProcessing}
+          error={error}
         />
       </Container>
     </Box>
