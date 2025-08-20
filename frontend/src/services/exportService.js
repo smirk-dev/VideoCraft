@@ -90,6 +90,9 @@ class ExportService {
         console.warn('Backend video export failed, using fallback:', backendError);
       }
 
+      // Report fallback progress
+      if (progressCallback) progressCallback(70);
+
       // Fallback: Direct download (if video is available)
       if (videoData instanceof File) {
         const url = URL.createObjectURL(videoData);
