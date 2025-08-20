@@ -192,6 +192,32 @@ async def analyze_video_real(request: AnalysisRequest):
             error=str(e)
         )
 
+@app.post("/api/analyze/analyze-filename")
+async def analyze_video_filename(request: dict):
+    """Perform dynamic analysis on video by filename"""
+    try:
+        filename = request.get("filename", "unknown.mp4")
+        logger.info(f"Analyzing video by filename: {filename}")
+        
+        # Simulate processing time
+        await asyncio.sleep(random.uniform(1.0, 3.0))
+        
+        # Generate dynamic analysis
+        analysis_result = generate_dynamic_analysis(filename)
+        
+        return {
+            "success": True,
+            "analysis_id": f"analysis_{int(time.time())}",
+            "analysis": analysis_result
+        }
+        
+    except Exception as e:
+        logger.error(f"Analysis failed: {str(e)}")
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
 if __name__ == "__main__":
     uvicorn.run(
         "simple_main:app",
