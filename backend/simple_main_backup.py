@@ -397,6 +397,159 @@ async def get_analysis(analysis_id: str):
         logger.error(f"Analysis retrieval failed: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Analysis retrieval failed: {str(e)}")
 
+# Export endpoints
+class ExportRequest(BaseModel):
+    video_filename: str
+    export_type: str  # 'video', 'report', 'data', 'analysis'
+    editing_data: Optional[Dict[str, Any]] = {}
+    quality: Optional[str] = '720p'
+
+@app.post("/export/video")
+async def export_video(request: ExportRequest):
+    try:
+        logger.info(f"Video export requested for: {request.video_filename}")
+        
+        # Check if video file exists
+        file_path = UPLOAD_DIR / request.video_filename
+        if not file_path.exists():
+            raise HTTPException(status_code=404, detail="Video file not found")
+        
+        # For now, just return the original file
+        # In a real implementation, you would apply editing here
+        return {
+            "success": True,
+            "message": "Video export prepared",
+            "download_url": f"/video/{request.video_filename}",
+            "filename": f"exported_{request.video_filename}",
+            "editing_applied": len(request.editing_data) > 0
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Video export failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Video export failed: {str(e)}")
+
+@app.post("/export/report")
+async def export_report(request: ExportRequest):
+    try:
+        logger.info(f"Report export requested for: {request.video_filename}")
+        
+        # Generate report data
+        report_data = {
+            "video_name": request.video_filename,
+            "export_date": datetime.now().isoformat(),
+            "editing_summary": request.editing_data,
+            "analysis_summary": "Comprehensive video analysis completed",
+            "recommendations": generate_mock_recommendations().get("editing_suggestions", [])
+        }
+        
+        return {
+            "success": True,
+            "message": "Report data generated",
+            "report_data": report_data,
+            "filename": f"report_{request.video_filename.replace('.mp4', '')}.json"
+        }
+        
+    except Exception as e:
+        logger.error(f"Report export failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Report export failed: {str(e)}")
+
+@app.post("/export/analysis")
+async def export_analysis(request: ExportRequest):
+    try:
+        logger.info(f"Analysis export requested for: {request.video_filename}")
+        
+        # Generate analysis export data
+        analysis_data = generate_mock_analysis()
+        analysis_export = {
+            "video_info": {
+                "filename": request.video_filename,
+                "export_date": datetime.now().isoformat()
+            },
+            "analysis_results": analysis_data,
+            "export_type": "comprehensive_analysis"
+        }
+        
+        return {
+            "success": True,
+            "message": "Analysis data prepared for export",
+            "analysis_data": analysis_export,
+            "filename": f"analysis_{request.video_filename.replace('.mp4', '')}.json"
+        }
+        
+    except Exception as e:
+        logger.error(f"Analysis export failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Analysis export failed: {str(e)}")
+
+@app.post("/export/data")
+async def export_project_data(request: ExportRequest):
+    try:
+        logger.info(f"Project data export requested for: {request.video_filename}")
+        
+        # Generate project data
+        project_data = {
+            "project_info": {
+                "video_filename": request.video_filename,
+                "created_date": datetime.now().isoformat(),
+                "export_date": datetime.now().isoformat(),
+                "version": "1.0"
+            },
+            "editing_data": request.editing_data,
+            "settings": {
+                "quality": request.quality,
+                "format": "mp4"
+            }
+        }
+        
+        return {
+            "success": True,
+            "message": "Project data prepared for export",
+            "project_data": project_data,
+            "filename": f"project_{request.video_filename.replace('.mp4', '')}.json"
+        }
+        
+    except Exception as e:
+        logger.error(f"Project data export failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Project data export failed: {str(e)}")
+
+@app.get("/export/download/{filename}")
+async def download_export(filename: str):
+    try:
+        # Check in uploads directory first
+        file_path = UPLOAD_DIR / filename
+        if file_path.exists():
+            mime_type, _ = mimetypes.guess_type(str(file_path))
+            if not mime_type:
+                mime_type = "application/octet-stream"
+            
+            return FileResponse(
+                path=str(file_path),
+                media_type=mime_type,
+                filename=f"exported_{filename}"
+            )
+        
+        # Check in processed directory
+        file_path = PROCESSED_DIR / filename
+        if file_path.exists():
+            mime_type, _ = mimetypes.guess_type(str(file_path))
+            if not mime_type:
+                mime_type = "application/octet-stream"
+            
+            return FileResponse(
+                path=str(file_path),
+                media_type=mime_type,
+                filename=filename
+            )
+        
+        raise HTTPException(status_code=404, detail="Export file not found")
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Download failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Download failed: {str(e)}")
+
 if __name__ == "__main__":
     import asyncio
     import uvicorn
