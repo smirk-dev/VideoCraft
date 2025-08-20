@@ -958,7 +958,7 @@ const AnalysisPage = () => {
                           </ListItemIcon>
                           <ListItemText
                             primary="Speech Quality"
-                            secondary={analysisData.audioAnalysis.speechQuality}
+                            secondary={analysisData.audioAnalysis?.speechQuality || 'Unknown'}
                           />
                         </ListItem>
                       </List>
