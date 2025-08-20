@@ -880,7 +880,7 @@ const AnalysisPage = () => {
                         </TableRow>
                       </TableHead>
                       <TableBody>
-                        {analysisData.sceneChanges.map((scene, index) => (
+                        {(analysisData.sceneChanges || []).map((scene, index) => (
                           <TableRow key={index}>
                             <TableCell>{scene.timestamp}</TableCell>
                             <TableCell>
