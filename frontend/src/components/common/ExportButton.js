@@ -20,10 +20,13 @@ const ExportButton = ({
     setExportDialogOpen(false);
   };
 
-  // Don't render if no video data
-  if (!videoData || !videoData.filename) {
+  // Don't render if no video data at all
+  if (!videoData) {
     return null;
   }
+
+  // Show button even if no video file uploaded
+  // The dialog will handle the case appropriately
 
   return (
     <>
