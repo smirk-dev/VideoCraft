@@ -63,7 +63,7 @@ switch ($method) {
         Write-Host "🖥️ Starting Backend on port $BackendPort..." -ForegroundColor Green
         Set-Location backend
         $env:PORT = $BackendPort
-        python -m uvicorn main:app --host 0.0.0.0 --port $BackendPort --reload
+        python -m uvicorn simple_backend:app --host 0.0.0.0 --port $BackendPort --reload
     }
     "2" {
         Write-Host "🌐 Starting Frontend on port $FrontendPort..." -ForegroundColor Green
@@ -76,7 +76,7 @@ switch ($method) {
         Write-Host "🚀 Starting both servers in separate windows..." -ForegroundColor Green
         
         # Start Backend
-        Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd backend; `$env:PORT=$BackendPort; python -m uvicorn main:app --host 0.0.0.0 --port $BackendPort --reload" -WindowStyle Normal
+        Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd backend; `$env:PORT=$BackendPort; python -m uvicorn simple_backend:app --host 0.0.0.0 --port $BackendPort --reload" -WindowStyle Normal
         
         Start-Sleep -Seconds 3
         
