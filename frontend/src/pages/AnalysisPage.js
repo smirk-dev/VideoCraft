@@ -336,7 +336,10 @@ const AnalysisPage = () => {
 
   const transformAnalysisData = (realAnalysis) => {
     // Transform real AI analysis to match UI expectations
-    const duration = videoMetadata?.duration || 165;
+    const duration = videoMetadata?.duration || 165; // fallback duration
+    console.log('Video metadata:', videoMetadata);
+    console.log('Using duration:', duration);
+    
     const formatDuration = (seconds) => {
       const mins = Math.floor(seconds / 60);
       const secs = Math.floor(seconds % 60);
