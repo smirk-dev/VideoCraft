@@ -233,8 +233,8 @@ export const VideoProvider = ({ children }) => {
 
   // Helper function to check if video is loaded
   const hasVideo = useCallback(() => {
-    return state.currentVideo !== null && state.videoFile !== null;
-  }, [state.currentVideo, state.videoFile]);
+    return state.currentVideo !== null; // Temporarily allow analysis with just filename
+  }, [state.currentVideo]);
 
   // Get video duration for calculations
   const getVideoDuration = useCallback(() => {
