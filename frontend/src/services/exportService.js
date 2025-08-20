@@ -21,7 +21,7 @@ class ExportService {
       if (onProgress) onProgress(20);
 
       // Send to backend for real video processing
-      const response = await fetch(`${API_BASE_URL}/api/video-editing/process`, {
+      const response = await fetch(`${API_BASE_URL}/api/edit/process`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -40,7 +40,7 @@ class ExportService {
       if (onProgress) onProgress(90);
 
       // Download the processed video
-      const downloadUrl = `${API_BASE_URL}/api/video-editing/download/${result.output_filename}`;
+      const downloadUrl = `${API_BASE_URL}/api/edit/download/${result.output_filename}`;
       
       const downloadResponse = await fetch(downloadUrl);
       const blob = await downloadResponse.blob();
