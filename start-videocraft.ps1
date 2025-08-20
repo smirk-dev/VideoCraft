@@ -18,31 +18,12 @@ function Test-Port {
     }
 }
 
-# Default ports
+# Default ports - FIXED as per user requirement
 $BackendPort = 8001
 $FrontendPort = 3001
 
-Write-Host "🔍 Checking port availability..." -ForegroundColor Yellow
-
-# Check if default ports are available
-if (Test-Port -Port $BackendPort) {
-    Write-Host "⚠️  Port $BackendPort is in use, trying alternative..." -ForegroundColor Yellow
-    $BackendPort = 8002
-    if (Test-Port -Port $BackendPort) {
-        $BackendPort = 8080
-    }
-}
-
-if (Test-Port -Port $FrontendPort) {
-    Write-Host "⚠️  Port $FrontendPort is in use, trying alternative..." -ForegroundColor Yellow
-    $FrontendPort = 3002
-    if (Test-Port -Port $FrontendPort) {
-        $FrontendPort = 3080
-    }
-}
-
 Write-Host ""
-Write-Host "🚀 Starting VideoCraft with ports:" -ForegroundColor Green
+Write-Host "🚀 Starting VideoCraft with FIXED ports:" -ForegroundColor Green
 Write-Host "📡 Backend API: http://localhost:$BackendPort" -ForegroundColor Cyan
 Write-Host "🌐 Frontend:   http://localhost:$FrontendPort" -ForegroundColor Cyan  
 Write-Host "📚 API Docs:   http://localhost:$BackendPort/api/docs" -ForegroundColor Cyan
