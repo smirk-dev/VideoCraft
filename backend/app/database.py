@@ -3,7 +3,7 @@ Database configuration and connection management
 """
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from .database import Base
+from .models.database import Base
 import os
 
 # Database URL - using SQLite for simplicity, can be changed to PostgreSQL
