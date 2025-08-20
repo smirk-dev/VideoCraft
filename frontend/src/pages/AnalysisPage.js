@@ -936,7 +936,7 @@ const AnalysisPage = () => {
                           </ListItemIcon>
                           <ListItemText
                             primary="Silent Segments"
-                            secondary={`${analysisData.audioAnalysis.silentSegments} found`}
+                            secondary={`${analysisData.audioAnalysis?.silentSegments || 0} found`}
                           />
                         </ListItem>
                       </List>
