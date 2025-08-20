@@ -532,6 +532,11 @@ class ExportService {
       throw error;
     }
   }
+
+  // Alias for exportRawData - for compatibility with ExportDialog
+  static async exportProjectData(videoData, editingData, analysisData) {
+    return this.exportRawData(videoData, editingData, analysisData);
+  }
 }
 
 export default ExportService;
