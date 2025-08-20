@@ -19,89 +19,35 @@ class ExportService {
 
       if (onProgress) onProgress(10);
 
-      // First, check if the video file exists on the server
-      const checkResponse = await fetch(`${API_BASE_URL}/api/videos/check/${encodeURIComponent(filename)}`);
-      const checkResult = await checkResponse.json();
+      // First, check if the video file exists on the server using our backend API
+      const checkResponse = await fetch(`${API_BASE_URL}/video/${encodeURIComponent(filename)}`);
       
-      if (!checkResult.exists) {
-        // Try to create a sample video if this is a test video
-        if (filename.includes('test') || filename.includes('sample') || filename.includes('mavic') || filename.includes('ssvid')) {
-          const createResponse = await fetch(`${API_BASE_URL}/api/videos/create-sample`, {
-            method: 'POST'
-          });
-          const createResult = await createResponse.json();
-          
-          if (!createResult.success) {
-            throw new Error('Test video file not found on server and could not create sample. Please upload a real video file for export, or try exporting the analysis report instead.');
-          }
-          
-          // Update filename to the created sample
-          const actualFilename = createResult.filename;
-          return this.exportVideo(actualFilename, editingData, quality, onProgress);
-        } else {
-          throw new Error('Video file not found on server. Please upload the video file first, or try exporting the analysis report instead.');
-        }
+      if (!checkResponse.ok) {
+        // Video file not found - provide helpful error message
+        throw new Error('Video file not found on server. Please upload the video file first, or try exporting the analysis report instead.');
       }
 
-      if (onProgress) onProgress(20);
-
-      // Prepare processing request for backend
-      const processingRequest = {
-        video_filename: filename,
-        editing_data: editingData,
-        output_filename: `exported_${Date.now()}.mp4`
-      };
-
-      if (onProgress) onProgress(40);
-
-      // Send to backend for real video processing
-      const response = await fetch(`${API_BASE_URL}/api/edit/process`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(processingRequest)
-      });
-
-      if (onProgress) onProgress(60);
-
-      const result = await response.json();
-
-      if (!result.success) {
-        // If processing failed but we have analysis data, offer alternative exports
-        throw new Error(result.error || 'Video processing failed. The video file may not be available on the server. Try uploading the video first, or export the analysis report instead.');
-      }
-
-      if (onProgress) onProgress(90);
-
-      // Download the processed video
-      const downloadUrl = `${API_BASE_URL}/api/edit/download/${result.output_filename}`;
+      if (onProgress) onProgress(100);
       
-      const downloadResponse = await fetch(downloadUrl);
-      
-      if (!downloadResponse.ok) {
-        throw new Error('Failed to download processed video. The processed file may not be available.');
-      }
-      
-      const blob = await downloadResponse.blob();
+      // Since we don't have video processing backend yet, 
+      // just download the original video file
+      const blob = await checkResponse.blob();
       
       // Create download link
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = result.output_filename;
+      a.download = `exported_${filename}`;
       a.click();
       
       URL.revokeObjectURL(url);
-
-      if (onProgress) onProgress(100);
       
       return {
         success: true,
-        fileName: result.output_filename,
-        message: 'Video exported successfully with real processing!',
-        videoInfo: result.video_info,
-        appliedOperations: result.applied_operations
+        fileName: `exported_${filename}`,
+        message: 'Video exported successfully! (Note: Advanced editing features require video processing backend)',
+        videoInfo: { originalFile: filename },
+        appliedOperations: ['download']
       };
       
     } catch (error) {
