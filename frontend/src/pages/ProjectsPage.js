@@ -300,15 +300,35 @@ const ProjectsPage = () => {
               Manage your video editing projects
             </Typography>
           </Box>
-          <Button
-            variant="contained"
-            startIcon={<Add />}
-            size="large"
-            onClick={() => setOpenDialog(true)}
-          >
-            New Project
-          </Button>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Button
+              variant="outlined"
+              startIcon={<Refresh />}
+              onClick={loadProjects}
+              disabled={loading}
+            >
+              Refresh
+            </Button>
+            <Button
+              variant="contained"
+              startIcon={<Add />}
+              size="large"
+              onClick={() => setOpenDialog(true)}
+            >
+              New Project
+            </Button>
+          </Box>
         </Box>
+
+        {error && (
+          <Alert severity="warning" sx={{ mb: 3 }} onClose={() => setError(null)}>
+            <Typography variant="body2">
+              <strong>Warning:</strong> {error}
+              <br />
+              Showing demo projects as fallback.
+            </Typography>
+          </Alert>
+        )}
 
         {/* Filters and Sort */}
         <Paper sx={{ p: 2, mb: 3 }}>
@@ -487,7 +507,7 @@ const ProjectsPage = () => {
                             <DateRange sx={{ fontSize: 14 }} />
                           </Avatar>
                         </ListItemAvatar>
-                        <ListItemText primary={formatDate(project.dateModified)} />
+                        <ListItemText primary={formatDate(project.date_modified)} />
                       </ListItem>
                     </List>
                   </CardContent>
