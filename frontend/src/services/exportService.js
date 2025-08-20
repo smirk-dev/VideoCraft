@@ -1,6 +1,7 @@
 import jsPDF from 'jspdf';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8001';
+// Export Service - Handle video export functionality
+const API_BASE_URL = 'http://localhost:8001';
 
 class ExportService {
   // Real video export with backend processing
