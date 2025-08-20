@@ -208,8 +208,12 @@ async def upload_video(file: UploadFile = File(...)):
     """Upload video file"""
     try:
         # Validate file type
-        if not file.content_type.startswith('video/'):
+        if not file.content_type or not file.content_type.startswith('video/'):
             raise HTTPException(status_code=400, detail="File must be a video")
+        
+        # Validate filename
+        if not file.filename:
+            raise HTTPException(status_code=400, detail="No filename provided")
         
         # Generate unique filename
         file_extension = Path(file.filename).suffix
