@@ -452,13 +452,116 @@ async def generate_recommendations(request: dict):
         filename = request.get("filename", "unknown.mp4")
         metadata = request.get("metadata", {})
         
-        logger.info(f"Generating recommendations for: {filename}")
+        logger.info(f"🎯 Generating recommendations for: {filename}")
         
-        # Simulate AI processing time
+        # Check if we have a real video file to analyze
+        video_path = None
+        possible_paths = [
+            os.path.join("uploads", filename),
+            os.path.join("temp", filename),
+            os.path.join("..", "uploads", filename),
+            filename
+        ]
+        
+        for path in possible_paths:
+            if os.path.exists(path):
+                video_path = path
+                break
+        
+        if AI_AVAILABLE and video_path and os.path.exists(video_path):
+            # Use real AI recommendations
+            logger.info(f"🤖 Using REAL AI recommendations on: {video_path}")
+            
+            try:
+                # Get AI analysis first
+                ai_analysis = await get_ai_analysis(video_path)
+                
+                # Generate AI recommendations
+                duration = metadata.get('duration', ai_analysis.technical_quality.get('duration_seconds', 120))
+                ai_recommendations = await generate_ai_recommendations(ai_analysis, duration)
+                
+                # Convert to expected format
+                recommendations = {
+                    'cut_suggestions': [
+                        {
+                            'timestamp': rec.timestamp,
+                            'confidence': rec.confidence,
+                            'reason': rec.reasoning,
+                            'type': rec.category
+                        }
+                        for rec in ai_recommendations if rec.type == 'cut'
+                    ],
+                    'music_recommendations': [
+                        {
+                            'genre': rec.implementation.get('type', 'ambient'),
+                            'mood': rec.category,
+                            'confidence': rec.confidence,
+                            'reasoning': rec.reasoning,
+                            'timestamp': rec.timestamp
+                        }
+                        for rec in ai_recommendations if rec.type == 'music'
+                    ],
+                    'effects_suggestions': [
+                        {
+                            'effect_type': rec.implementation.get('action', 'filter'),
+                            'confidence': rec.confidence,
+                            'description': rec.description,
+                            'category': rec.category,
+                            'parameters': rec.implementation
+                        }
+                        for rec in ai_recommendations if rec.type == 'effect'
+                    ],
+                    'transition_suggestions': [
+                        {
+                            'timestamp': rec.timestamp,
+                            'type': rec.implementation.get('type', 'fade'),
+                            'confidence': rec.confidence,
+                            'reasoning': rec.reasoning
+                        }
+                        for rec in ai_recommendations if rec.type == 'transition'
+                    ],
+                    'sentiment_analysis': ai_analysis.sentiment,
+                    'overall_recommendations': [rec.description for rec in ai_recommendations[:5]],
+                    'ai_insights': [
+                        f"Analyzed with {len(ai_analysis.emotions)} emotion detections",
+                        f"Found {len(ai_analysis.objects)} object types",
+                        f"Overall sentiment: {ai_analysis.sentiment.get('overall_sentiment', 'Unknown')}",
+                        f"Quality rating: {ai_analysis.technical_quality.get('quality_rating', 'Unknown')}"
+                    ],
+                    'processing_info': {
+                        'ai_models_used': True,
+                        'analysis_type': 'real_ai_recommendations',
+                        'recommendations_count': len(ai_recommendations)
+                    }
+                }
+                
+                logger.info(f"✅ Generated {len(ai_recommendations)} real AI recommendations")
+                
+            except Exception as ai_error:
+                logger.error(f"❌ Real AI recommendations failed: {ai_error}")
+                # Fallback to simulation
+                recommendations = generate_dynamic_recommendations(filename, metadata)
+                recommendations['processing_info'] = {
+                    'ai_models_used': False,
+                    'analysis_type': 'simulation_fallback',
+                    'ai_error': str(ai_error)
+                }
+        else:
+            # Use simulation recommendations
+            if not AI_AVAILABLE:
+                logger.info(f"🎭 Using SIMULATION recommendations (AI not available): {filename}")
+            else:
+                logger.info(f"🎭 Using SIMULATION recommendations (file not found): {filename}")
+                
+            recommendations = generate_dynamic_recommendations(filename, metadata)
+            recommendations['processing_info'] = {
+                'ai_models_used': False,
+                'analysis_type': 'simulation',
+                'reason': 'AI models not available' if not AI_AVAILABLE else 'Video file not found'
+            }
+        
+        # Simulate processing time
         await asyncio.sleep(random.uniform(1.5, 3.0))
-        
-        # Generate dynamic recommendations based on filename and metadata
-        recommendations = generate_dynamic_recommendations(filename, metadata)
         
         return {
             "success": True,
