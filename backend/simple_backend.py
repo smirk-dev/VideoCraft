@@ -18,13 +18,13 @@ from fastapi.responses import FileResponse, JSONResponse
 import uvicorn
 from pydantic import BaseModel
 
-# Import moviepy for video processing
-try:
-    import moviepy.editor as mp
-    MOVIEPY_AVAILABLE = True
-except ImportError:
-    MOVIEPY_AVAILABLE = False
-    logging.warning("MoviePy not available - using basic file operations")
+# Import moviepy for video processing - temporarily disabled due to FFmpeg issues
+# try:
+#     import moviepy.editor as mp
+#     MOVIEPY_AVAILABLE = True
+# except ImportError:
+MOVIEPY_AVAILABLE = False
+logging.warning("MoviePy disabled - using basic file operations")
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
