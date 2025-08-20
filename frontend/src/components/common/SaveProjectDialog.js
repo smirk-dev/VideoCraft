@@ -174,15 +174,19 @@ const SaveProjectDialog = ({
 
             <Box sx={{ 
               p: 2, 
-              bgcolor: 'grey.50', 
+              bgcolor: 'primary.light', 
               borderRadius: 1, 
               border: '1px solid',
-              borderColor: 'grey.200'
+              borderColor: 'primary.main',
+              color: 'primary.contrastText'
             }}>
-              <Typography variant="subtitle2" gutterBottom sx={{ color: 'text.primary' }}>
+              <Typography variant="subtitle2" gutterBottom sx={{ 
+                color: 'inherit',
+                fontWeight: 'bold'
+              }}>
                 💡 Save Tips:
               </Typography>
-              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+              <Typography variant="body2" sx={{ color: 'inherit' }}>
                 • Your project will be saved with all current edits and settings<br/>
                 • You can load and continue editing anytime from the Projects page<br/>
                 • Changes are saved locally and will persist between sessions
