@@ -647,8 +647,12 @@ const AnalysisPage = () => {
       case 'neutral':
       case 'calm':
         return 'primary';
+      case 'surprised':
+        return 'warning';
+      case 'focused':
+        return 'info';
       default:
-        return 'default';
+        return 'primary';
     }
   };
 
