@@ -58,6 +58,9 @@ class ExportService {
           const result = await response.json();
 
           if (result.success && result.download_url) {
+            // Report progress
+            if (progressCallback) progressCallback(80);
+            
             // Download the processed video
             const downloadResponse = await fetch(result.download_url);
             if (downloadResponse.ok) {
@@ -71,6 +74,9 @@ class ExportService {
               a.click();
               document.body.removeChild(a);
               URL.revokeObjectURL(url);
+              
+              // Report completion
+              if (progressCallback) progressCallback(100);
               
               return {
                 success: true,
