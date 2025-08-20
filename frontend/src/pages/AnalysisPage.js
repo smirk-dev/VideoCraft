@@ -607,7 +607,7 @@ const AnalysisPage = () => {
     });
     
     report += `\nAI SUGGESTIONS:\n`;
-    analysisData.aiSuggestions.forEach(suggestion => {
+    (analysisData.aiSuggestions || []).forEach(suggestion => {
       report += `- ${suggestion.type}: ${suggestion.reason} (at ${suggestion.timestamp})\n`;
     });
     
