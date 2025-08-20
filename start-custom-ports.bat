@@ -73,7 +73,7 @@ if "%method%"=="3" goto :start_both
 echo 🖥️ Starting Backend on port %BACKEND_PORT%...
 cd backend
 set PORT=%BACKEND_PORT%
-python -m uvicorn main:app --host 0.0.0.0 --port %BACKEND_PORT% --reload
+python -m uvicorn simple_backend:app --host 0.0.0.0 --port %BACKEND_PORT% --reload
 goto :end
 
 :start_frontend
