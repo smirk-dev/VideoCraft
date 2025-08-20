@@ -4,6 +4,7 @@ This version avoids heavy AI dependencies while providing working endpoints
 """
 import os
 import logging
+import asyncio
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -190,9 +191,6 @@ async def analyze_video_real(request: AnalysisRequest):
             success=False,
             error=str(e)
         )
-
-# Import asyncio at the top
-import asyncio
 
 if __name__ == "__main__":
     uvicorn.run(
