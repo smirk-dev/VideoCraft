@@ -105,7 +105,7 @@ const ExportDialog = ({
 
     try {
       const result = await ExportService.exportProjectReport(
-        { ...projectData, videoName },
+        { filename, ...videoData, ...projectData, videoName },
         editingData
       );
       setExportResult(result);
