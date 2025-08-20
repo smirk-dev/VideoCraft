@@ -134,7 +134,7 @@ echo Frontend: http://localhost:3000
 echo API Docs: http://localhost:8000/api/docs
 echo.
 echo Starting backend in background...
-start "VideoCraft Backend" cmd /c "cd backend && python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload"
+start "VideoCraft Backend" cmd /c "cd backend && python -m uvicorn simple_backend:app --host 0.0.0.0 --port 8000 --reload"
 
 echo Waiting for backend to start...
 timeout /t 5 /nobreak >nul
