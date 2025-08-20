@@ -4,150 +4,137 @@ import jsPDF from 'jspdf';
 const API_BASE_URL = 'http://localhost:8000';
 
 class ExportService {
-  // Real video export with backend processing
-  static async exportVideo(videoFile, editingData, quality = '720p', onProgress = null) {
+  // Export video with backend processing
+  static async exportVideo(videoData, editingData, quality = '720p', onProgress = null) {
     try {
       if (onProgress) onProgress(0);
       
-      // Get the filename - handle different input types
-      let filename;
+      // Extract filename from different possible sources
+      let filename = this.extractFilename(videoData);
       
-      if (typeof videoFile === 'string') {
-        // If it's a string, check if it's a blob URL or a filename
-        if (videoFile.startsWith('blob:')) {
-          // This is a blob URL from demo/test data - use a fallback
-          filename = 'demo-video.mp4'; // Use one of our test files
-        } else {
-          // This should be a filename
-          filename = videoFile;
-        }
-      } else if (videoFile?.name) {
-        // This is a File object
-        filename = videoFile.name;
-      } else {
-        throw new Error('No video file selected. Please upload a video first.');
+      if (!filename) {
+        throw new Error('No video file available for export. Please upload a video first.');
       }
 
-      if (onProgress) onProgress(10);
+      if (onProgress) onProgress(20);
 
-      // First, check if the video file exists on the server using our backend API
-      const checkResponse = await fetch(`${API_BASE_URL}/video/${encodeURIComponent(filename)}`);
-      
-      if (!checkResponse.ok) {
-        // Video file not found - provide helpful error message
-        throw new Error('Video file not found on server. Please upload the video file first, or try exporting the analysis report instead.');
+      // Send export request to backend
+      const response = await fetch(`${API_BASE_URL}/export/video`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          video_filename: filename,
+          export_type: 'video',
+          editing_data: editingData || {},
+          quality: quality
+        })
+      });
+
+      if (onProgress) onProgress(60);
+
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.message || 'Video export failed');
       }
+
+      if (onProgress) onProgress(80);
+
+      // Download the video file
+      const downloadUrl = `${API_BASE_URL}${result.download_url}`;
+      await this.downloadFile(downloadUrl, result.filename);
 
       if (onProgress) onProgress(100);
       
-      // Since we don't have video processing backend yet, 
-      // just download the original video file
-      const blob = await checkResponse.blob();
-      
-      // Create download link
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `exported_${filename}`;
-      a.click();
-      
-      URL.revokeObjectURL(url);
-      
       return {
         success: true,
-        fileName: `exported_${filename}`,
-        message: 'Video exported successfully! (Note: Advanced editing features require video processing backend)',
-        videoInfo: { originalFile: filename },
-        appliedOperations: ['download']
+        fileName: result.filename,
+        message: result.message || 'Video exported successfully!',
+        editingApplied: result.editing_applied || false
       };
       
     } catch (error) {
       console.error('Export failed:', error);
-      return {
-        success: false,
-        error: error.message
-      };
+      throw error;
     }
   }
   
   // Export project report as PDF
-  static async exportProjectReport(projectData, editingData) {
+  static async exportProjectReport(videoData, editingData) {
     try {
+      const filename = this.extractFilename(videoData) || 'unknown-video';
+      
+      // Get report data from backend
+      const response = await fetch(`${API_BASE_URL}/export/report`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          video_filename: filename,
+          export_type: 'report',
+          editing_data: editingData || {}
+        })
+      });
+
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.message || 'Report export failed');
+      }
+
+      // Generate PDF from the report data
       const pdf = new jsPDF();
+      const reportData = result.report_data;
       
       // Title
       pdf.setFontSize(20);
       pdf.text('VideoCraft Project Report', 20, 30);
       
-      // Project Info
+      // Video Information
       pdf.setFontSize(14);
-      pdf.text('Project Information', 20, 50);
+      pdf.text('Video Information', 20, 50);
       pdf.setFontSize(10);
-      pdf.text(`Video: ${projectData.videoName || 'Untitled Video'}`, 20, 60);
-      pdf.text(`Export Date: ${new Date().toLocaleDateString()}`, 20, 70);
-      pdf.text(`Export Time: ${new Date().toLocaleTimeString()}`, 20, 80);
+      pdf.text(`Video: ${reportData.video_name}`, 20, 60);
+      pdf.text(`Export Date: ${new Date(reportData.export_date).toLocaleDateString()}`, 20, 70);
+      
+      let yPos = 90;
       
       // Editing Summary
-      pdf.setFontSize(14);
-      pdf.text('Editing Summary', 20, 100);
-      pdf.setFontSize(10);
-      
-      let yPos = 110;
-      
-      // Duration info
-      const originalDuration = this.formatTime(projectData.duration || 0);
-      const trimmedDuration = this.formatTime((editingData.trimEnd || projectData.duration) - editingData.trimStart);
-      
-      pdf.text(`Original Duration: ${originalDuration}`, 20, yPos);
-      yPos += 10;
-      pdf.text(`Trimmed Duration: ${trimmedDuration}`, 20, yPos);
-      yPos += 10;
-      
-      // Trim points
-      if (editingData.trimStart > 0 || editingData.trimEnd < projectData.duration) {
-        pdf.text(`Trim Start: ${this.formatTime(editingData.trimStart)}`, 20, yPos);
+      if (reportData.editing_summary && Object.keys(reportData.editing_summary).length > 0) {
+        pdf.setFontSize(14);
+        pdf.text('Editing Summary', 20, yPos);
         yPos += 10;
-        pdf.text(`Trim End: ${this.formatTime(editingData.trimEnd || projectData.duration)}`, 20, yPos);
+        pdf.setFontSize(10);
+        
+        Object.entries(reportData.editing_summary).forEach(([key, value]) => {
+          pdf.text(`${key}: ${JSON.stringify(value)}`, 20, yPos);
+          yPos += 10;
+        });
         yPos += 10;
       }
       
-      // Cut points
-      if (editingData.cuts && editingData.cuts.length > 0) {
-        pdf.text(`Cut Points (${editingData.cuts.length}):`, 20, yPos);
+      // Recommendations
+      if (reportData.recommendations && reportData.recommendations.length > 0) {
+        pdf.setFontSize(14);
+        pdf.text('AI Recommendations', 20, yPos);
         yPos += 10;
-        editingData.cuts.forEach((cut, index) => {
-          pdf.text(`  ${index + 1}. ${this.formatTime(cut)}`, 25, yPos);
+        pdf.setFontSize(10);
+        
+        reportData.recommendations.slice(0, 5).forEach((rec, index) => {
+          if (yPos > 250) {
+            pdf.addPage();
+            yPos = 30;
+          }
+          pdf.text(`${index + 1}. ${rec.type}: ${rec.reason}`, 20, yPos);
           yPos += 8;
         });
       }
       
-      // Filters applied
-      yPos += 10;
-      pdf.setFontSize(14);
-      pdf.text('Filters Applied', 20, yPos);
-      yPos += 10;
-      pdf.setFontSize(10);
-      
-      const filters = editingData.filters || {};
-      Object.entries(filters).forEach(([filterName, value]) => {
-        if (value !== 100 && value !== 0) { // Show only modified filters
-          pdf.text(`${filterName}: ${value}${filterName === 'blur' ? 'px' : '%'}`, 20, yPos);
-          yPos += 8;
-        }
-      });
-      
-      // Timeline visualization (simple text representation)
-      yPos += 20;
-      pdf.setFontSize(14);
-      pdf.text('Timeline Overview', 20, yPos);
-      yPos += 10;
-      pdf.setFontSize(8);
-      
-      const timelineText = this.generateTimelineVisualization(editingData, projectData.duration);
-      pdf.text(timelineText, 20, yPos);
-      
       // Save PDF
-      const fileName = `project_report_${new Date().toISOString().split('T')[0]}.pdf`;
+      const fileName = `project_report_${filename.replace('.mp4', '')}_${new Date().toISOString().split('T')[0]}.pdf`;
       pdf.save(fileName);
       
       return {
@@ -158,151 +145,37 @@ class ExportService {
       
     } catch (error) {
       console.error('Report export failed:', error);
-      return {
-        success: false,
-        error: error.message
-      };
+      throw error;
     }
   }
   
-  // Export project data as JSON
-  static async exportProjectData(projectData, editingData) {
-    try {
-      const exportData = {
-        exportInfo: {
-          version: '1.0',
-          exportDate: new Date().toISOString(),
-          application: 'VideoCraft'
-        },
-        project: {
-          name: projectData.name || 'Untitled Project',
-          videoName: projectData.videoName,
-          duration: projectData.duration,
-          createdAt: projectData.createdAt || new Date().toISOString()
-        },
-        editing: {
-          trimStart: editingData.trimStart,
-          trimEnd: editingData.trimEnd,
-          cuts: editingData.cuts || [],
-          filters: editingData.filters || {}
-        },
-        stats: {
-          originalDuration: projectData.duration,
-          finalDuration: this.calculateFinalDuration(editingData, projectData.duration),
-          cutsCount: (editingData.cuts || []).length,
-          filtersApplied: Object.keys(editingData.filters || {}).length
-        }
-      };
-      
-      const jsonString = JSON.stringify(exportData, null, 2);
-      const blob = new Blob([jsonString], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      
-      const fileName = `project_data_${new Date().toISOString().split('T')[0]}.json`;
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = fileName;
-      a.click();
-      
-      URL.revokeObjectURL(url);
-      
-      return {
-        success: true,
-        fileName,
-        message: 'Project data exported successfully!'
-      };
-      
-    } catch (error) {
-      console.error('Data export failed:', error);
-      return {
-        success: false,
-        error: error.message
-      };
-    }
-  }
-  
-  // Utility methods
-  static getQualityDimensions(quality) {
-    const qualities = {
-      '480p': { width: 854, height: 480 },
-      '720p': { width: 1280, height: 720 },
-      '1080p': { width: 1920, height: 1080 },
-      'original': { width: null, height: null }
-    };
-    return qualities[quality] || qualities['720p'];
-  }
-  
-  static generateEditSummary(editingData) {
-    const parts = [];
-    
-    if (editingData.trimStart > 0 || editingData.trimEnd) {
-      parts.push('trimmed');
-    }
-    
-    if (editingData.cuts && editingData.cuts.length > 0) {
-      parts.push(`${editingData.cuts.length}cuts`);
-    }
-    
-    const filters = editingData.filters || {};
-    const modifiedFilters = Object.entries(filters).filter(([_, value]) => 
-      value !== 100 && value !== 0
-    );
-    
-    if (modifiedFilters.length > 0) {
-      parts.push('filtered');
-    }
-    
-    return parts.join('_') || 'edited';
-  }
-  
-  static formatTime(time) {
-    const minutes = Math.floor(time / 60);
-    const seconds = Math.floor(time % 60);
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-  }
-  
-  static calculateFinalDuration(editingData, originalDuration) {
-    let duration = (editingData.trimEnd || originalDuration) - editingData.trimStart;
-    
-    // Subtract cut segments (simplified)
-    if (editingData.cuts) {
-      duration -= editingData.cuts.length * 0.1; // Rough estimate
-    }
-    
-    return Math.max(0, duration);
-  }
-  
-  static generateTimelineVisualization(editingData, duration) {
-    const width = 60; // Character width for timeline
-    const timeline = Array(width).fill('-');
-    
-    // Mark trim start
-    const trimStartPos = Math.floor((editingData.trimStart / duration) * width);
-    if (trimStartPos < width) timeline[trimStartPos] = '[';
-    
-    // Mark trim end
-    const trimEndPos = Math.floor(((editingData.trimEnd || duration) / duration) * width);
-    if (trimEndPos < width) timeline[trimEndPos] = ']';
-    
-    // Mark cuts
-    if (editingData.cuts) {
-      editingData.cuts.forEach(cut => {
-        const cutPos = Math.floor((cut / duration) * width);
-        if (cutPos < width && cutPos > 0) {
-          timeline[cutPos] = '|';
-        }
-      });
-    }
-    
-    return timeline.join('') + '\n' +
-           '0:00' + ' '.repeat(width - 8) + this.formatTime(duration) + '\n' +
-           'Legend: [ = trim start, ] = trim end, | = cut point';
-  }
-
-  // Export analysis report as PDF
+  // Export analysis report
   static async exportAnalysisReport(videoData, analysisData) {
     try {
+      const filename = this.extractFilename(videoData) || 'unknown-video';
+      
+      // Get analysis data from backend
+      const response = await fetch(`${API_BASE_URL}/export/analysis`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          video_filename: filename,
+          export_type: 'analysis',
+          editing_data: {}
+        })
+      });
+
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.message || 'Analysis export failed');
+      }
+
+      // Generate PDF from analysis data
       const pdf = new jsPDF();
+      const analysis = result.analysis_data.analysis_results;
       
       // Title
       pdf.setFontSize(20);
@@ -312,100 +185,60 @@ class ExportService {
       pdf.setFontSize(14);
       pdf.text('Video Information', 20, 50);
       pdf.setFontSize(10);
-      pdf.text(`Video: ${videoData.filename || 'Untitled Video'}`, 20, 60);
+      pdf.text(`Video: ${filename}`, 20, 60);
       pdf.text(`Analysis Date: ${new Date().toLocaleDateString()}`, 20, 70);
-      pdf.text(`Analysis Time: ${new Date().toLocaleTimeString()}`, 20, 80);
       
       let yPos = 90;
       
-      // Video Metrics
-      if (analysisData.videoMetrics) {
+      // Video Info
+      if (analysis.video_info) {
         pdf.setFontSize(14);
         pdf.text('Video Metrics', 20, yPos);
         yPos += 10;
         pdf.setFontSize(10);
         
-        pdf.text(`Duration: ${analysisData.videoMetrics.duration}`, 20, yPos);
+        pdf.text(`Duration: ${analysis.video_info.duration || 'N/A'}`, 20, yPos);
         yPos += 10;
-        pdf.text(`Resolution: ${analysisData.videoMetrics.resolution}`, 20, yPos);
+        pdf.text(`Resolution: ${analysis.video_info.resolution || 'N/A'}`, 20, yPos);
         yPos += 10;
-        pdf.text(`File Size: ${analysisData.videoMetrics.fileSize}`, 20, yPos);
-        yPos += 10;
-        pdf.text(`Frame Rate: ${analysisData.videoMetrics.fps} FPS`, 20, yPos);
+        pdf.text(`Format: ${analysis.video_info.format || 'N/A'}`, 20, yPos);
         yPos += 20;
       }
       
       // Emotion Analysis
-      if (analysisData.emotions) {
+      if (analysis.emotion_analysis && analysis.emotion_analysis.detected_emotions) {
         pdf.setFontSize(14);
         pdf.text('Emotion Analysis', 20, yPos);
         yPos += 10;
         pdf.setFontSize(10);
         
-        analysisData.emotions.forEach(emotion => {
-          pdf.text(`• ${emotion.emotion} (${(emotion.confidence * 100).toFixed(1)}% confidence) at ${emotion.timestamp}`, 20, yPos);
+        analysis.emotion_analysis.detected_emotions.slice(0, 5).forEach(emotion => {
+          pdf.text(`• ${emotion.emotion} (${(emotion.confidence * 100).toFixed(1)}% confidence) at ${emotion.timestamp}s`, 20, yPos);
           yPos += 10;
         });
         yPos += 10;
       }
       
-      // Scene Changes
-      if (analysisData.sceneChanges) {
+      // Scene Analysis
+      if (analysis.scene_analysis && analysis.scene_analysis.scene_changes) {
+        if (yPos > 200) {
+          pdf.addPage();
+          yPos = 30;
+        }
+        
         pdf.setFontSize(14);
         pdf.text('Scene Detection', 20, yPos);
         yPos += 10;
         pdf.setFontSize(10);
         
-        analysisData.sceneChanges.forEach(scene => {
-          pdf.text(`• ${scene.type} at ${scene.timestamp} (${(scene.confidence * 100).toFixed(1)}% confidence)`, 20, yPos);
-          yPos += 10;
-        });
-        yPos += 10;
-      }
-      
-      // Check if we need a new page
-      if (yPos > 250) {
-        pdf.addPage();
-        yPos = 30;
-      }
-      
-      // Audio Analysis
-      if (analysisData.audioAnalysis) {
-        pdf.setFontSize(14);
-        pdf.text('Audio Analysis', 20, yPos);
-        yPos += 10;
-        pdf.setFontSize(10);
-        
-        const audio = analysisData.audioAnalysis;
-        pdf.text(`• Average Volume: ${audio.avgVolume}%`, 20, yPos);
-        yPos += 10;
-        pdf.text(`• Peak Volume: ${audio.peakVolume}%`, 20, yPos);
-        yPos += 10;
-        pdf.text(`• Silent Segments: ${audio.silentSegments}`, 20, yPos);
-        yPos += 10;
-        pdf.text(`• Music Detected: ${audio.musicDetected ? 'Yes' : 'No'}`, 20, yPos);
-        yPos += 10;
-        pdf.text(`• Speech Quality: ${audio.speechQuality}`, 20, yPos);
-        yPos += 20;
-      }
-      
-      // AI Suggestions
-      if (analysisData.aiSuggestions) {
-        pdf.setFontSize(14);
-        pdf.text('AI Suggestions', 20, yPos);
-        yPos += 10;
-        pdf.setFontSize(10);
-        
-        analysisData.aiSuggestions.forEach(suggestion => {
-          pdf.text(`• ${suggestion.type}: ${suggestion.reason}`, 20, yPos);
-          yPos += 10;
-          pdf.text(`  At ${suggestion.timestamp} (${(suggestion.confidence * 100).toFixed(0)}% confidence)`, 20, yPos);
+        analysis.scene_analysis.scene_changes.slice(0, 5).forEach(scene => {
+          pdf.text(`• ${scene.scene_type} at ${scene.timestamp}s (${(scene.confidence * 100).toFixed(1)}% confidence)`, 20, yPos);
           yPos += 10;
         });
       }
       
       // Save the PDF
-      const fileName = `analysis_report_${videoData.filename.replace(/\.[^/.]+$/, "")}_${new Date().toISOString().split('T')[0]}.pdf`;
+      const fileName = `analysis_report_${filename.replace('.mp4', '')}_${new Date().toISOString().split('T')[0]}.pdf`;
       pdf.save(fileName);
       
       return {
@@ -416,8 +249,115 @@ class ExportService {
       
     } catch (error) {
       console.error('Analysis export error:', error);
-      throw new Error('Failed to export analysis report: ' + error.message);
+      throw error;
     }
+  }
+  
+  // Export project data as JSON
+  static async exportProjectData(videoData, editingData) {
+    try {
+      const filename = this.extractFilename(videoData) || 'unknown-video';
+      
+      // Get project data from backend
+      const response = await fetch(`${API_BASE_URL}/export/data`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          video_filename: filename,
+          export_type: 'data',
+          editing_data: editingData || {}
+        })
+      });
+
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.message || 'Data export failed');
+      }
+
+      // Download as JSON file
+      const jsonString = JSON.stringify(result.project_data, null, 2);
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = result.filename;
+      a.click();
+      
+      URL.revokeObjectURL(url);
+      
+      return {
+        success: true,
+        fileName: result.filename,
+        message: result.message || 'Project data exported successfully!'
+      };
+      
+    } catch (error) {
+      console.error('Data export failed:', error);
+      throw error;
+    }
+  }
+  
+  // Helper method to extract filename from various video data formats
+  static extractFilename(videoData) {
+    if (!videoData) return null;
+    
+    // Try different possible sources for filename
+    if (typeof videoData === 'string') {
+      // If it's a string, it might be a filename or blob URL
+      if (videoData.startsWith('blob:')) {
+        return 'demo-video.mp4'; // Fallback for demo data
+      }
+      return videoData;
+    }
+    
+    // Check various properties that might contain the filename
+    if (videoData.filename) return videoData.filename;
+    if (videoData.name) return videoData.name;
+    if (videoData.original_filename) return videoData.original_filename;
+    if (videoData.videoName) return videoData.videoName;
+    
+    // If we have a URL, try to extract filename
+    if (videoData.url && !videoData.url.startsWith('blob:')) {
+      const parts = videoData.url.split('/');
+      return parts[parts.length - 1];
+    }
+    
+    // Default fallback
+    return 'demo-video.mp4';
+  }
+  
+  // Helper method to download files
+  static async downloadFile(url, filename) {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Download failed: ${response.statusText}`);
+      }
+      
+      const blob = await response.blob();
+      const downloadUrl = URL.createObjectURL(blob);
+      
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      a.download = filename;
+      a.click();
+      
+      URL.revokeObjectURL(downloadUrl);
+    } catch (error) {
+      console.error('Download failed:', error);
+      throw error;
+    }
+  }
+  
+  // Utility methods
+  static formatTime(time) {
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   }
 }
 
