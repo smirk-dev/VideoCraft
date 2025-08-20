@@ -86,16 +86,16 @@ if (-not (Test-Path "frontend\.env")) {
     @"
 # VideoCraft Frontend Configuration
 REACT_APP_API_URL=http://localhost:8001
-PORT=3000
+PORT=3001
 "@ | Out-File -FilePath "frontend\.env" -Encoding UTF8
     Write-Host "✅ Created frontend\.env" -ForegroundColor Green
 }
 
 Write-Host "`n🎉 Setup complete!" -ForegroundColor Green
 Write-Host "`n🚀 To start the application:" -ForegroundColor Cyan
-Write-Host "1. Backend: cd backend; .\venv\Scripts\Activate.ps1; python main.py" -ForegroundColor White
+Write-Host "1. Backend: cd backend; python simple_main.py" -ForegroundColor White
 Write-Host "2. Frontend: cd frontend; npm start" -ForegroundColor White
 Write-Host "`n📱 Application will be available at:" -ForegroundColor Cyan
-Write-Host "   Frontend: http://localhost:3000" -ForegroundColor White
+Write-Host "   Frontend: http://localhost:3001" -ForegroundColor White
 Write-Host "   Backend API: http://localhost:8001" -ForegroundColor White
 Write-Host "   API Docs: http://localhost:8001/api/docs" -ForegroundColor White
