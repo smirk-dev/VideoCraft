@@ -9,11 +9,22 @@ class ExportService {
     try {
       if (onProgress) onProgress(0);
       
-      // Get the filename from the video context or file
-      const filename = videoFile?.name || videoFile;
+      // Get the filename - handle different input types
+      let filename;
       
-      // Check if this is a test video (no actual file uploaded)
-      if (!filename || typeof filename !== 'string') {
+      if (typeof videoFile === 'string') {
+        // If it's a string, check if it's a blob URL or a filename
+        if (videoFile.startsWith('blob:')) {
+          // This is a blob URL from demo/test data
+          throw new Error('Cannot export demo video. Please upload a real video file first, or try exporting the analysis report instead.');
+        } else {
+          // This should be a filename
+          filename = videoFile;
+        }
+      } else if (videoFile?.name) {
+        // This is a File object
+        filename = videoFile.name;
+      } else {
         throw new Error('No video file selected. Please upload a video first.');
       }
 
