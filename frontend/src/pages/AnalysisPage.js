@@ -99,16 +99,15 @@ const AnalysisPage = () => {
 
       console.log('Starting analysis for video:', currentVideo);
 
-      // For simplified backend, we'll generate filename-based analysis
-      const response = await fetch(`${API_BASE_URL}/api/analyze/analyze-real`, {
+      // Call the filename-based analysis API
+      const response = await fetch(`${API_BASE_URL}/api/analyze/analyze-filename`, {
         method: 'POST',
-        body: (() => {
-          const formData = new FormData();
-          // Create a dummy file with the video filename to trigger filename-based analysis
-          const dummyFile = new File([''], currentVideo, { type: 'video/mp4' });
-          formData.append('file', dummyFile);
-          return formData;
-        })()
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          filename: currentVideo
+        })
       });
 
       clearInterval(progressInterval);
