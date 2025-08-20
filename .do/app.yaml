@@ -1,0 +1,33 @@
+# DigitalOcean App Platform configuration
+name: videocraft-backend
+services:
+  - name: api
+    source_dir: /backend
+    github:
+      repo: your-username/VideoCraft
+      branch: main
+    run_command: python simple_main_backup.py --host 0.0.0.0 --port 8080
+    environment_slug: python
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    envs:
+      - key: PYTHON_VERSION
+        value: "3.11"
+      - key: PORT
+        value: "8080"
+      - key: DEBUG
+        value: "false"
+      - key: MAX_UPLOAD_SIZE
+        value: "104857600"
+      - key: CORS_ORIGINS
+        value: '["https://videocraft.vercel.app"]'
+    health_check:
+      http_path: /health
+    http_port: 8080
+
+databases:
+  - name: videocraft-db
+    engine: PG
+    num_nodes: 1
+    size: db-s-dev-database
+    version: "14"
