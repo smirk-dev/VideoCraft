@@ -918,7 +918,7 @@ const AnalysisPage = () => {
                           </ListItemIcon>
                           <ListItemText
                             primary="Average Volume"
-                            secondary={`${analysisData.audioAnalysis.avgVolume}%`}
+                            secondary={`${analysisData.audioAnalysis?.avgVolume || 0}%`}
                           />
                         </ListItem>
                         <ListItem>
@@ -927,7 +927,7 @@ const AnalysisPage = () => {
                           </ListItemIcon>
                           <ListItemText
                             primary="Peak Volume"
-                            secondary={`${analysisData.audioAnalysis.peakVolume}%`}
+                            secondary={`${analysisData.audioAnalysis?.peakVolume || 0}%`}
                           />
                         </ListItem>
                         <ListItem>
