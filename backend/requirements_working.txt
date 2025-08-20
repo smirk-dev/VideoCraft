@@ -1,0 +1,25 @@
+# VideoCraft Working Backend Dependencies
+# Minimal, conflict-free requirements for real video processing
+
+# Core FastAPI framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+
+# Video processing - essential only
+moviepy==1.0.3
+
+# Basic data handling
+pydantic==2.5.0
+
+# CORS support
+fastapi==0.104.1
+
+# File handling
+aiofiles==23.2.0
+
+# HTTP client for testing
+httpx==0.25.2
+
+# Development
+python-dotenv==1.0.0
