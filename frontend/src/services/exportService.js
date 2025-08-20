@@ -12,6 +12,11 @@ class ExportService {
       // Get the filename from the video context or file
       const filename = videoFile?.name || videoFile;
       
+      // Check if this is a test video (no actual file uploaded)
+      if (!filename || typeof filename !== 'string') {
+        throw new Error('No video file selected. Please upload a video first.');
+      }
+      
       // Prepare processing request for backend
       const processingRequest = {
         video_filename: filename,
@@ -35,7 +40,8 @@ class ExportService {
       const result = await response.json();
 
       if (!result.success) {
-        throw new Error(result.error || 'Video processing failed');
+        // If processing failed but we have analysis data, offer alternative exports
+        throw new Error(result.error || 'Video processing failed. The video file may not be available on the server. Try uploading the video first, or export the analysis report instead.');
       }
 
       if (onProgress) onProgress(90);
@@ -44,6 +50,11 @@ class ExportService {
       const downloadUrl = `${API_BASE_URL}/api/edit/download/${result.output_filename}`;
       
       const downloadResponse = await fetch(downloadUrl);
+      
+      if (!downloadResponse.ok) {
+        throw new Error('Failed to download processed video. The processed file may not be available.');
+      }
+      
       const blob = await downloadResponse.blob();
       
       // Create download link
