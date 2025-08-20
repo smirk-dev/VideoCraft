@@ -1,6 +1,6 @@
 """
 Simplified VideoCraft backend for testing frontend functionality
-This version avoids heavy AI dependencies while providing working endpoints
+Now with Real AI Integration using multiple models
 """
 import os
 import logging
@@ -19,6 +19,16 @@ from typing import List, Dict, Any, Optional
 from pydantic import BaseModel
 import random
 import time
+
+# Import real AI services
+try:
+    from ai_services import get_ai_analysis, generate_ai_recommendations, ai_service
+    AI_AVAILABLE = True
+    print("✅ Real AI services loaded successfully")
+except ImportError as e:
+    AI_AVAILABLE = False
+    print(f"⚠️ AI services not available: {e}")
+    print("Using fallback simulation mode")
 from datetime import datetime
 
 # Setup basic logging
@@ -209,16 +219,106 @@ async def analyze_video_real(request: AnalysisRequest):
 
 @app.post("/api/analyze/analyze-filename")
 async def analyze_video_filename(request: dict):
-    """Perform dynamic analysis on video by filename"""
+    """Perform AI analysis on video by filename"""
     try:
         filename = request.get("filename", "unknown.mp4")
-        logger.info(f"Analyzing video by filename: {filename}")
+        logger.info(f"🔍 Analyzing video: {filename}")
+        
+        # Check if we have a real video file to analyze
+        video_path = None
+        possible_paths = [
+            os.path.join("uploads", filename),
+            os.path.join("temp", filename),
+            os.path.join("..", "uploads", filename),
+            filename  # Direct path
+        ]
+        
+        for path in possible_paths:
+            if os.path.exists(path):
+                video_path = path
+                break
+        
+        if AI_AVAILABLE and video_path and os.path.exists(video_path):
+            # Use real AI analysis
+            logger.info(f"🤖 Using REAL AI analysis on: {video_path}")
+            
+            try:
+                # Get comprehensive AI analysis
+                ai_analysis = await get_ai_analysis(video_path)
+                
+                # Convert AI analysis to expected format
+                analysis_result = {
+                    'object_detection': {
+                        'detected_objects': {obj['object']: obj['count'] for obj in ai_analysis.objects},
+                        'total_unique_objects': len(ai_analysis.objects),
+                        'most_common_object': ai_analysis.objects[0]['object'] if ai_analysis.objects else 'Unknown',
+                        'confidence_scores': {obj['object']: obj['confidence'] for obj in ai_analysis.objects}
+                    },
+                    'scene_analysis': {
+                        'scene_types': {scene['scene']: i+1 for i, scene in enumerate(ai_analysis.scenes)},
+                        'scene_confidence': ai_analysis.scenes[0]['confidence'] if ai_analysis.scenes else 0.5,
+                        'scene_transitions': len(ai_analysis.scenes)
+                    },
+                    'emotion_analysis': {
+                        'emotion_scores': {emotion['emotion']: emotion['confidence'] for emotion in ai_analysis.emotions},
+                        'dominant_emotion': ai_analysis.emotions[0]['emotion'] if ai_analysis.emotions else 'Neutral',
+                        'emotion_confidence': ai_analysis.emotions[0]['confidence'] if ai_analysis.emotions else 0.5,
+                        'emotional_timeline': ai_analysis.emotions
+                    },
+                    'motion_analysis': {
+                        'motion_intensity': ai_analysis.motion_analysis.get('average_motion', 3.0),
+                        'motion_type': ai_analysis.motion_analysis.get('motion_type', 'medium'),
+                        'camera_movement': ai_analysis.motion_analysis.get('camera_stability', 'stable')
+                    },
+                    'audio_analysis': {
+                        'tempo': ai_analysis.audio_features.get('tempo', 120),
+                        'has_music': ai_analysis.audio_features.get('has_music', False),
+                        'is_speech_heavy': ai_analysis.audio_features.get('is_speech_heavy', False),
+                        'energy_level': ai_analysis.audio_features.get('energy_mean', 0.5),
+                        'audio_quality': 'high' if ai_analysis.audio_features.get('dynamic_range', 0.5) > 0.3 else 'medium'
+                    },
+                    'sentiment_analysis': ai_analysis.sentiment,
+                    'technical_quality': ai_analysis.technical_quality,
+                    'ai_insights': [
+                        f"Real AI detected {len(ai_analysis.objects)} object types",
+                        f"Emotional tone: {ai_analysis.sentiment.get('overall_sentiment', 'Unknown')}",
+                        f"Motion level: {ai_analysis.motion_analysis.get('motion_type', 'Unknown')}",
+                        f"Quality: {ai_analysis.technical_quality.get('quality_rating', 'Unknown')}"
+                    ],
+                    'processing_info': {
+                        'ai_models_used': True,
+                        'analysis_type': 'real_ai',
+                        'models': ['FER', 'MediaPipe', 'Librosa', 'OpenCV', 'Transformers']
+                    }
+                }
+                
+                logger.info("✅ Real AI analysis completed successfully")
+                
+            except Exception as ai_error:
+                logger.error(f"❌ Real AI analysis failed: {ai_error}")
+                # Fallback to simulation
+                analysis_result = generate_dynamic_analysis(filename)
+                analysis_result['processing_info'] = {
+                    'ai_models_used': False,
+                    'analysis_type': 'simulation_fallback',
+                    'ai_error': str(ai_error)
+                }
+        else:
+            # Use simulation analysis
+            if not AI_AVAILABLE:
+                logger.info(f"🎭 Using SIMULATION analysis (AI not available): {filename}")
+            else:
+                logger.info(f"🎭 Using SIMULATION analysis (file not found): {filename}")
+            
+            analysis_result = generate_dynamic_analysis(filename)
+            analysis_result['processing_info'] = {
+                'ai_models_used': False,
+                'analysis_type': 'simulation',
+                'reason': 'AI models not available' if not AI_AVAILABLE else 'Video file not found'
+            }
         
         # Simulate processing time
-        await asyncio.sleep(random.uniform(1.0, 3.0))
-        
-        # Generate dynamic analysis
-        analysis_result = generate_dynamic_analysis(filename)
+        await asyncio.sleep(random.uniform(1.0, 2.5))
         
         return {
             "success": True,
