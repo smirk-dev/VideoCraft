@@ -88,6 +88,21 @@ const AnalysisPage = () => {
         lastModified: Date.now()
       }
     });
+    console.log('Test video set');
+  };
+
+  // Test backend connectivity
+  const testBackendConnection = async () => {
+    try {
+      console.log('🔧 Testing backend connection...');
+      const response = await fetch(`${API_BASE_URL}/health`);
+      const result = await response.json();
+      console.log('✅ Backend health check:', result);
+      alert(`Backend connection successful! Status: ${result.status}`);
+    } catch (error) {
+      console.error('❌ Backend connection failed:', error);
+      alert(`Backend connection failed: ${error.message}`);
+    }
   };
 
   useEffect(() => {
@@ -98,26 +113,41 @@ const AnalysisPage = () => {
     
     if (hasVideo() && currentVideo) {
       console.log('Starting analysis for video:', currentVideo);
+      alert(`Starting analysis for: ${currentVideo}`); // Debug alert
       performRealAnalysis();
     } else {
       console.log('No video available for analysis');
+      if (!hasVideo()) {
+        console.log('hasVideo() returned false');
+      }
+      if (!currentVideo) {
+        console.log('currentVideo is null/undefined');
+      }
     }
   }, [hasVideo, currentVideo]);
 
   const performRealAnalysis = async () => {
+    let progressInterval = null;
     try {
+      console.log('🚀 Starting performRealAnalysis...');
       setLoading(true);
       setAnalysisError(null);
       setAnalysisProgress(0);
 
       // Simulate progress updates
-      const progressInterval = setInterval(() => {
-        setAnalysisProgress(prev => Math.min(prev + 10, 90));
+      progressInterval = setInterval(() => {
+        setAnalysisProgress(prev => {
+          const newProgress = Math.min(prev + 10, 90);
+          console.log('Progress update:', newProgress);
+          return newProgress;
+        });
       }, 500);
 
       console.log('Starting analysis for video:', currentVideo);
+      console.log('API_BASE_URL:', API_BASE_URL);
 
       // Call the filename-based analysis API
+      console.log('📡 Making API request...');
       const response = await fetch(`${API_BASE_URL}/api/analyze/analyze-filename`, {
         method: 'POST',
         headers: {
@@ -128,36 +158,51 @@ const AnalysisPage = () => {
         })
       });
 
-      clearInterval(progressInterval);
+      console.log('📡 API Response received:', response.status, response.statusText);
+      
+      if (progressInterval) {
+        clearInterval(progressInterval);
+        progressInterval = null;
+      }
       setAnalysisProgress(100);
 
       console.log('API Response status:', response.status);
       
       if (!response.ok) {
-        throw new Error(`API request failed with status: ${response.status}`);
+        const errorText = await response.text();
+        console.error('API Error Response:', errorText);
+        throw new Error(`API request failed with status: ${response.status} - ${errorText}`);
       }
 
+      console.log('📄 Parsing JSON response...');
       const result = await response.json();
       console.log('Analysis result:', result);
 
       if (result.success && result.analysis) {
+        console.log('✅ Analysis successful, transforming data...');
         const transformedData = transformAnalysisData(result.analysis);
         console.log('Transformed analysis data:', transformedData);
         setAnalysisData(transformedData);
         console.log('Analysis data set successfully');
       } else {
         // Show error but don't use fallback dummy data
-        console.warn('API failed:', result.error);
+        console.warn('❌ API failed:', result.error);
         setAnalysisError(`Analysis failed: ${result.error || 'Unknown error'}. Please check the backend connection.`);
         // Don't set dummy data - leave analysisData as null so user can retry
       }
 
     } catch (error) {
-      console.error('Analysis failed:', error);
+      console.error('💥 Analysis failed with error:', error);
+      console.error('Error stack:', error.stack);
       setAnalysisError(`Connection failed: ${error.message}. Please ensure the backend is running on localhost:8001.`);
       // Don't set dummy data - leave analysisData as null so user can retry
     } finally {
+      console.log('🔧 Cleaning up...');
+      if (progressInterval) {
+        clearInterval(progressInterval);
+      }
       setLoading(false);
+      console.log('✅ performRealAnalysis completed');
     }
   };
 
@@ -699,6 +744,15 @@ const AnalysisPage = () => {
                 onClick={setTestVideo}
               >
                 Load Test Video
+              </Button>
+              <Button
+                variant="contained"
+                size="large"
+                onClick={testBackendConnection}
+                sx={{ ml: 2 }}
+                color="secondary"
+              >
+                Test Backend
               </Button>
             </Box>
           </Paper>
