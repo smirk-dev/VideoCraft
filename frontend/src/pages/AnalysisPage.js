@@ -123,7 +123,9 @@ const AnalysisPage = () => {
       console.log('Analysis result:', result);
 
       if (result.success && result.analysis) {
-        setAnalysisData(transformAnalysisData(result.analysis));
+        const transformedData = transformAnalysisData(result.analysis);
+        console.log('Transformed analysis data:', transformedData);
+        setAnalysisData(transformedData);
         console.log('Analysis data set successfully');
       } else {
         // Show error but don't use fallback dummy data
@@ -695,7 +697,9 @@ const AnalysisPage = () => {
         )}
 
         {analysisData && (
-          <Grid container spacing={3}>
+          <>
+            {console.log('Rendering analysis data:', analysisData)}
+            <Grid container spacing={3}>
             {/* Overview Cards */}
             <Grid item xs={12}>
               <Grid container spacing={2}>
