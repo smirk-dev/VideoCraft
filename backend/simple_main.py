@@ -27,6 +27,9 @@ try:
     print("✅ Real AI services loaded successfully")
 except ImportError as e:
     AI_AVAILABLE = False
+    get_ai_analysis = None
+    generate_ai_recommendations = None
+    ai_service = None
     print(f"⚠️ AI services not available: {e}")
     print("Using fallback simulation mode")
 from datetime import datetime
