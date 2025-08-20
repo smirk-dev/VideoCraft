@@ -1,0 +1,59 @@
+# Production Docker Compose for VideoCraft
+version: '3.8'
+
+services:
+  # Backend FastAPI Service
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/uploads:/app/uploads
+      - ./backend/processed:/app/processed
+      - ./backend/temp:/app/temp
+    environment:
+      - DEBUG=False
+      - HOST=0.0.0.0
+      - PORT=8000
+      - AI_MODE=simulation
+      - ENABLE_REAL_AI=False
+    restart: unless-stopped
+    networks:
+      - videocraft-network
+
+  # Frontend React Service
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      args:
+        - REACT_APP_API_URL=http://localhost:8000
+    ports:
+      - "3000:80"
+    restart: unless-stopped
+    depends_on:
+      - backend
+    networks:
+      - videocraft-network
+
+  # Nginx Reverse Proxy (Optional)
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.production.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - backend
+      - frontend
+    restart: unless-stopped
+    networks:
+      - videocraft-network
+    profiles:
+      - nginx
+
+networks:
+  videocraft-network:
+    driver: bridge
