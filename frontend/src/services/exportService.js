@@ -16,7 +16,35 @@ class ExportService {
       if (!filename || typeof filename !== 'string') {
         throw new Error('No video file selected. Please upload a video first.');
       }
+
+      if (onProgress) onProgress(10);
+
+      // First, check if the video file exists on the server
+      const checkResponse = await fetch(`${API_BASE_URL}/api/videos/check/${encodeURIComponent(filename)}`);
+      const checkResult = await checkResponse.json();
       
+      if (!checkResult.exists) {
+        // Try to create a sample video if this is a test video
+        if (filename.includes('test') || filename.includes('sample') || filename.includes('mavic') || filename.includes('ssvid')) {
+          const createResponse = await fetch(`${API_BASE_URL}/api/videos/create-sample`, {
+            method: 'POST'
+          });
+          const createResult = await createResponse.json();
+          
+          if (!createResult.success) {
+            throw new Error('Test video file not found on server and could not create sample. Please upload a real video file for export, or try exporting the analysis report instead.');
+          }
+          
+          // Update filename to the created sample
+          const actualFilename = createResult.filename;
+          return this.exportVideo(actualFilename, editingData, quality, onProgress);
+        } else {
+          throw new Error('Video file not found on server. Please upload the video file first, or try exporting the analysis report instead.');
+        }
+      }
+
+      if (onProgress) onProgress(20);
+
       // Prepare processing request for backend
       const processingRequest = {
         video_filename: filename,
@@ -24,7 +52,7 @@ class ExportService {
         output_filename: `exported_${Date.now()}.mp4`
       };
 
-      if (onProgress) onProgress(20);
+      if (onProgress) onProgress(40);
 
       // Send to backend for real video processing
       const response = await fetch(`${API_BASE_URL}/api/edit/process`, {

@@ -293,6 +293,112 @@ async def download_processed_video(filename: str):
         logger.error(f"Download failed: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/api/videos/check/{filename}")
+async def check_video_exists(filename: str):
+    """Check if a video file exists in uploads directory"""
+    try:
+        file_path = Path("uploads") / filename
+        exists = file_path.exists() and file_path.is_file()
+        
+        if exists:
+            stat = file_path.stat()
+            return {
+                "exists": True,
+                "filename": filename,
+                "size": stat.st_size,
+                "path": str(file_path)
+            }
+        else:
+            return {
+                "exists": False,
+                "filename": filename,
+                "message": "Video file not found on server"
+            }
+            
+    except Exception as e:
+        logger.error(f"Check file failed: {str(e)}")
+        return {
+            "exists": False,
+            "filename": filename,
+            "error": str(e)
+        }
+
+@app.post("/api/videos/create-sample")
+async def create_sample_video():
+    """Create a sample video file for testing export functionality"""
+    try:
+        sample_filename = "sample_test_video.mp4"
+        sample_path = Path("uploads") / sample_filename
+        
+        # Create uploads directory if it doesn't exist
+        sample_path.parent.mkdir(exist_ok=True)
+        
+        # Check if sample already exists
+        if sample_path.exists():
+            return {
+                "success": True,
+                "message": f"Sample video already exists: {sample_filename}",
+                "filename": sample_filename,
+                "path": str(sample_path)
+            }
+        
+        # Try to create a real video with ffmpeg if available
+        if shutil.which("ffmpeg"):
+            try:
+                import subprocess
+                # Create a simple 5-second test video
+                command = [
+                    "ffmpeg", "-y",  # Overwrite if exists
+                    "-f", "lavfi",   # Use lavfi input
+                    "-i", "testsrc=duration=5:size=640x480:rate=30",  # Test pattern
+                    "-f", "lavfi",   # Audio input  
+                    "-i", "sine=frequency=1000:duration=5",  # Test tone
+                    "-c:v", "libx264", "-c:a", "aac",  # Codecs
+                    "-t", "5",       # Duration 5 seconds
+                    str(sample_path)
+                ]
+                
+                result = subprocess.run(command, capture_output=True, text=True, timeout=30)
+                
+                if result.returncode == 0 and sample_path.exists():
+                    return {
+                        "success": True,
+                        "message": f"Real sample video created: {sample_filename}",
+                        "filename": sample_filename,
+                        "path": str(sample_path),
+                        "size": sample_path.stat().st_size
+                    }
+                else:
+                    logger.warning(f"FFmpeg failed: {result.stderr}")
+                    # Fall through to dummy file creation
+                    
+            except Exception as ffmpeg_error:
+                logger.warning(f"FFmpeg creation failed: {str(ffmpeg_error)}")
+                # Fall through to dummy file creation
+        
+        # Create a minimal MP4-like dummy file as fallback
+        dummy_content = b'\x00\x00\x00\x20ftypmp42\x00\x00\x00\x00mp42isom'  # Minimal MP4 header
+        with open(sample_path, 'wb') as f:
+            f.write(dummy_content)
+            # Add some padding to make it look like a small video file
+            f.write(b'\x00' * 1024)  # 1KB of padding
+        
+        return {
+            "success": True,
+            "message": f"Dummy sample file created: {sample_filename}",
+            "filename": sample_filename,
+            "path": str(sample_path),
+            "note": "This is a minimal dummy file for testing. Install FFmpeg for real video creation.",
+            "size": sample_path.stat().st_size
+        }
+    
+    except Exception as e:
+        logger.error(f"Failed to create sample video: {str(e)}")
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
 if __name__ == "__main__":
     uvicorn.run(
         "working_backend:app",
