@@ -80,8 +80,9 @@ const ExportDialog = ({
     setExportResult(null);
 
     try {
+      // Pass the filename instead of videoUrl for proper server lookup
       const result = await ExportService.exportVideo(
-        videoUrl,
+        filename, // Use filename instead of videoUrl
         editingData,
         videoQuality,
         (progress) => setExportProgress(progress)
