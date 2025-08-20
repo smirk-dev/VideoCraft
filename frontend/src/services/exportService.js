@@ -104,6 +104,9 @@ class ExportService {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
         
+        // Report completion
+        if (progressCallback) progressCallback(100);
+        
         return {
           success: true,
           fileName: `exported_${filename}`,
