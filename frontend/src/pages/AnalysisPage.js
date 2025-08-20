@@ -485,64 +485,6 @@ const AnalysisPage = () => {
     return suggestions;
   };
 
-  const generateMockAnalysisData = () => {
-    const duration = videoMetadata?.duration || 165; // fallback to 2:45
-    const formatDuration = (seconds) => {
-      const mins = Math.floor(seconds / 60);
-      const secs = Math.floor(seconds % 60);
-      return `${mins}:${secs.toString().padStart(2, '0')}`;
-    };
-
-    return {
-      videoMetrics: {
-        duration: formatDuration(duration),
-        resolution: `${videoMetadata?.width || 1920}x${videoMetadata?.height || 1080}`,
-        fps: 30,
-        fileSize: videoMetadata?.size ? `${(videoMetadata.size / (1024 * 1024)).toFixed(1)} MB` : '150 MB',
-        bitrate: '8.5 Mbps',
-      },
-      emotions: [
-        { emotion: 'Happy', confidence: 0.85, timestamp: '0:15' },
-        { emotion: 'Neutral', confidence: 0.65, timestamp: formatDuration(duration * 0.25) },
-        { emotion: 'Excited', confidence: 0.92, timestamp: formatDuration(duration * 0.5) },
-        { emotion: 'Calm', confidence: 0.78, timestamp: formatDuration(duration * 0.8) },
-      ],
-      sceneChanges: [
-        { timestamp: '0:00', confidence: 1.0, type: 'Cut' },
-        { timestamp: formatDuration(duration * 0.2), confidence: 0.88, type: 'Fade' },
-        { timestamp: formatDuration(duration * 0.45), confidence: 0.94, type: 'Cut' },
-        { timestamp: formatDuration(duration * 0.75), confidence: 0.76, type: 'Dissolve' },
-      ],
-      audioAnalysis: {
-        avgVolume: 72,
-        peakVolume: 95,
-        silentSegments: 3,
-        musicDetected: true,
-        speechQuality: 'Good',
-      },
-      aiSuggestions: [
-        {
-          type: 'Cut Suggestion',
-          timestamp: formatDuration(duration * 0.15),
-          reason: 'Long pause detected',
-          confidence: 0.82,
-        },
-        {
-          type: 'Music Addition',
-          timestamp: formatDuration(duration * 0.65),
-          reason: 'Silent segment could benefit from background music',
-          confidence: 0.75,
-        },
-        {
-          type: 'Color Correction',
-          timestamp: formatDuration(duration * 0.3),
-          reason: 'Scene appears underexposed',
-          confidence: 0.68,
-        },
-      ],
-    };
-  };
-
   // Auto-analyze when component loads if video exists
   useEffect(() => {
     if (hasVideo() && !analysisData && !loading) {
