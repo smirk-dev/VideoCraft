@@ -639,7 +639,7 @@ const AnalysisPage = () => {
           </Paper>
         )}
 
-        {hasVideo() && !analysisData && !loading && (
+        {hasVideo() && !analysisData && !loading && !analysisError && (
           <Paper sx={{ p: 4, textAlign: 'center' }}>
             <Analytics sx={{ fontSize: 64, color: 'primary.main', mb: 2 }} />
             <Typography variant="h6" gutterBottom>
@@ -652,9 +652,32 @@ const AnalysisPage = () => {
               variant="contained"
               size="large"
               startIcon={<Analytics />}
-              onClick={handleVideoAnalysis}
+              onClick={performRealAnalysis}
             >
               Start Analysis
+            </Button>
+          </Paper>
+        )}
+
+        {analysisError && (
+          <Paper sx={{ p: 4, textAlign: 'center' }}>
+            <Alert severity="error" sx={{ mb: 3 }}>
+              <Typography variant="h6" gutterBottom>
+                Analysis Failed
+              </Typography>
+              <Typography variant="body2">
+                {analysisError}
+              </Typography>
+            </Alert>
+            <Button
+              variant="contained"
+              color="primary"
+              size="large"
+              startIcon={<Analytics />}
+              onClick={performRealAnalysis}
+              disabled={loading}
+            >
+              Retry Analysis
             </Button>
           </Paper>
         )}
