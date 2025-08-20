@@ -49,62 +49,76 @@ A video editing platform with intelligent analysis capabilities. Built with Pyth
 
 ## 🏗️ Project Architecture
 
+> **📁 Organized Structure**: The project is now organized with clear separation of concerns for better maintainability and accessibility.
+
 ```
 VideoCraft/
-├── 🐍 backend/                    # FastAPI Python Backend
+├── 🐍 backend/                      # FastAPI Python Backend
 │   ├── app/
-│   │   ├── api/                   # REST API Endpoints
-│   │   │   ├── upload.py          # File upload handling (2GB support)
-│   │   │   ├── video_analysis.py  # Video AI analysis
+│   │   ├── api/                     # REST API Endpoints
+│   │   │   ├── upload.py            # File upload handling (2GB support)
+│   │   │   ├── video_analysis.py    # Video AI analysis
 │   │   │   ├── emotion_detection.py # Emotion & sentiment analysis
-│   │   │   ├── audio_analysis.py  # Audio processing & transcription
+│   │   │   ├── audio_analysis.py    # Audio processing & transcription
 │   │   │   ├── music_recommendation.py # Smart music suggestions
 │   │   │   ├── background_removal.py # AI background processing
-│   │   │   └── video_editing.py   # Video editing operations
+│   │   │   └── video_editing.py     # Video editing operations
 │   │   ├── core/
-│   │   │   ├── config.py          # Application configuration
-│   │   │   └── logging_config.py  # Logging setup
-│   │   └── models/                # Data models and schemas
-│   ├── requirements.txt           # Python dependencies
-│   ├── main.py                   # FastAPI application entry point
-│   └── test_upload_server.py     # Simplified test server
-├── ⚛️ frontend/                   # React Frontend Application
+│   │   │   ├── config.py            # Application configuration
+│   │   │   └── logging_config.py    # Logging setup
+│   │   └── models/                  # Data models and schemas
+│   ├── uploads/                     # Uploaded files storage (gitignored)
+│   ├── processed/                   # Processed video outputs (gitignored)
+│   ├── temp/                        # Temporary processing files (gitignored)
+│   ├── requirements.txt             # Python dependencies
+│   ├── simple_main_backup.py        # Production backend server
+│   └── .env.production             # Production environment config
+├── ⚛️ frontend/                     # React Frontend Application
 │   ├── src/
 │   │   ├── components/
-│   │   │   └── Navbar.js         # Navigation component
+│   │   │   └── Navbar.js           # Navigation component
 │   │   ├── pages/
-│   │   │   ├── HomePage.js       # Landing page with features
-│   │   │   ├── UploadPage.js     # File upload interface (2GB support)
-│   │   │   ├── EditorPage.js     # Timeline-based video editor
-│   │   │   ├── AnalysisPage.js   # AI analysis dashboard
-│   │   │   └── ProjectsPage.js   # Project management
-│   │   ├── App.js               # Main React application
-│   │   └── index.js             # React DOM entry point
-│   ├── public/                  # Static assets
-│   ├── package.json            # Node.js dependencies
-│   └── .env.local              # Environment configuration
-├── 📁 uploads/                  # Uploaded files storage (gitignored)
-├── 📁 processed/               # Processed video outputs (gitignored)
-├── 📁 temp/                    # Temporary processing files (gitignored)
-├── 📁 static/                  # Static web assets
-├── 📁 logs/                    # Application logs (gitignored)
-├── 🐳 Docker files             # Container configuration
-│   ├── Dockerfile.backend
-│   ├── Dockerfile.frontend
-│   └── docker-compose.yml
-├── 🚀 Startup Scripts          # Easy project launching
-│   ├── start-custom-ports.bat  # Windows batch script
-│   ├── start-custom-ports.ps1  # PowerShell script
-│   └── start.bat              # Simple Windows launcher
-├── 📋 Configuration Files
-│   ├── .gitignore             # Git exclusion rules
-│   ├── .env                   # Environment variables
-│   ├── requirements.txt       # Main Python dependencies
-│   └── setup.py              # Python package setup
-└── 📚 Documentation
-    ├── README.md              # This file
-    ├── DEVELOPMENT.md         # Development guidelines
-    └── LICENSE               # MIT License
+│   │   │   ├── HomePage.js         # Landing page with features
+│   │   │   ├── UploadPage.js       # File upload interface (2GB support)
+│   │   │   ├── EditorPage.js       # Timeline-based video editor
+│   │   │   ├── AnalysisPage.js     # AI analysis dashboard
+│   │   │   └── ProjectsPage.js     # Project management
+│   │   ├── services/
+│   │   │   └── exportService.js    # Complete export functionality
+│   │   ├── App.js                 # Main React application
+│   │   └── index.js               # React DOM entry point
+│   ├── build/                     # Production build (334KB gzipped)
+│   ├── public/                    # Static assets
+│   ├── package.json              # Node.js dependencies
+│   └── .env.production           # Production environment config
+├── � docs/                       # All Documentation
+│   ├── DEPLOYMENT.md              # Deployment instructions
+│   ├── DEVELOPMENT.md             # Development setup guide
+│   ├── PRODUCTION_CHECKLIST.md    # Pre-deployment checklist
+│   ├── READY_TO_DEPLOY.md         # Final deployment summary
+│   ├── FUNCTIONALITY_STATUS.md    # Feature status tracking
+│   └── PROJECT_STATUS.md          # Overall project status
+├── � scripts/                    # Development Scripts
+│   ├── start-custom-ports.bat     # Windows: Start with custom ports
+│   ├── start-custom-ports.ps1     # PowerShell: Start with custom ports
+│   ├── start-simple-backend.bat   # Windows: Start backend only
+│   ├── start-videocraft.ps1       # PowerShell: Start full application
+│   └── setup_real_implementation.py # AI setup script
+├── 🐳 deployment/                 # Production Deployment
+│   ├── docker-compose.yml         # Development Docker setup
+│   ├── docker-compose.production.yml # Production Docker setup
+│   ├── Dockerfile.backend         # Backend Docker image
+│   └── Dockerfile.frontend        # Frontend Docker image
+├── ⚙️ config/                     # Configuration Files
+│   ├── nginx.frontend.conf        # Nginx config for frontend
+│   ├── nginx.production.conf      # Production Nginx config
+│   ├── .env.example              # Environment variables template
+│   └── requirements.txt          # Global Python requirements
+├── 📄 PROJECT_STRUCTURE.md        # Detailed structure documentation
+├── 🔧 .env                       # Local environment variables
+├── 🔒 .gitignore                 # Git exclusion rules
+├── 📋 LICENSE                    # MIT License
+└── 📖 README.md                  # This file
 ```
 
 ## 🛠️ Technology Stack
@@ -229,12 +243,12 @@ cd VideoCraft
 
 **Windows (PowerShell):**
 ```powershell
-powershell -ExecutionPolicy Bypass -File start-custom-ports.ps1
+powershell -ExecutionPolicy Bypass -File scripts/start-custom-ports.ps1
 ```
 
 **Windows (Command Prompt):**
 ```batch
-start-custom-ports.bat
+scripts/start-custom-ports.bat
 ```
 
 The script will:
