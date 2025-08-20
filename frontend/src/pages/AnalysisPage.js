@@ -597,12 +597,12 @@ const AnalysisPage = () => {
     report += `File Size: ${analysisData.videoMetrics.fileSize}\n\n`;
     
     report += `EMOTION ANALYSIS:\n`;
-    analysisData.emotions.forEach(emotion => {
+    (analysisData.emotions || []).forEach(emotion => {
       report += `- ${emotion.emotion} (${(emotion.confidence * 100).toFixed(1)}% confidence) at ${emotion.timestamp}\n`;
     });
     
     report += `\nSCENE CHANGES:\n`;
-    analysisData.sceneChanges.forEach(scene => {
+    (analysisData.sceneChanges || []).forEach(scene => {
       report += `- ${scene.type} at ${scene.timestamp} (${(scene.confidence * 100).toFixed(1)}% confidence)\n`;
     });
     
@@ -830,7 +830,7 @@ const AnalysisPage = () => {
                 </AccordionSummary>
                 <AccordionDetails>
                   <Grid container spacing={2}>
-                    {analysisData.emotions.map((emotion, index) => (
+                    {(analysisData.emotions || []).map((emotion, index) => (
                       <Grid item xs={12} sm={6} key={index}>
                         <Card variant="outlined">
                           <CardContent>
