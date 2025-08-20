@@ -543,20 +543,10 @@ const AnalysisPage = () => {
     };
   };
 
-  const handleVideoAnalysis = async () => {
-    setLoading(true);
-
-    // Simulate API call with the existing video
-    setTimeout(() => {
-      setAnalysisData(generateMockAnalysisData());
-      setLoading(false);
-    }, 2000);
-  };
-
   // Auto-analyze when component loads if video exists
   useEffect(() => {
     if (hasVideo() && !analysisData && !loading) {
-      handleVideoAnalysis();
+      performRealAnalysis();
     }
   }, [hasVideo, analysisData, loading]);
 
