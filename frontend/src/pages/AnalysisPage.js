@@ -417,7 +417,7 @@ const AnalysisPage = () => {
       audioAnalysis: audioAnalysis,
       
       // AI suggestions based on analysis
-      aiSuggestions: this.generateSmartSuggestions(realAnalysis, duration),
+      aiSuggestions: generateSmartSuggestions(realAnalysis, duration),
       
       // Enhanced insights with real analysis metadata
       insights: [
