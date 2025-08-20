@@ -25,8 +25,7 @@ const ExportButton = ({
     return null;
   }
 
-  // Show button even if no video file uploaded
-  // The dialog will handle the case appropriately
+  // Show button for any video data - let the dialog handle validation
 
   return (
     <>
