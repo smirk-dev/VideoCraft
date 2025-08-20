@@ -485,14 +485,8 @@ const AnalysisPage = () => {
 
     // Transform objects from backend analysis
     let objects = [];
-    if (realAnalysis.object_detection?.primary_objects) {
-      objects = realAnalysis.object_detection.primary_objects.map((obj, index) => ({
-        object: obj.charAt(0).toUpperCase() + obj.slice(1),
-        confidence: 0.80 + Math.random() * 0.15, // Add some variance
-        count: Math.floor(Math.random() * 5) + 1,
-        timestamp: `0:${Math.floor(Math.random() * 45).toString().padStart(2, '0')}`
-      }));
-    } else if (realAnalysis.object_detection?.detected_objects) {
+    if (realAnalysis.object_detection?.detected_objects) {
+      // Backend returns detected_objects as an object, not an array
       objects = Object.entries(realAnalysis.object_detection.detected_objects).map(([obj, count]) => ({
         object: obj.charAt(0).toUpperCase() + obj.slice(1),
         confidence: 0.80 + Math.random() * 0.15, // Add some variance
@@ -505,19 +499,23 @@ const AnalysisPage = () => {
     // Transform scenes from backend analysis
     let scenes = [];
     if (realAnalysis.scene_analysis?.scene_types) {
-      scenes = realAnalysis.scene_analysis.scene_types.map((scene, index) => ({
-        scene: scene.charAt(0).toUpperCase() + scene.slice(1),
-        confidence: 0.75 + Math.random() * 0.20, // Add some variance
-        duration: formatDuration(duration * (0.3 + index * 0.2)), // Distribute duration
-        type: index === 0 ? 'Primary' : 'Secondary'
-      }));
-    } else if (realAnalysis.scene_analysis?.scene_types) {
-      scenes = Object.entries(realAnalysis.scene_analysis.scene_types).map(([scene, count]) => ({
-        scene: scene.charAt(0).toUpperCase() + scene.slice(1),
-        confidence: realAnalysis.scene_analysis.scene_confidence || 0.8,
-        duration: formatDuration(duration * count / 100), // Proportional duration
-        type: count > 15 ? 'Primary' : 'Secondary'
-      }));
+      // Check if scene_types is an array or object
+      if (Array.isArray(realAnalysis.scene_analysis.scene_types)) {
+        scenes = realAnalysis.scene_analysis.scene_types.map((scene, index) => ({
+          scene: scene.charAt(0).toUpperCase() + scene.slice(1),
+          confidence: 0.75 + Math.random() * 0.20, // Add some variance
+          duration: formatDuration(duration * (0.3 + index * 0.2)), // Distribute duration
+          type: index === 0 ? 'Primary' : 'Secondary'
+        }));
+      } else {
+        // Handle scene_types as an object (which is what the backend returns)
+        scenes = Object.entries(realAnalysis.scene_analysis.scene_types).map(([scene, count]) => ({
+          scene: scene.charAt(0).toUpperCase() + scene.slice(1),
+          confidence: realAnalysis.scene_analysis.scene_confidence || 0.8,
+          duration: formatDuration(duration * count / 100), // Proportional duration
+          type: count > 15 ? 'Primary' : 'Secondary'
+        }));
+      }
     } else if (realAnalysis.scene_analysis?.dominant_scene) {
       scenes = [{
         scene: realAnalysis.scene_analysis.dominant_scene.charAt(0).toUpperCase() + 
