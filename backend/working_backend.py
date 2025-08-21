@@ -589,8 +589,8 @@ async def export_data(request: Dict[str, Any]):
 if __name__ == "__main__":
     uvicorn.run(
         "working_backend:app",
-        host="0.0.0.0",
-        port=8001,
-        reload=True,
+        host="127.0.0.1",
+        port=8003,
+        reload=False,
         log_level="info"
     )
