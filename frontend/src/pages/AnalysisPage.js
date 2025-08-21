@@ -71,7 +71,7 @@ const AnalysisPage = () => {
   const [analysisProgress, setAnalysisProgress] = useState(0);
   const [isAnalyzing, setIsAnalyzing] = useState(false); // Prevent multiple simultaneous requests
 
-  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8002';
+  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://127.0.0.1:8002';
 
   // Test function to set a demo video
   const setTestVideo = () => {
@@ -249,7 +249,7 @@ const AnalysisPage = () => {
     } catch (error) {
       console.error('💥 Analysis failed with error:', error);
       console.error('Error stack:', error.stack);
-      setAnalysisError(`Connection failed: ${error.message}. Please ensure the backend is running on localhost:8002.`);
+      setAnalysisError(`Connection failed: ${error.message}. Please ensure the backend is running on 127.0.0.1:8002.`);
       // Don't set dummy data - leave analysisData as null so user can retry
     } finally {
       console.log('🔧 Cleaning up...');
