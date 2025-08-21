@@ -457,7 +457,7 @@ async def analyze_video(request: AnalysisRequest):
         
         return {
             "success": True,
-            "analysis_results": analysis_results,
+            "analysis": analysis_results,  # Changed from "analysis_results" to "analysis"
             "processing_time": "3.2 seconds",
             "confidence_score": 0.87
         }
@@ -467,11 +467,11 @@ async def analyze_video(request: AnalysisRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/recommendations/generate")
-async def generate_recommendations(request: Dict[str, Any]):
+async def generate_recommendations(request: AnalysisRequest):
     """Generate AI recommendations for video editing"""
     try:
-        filename = request.get('filename', 'unknown')
-        metadata = request.get('metadata', {})
+        filename = request.filename
+        metadata = request.metadata or {}
         
         logger.info(f"Generating recommendations for: {filename}")
         
