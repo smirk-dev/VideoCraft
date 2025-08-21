@@ -1,7 +1,7 @@
 import requests
 
 # Test if backend is responding
-url = "http://127.0.0.1:8002/api/analyze"
+url = "http://127.0.0.1:8005/api/analyze"
 data = {
     "filename": "test_video.mp4",
     "metadata": {"duration": 120}
