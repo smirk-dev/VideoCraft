@@ -508,21 +508,29 @@ const AnalysisPage = () => {
 
     // Transform scenes from backend analysis
     let scenes = [];
-    if (realAnalysis.scene_analysis?.scene_types) {
-      // Check if scene_types is an array or object
+    if (realAnalysis.scene_analysis && Array.isArray(realAnalysis.scene_analysis)) {
+      // Backend returns scene_analysis as an array of scene objects
+      scenes = realAnalysis.scene_analysis.map((sceneItem, index) => ({
+        scene: sceneItem.scene || `Scene ${index + 1}`,
+        confidence: sceneItem.confidence || 0.8,
+        duration: sceneItem.timestamp || `${index * 30}s`,
+        type: index === 0 ? 'Primary' : 'Secondary',
+        description: sceneItem.description || ''
+      }));
+    } else if (realAnalysis.scene_analysis?.scene_types) {
+      // Legacy support for scene_types format
       if (Array.isArray(realAnalysis.scene_analysis.scene_types)) {
         scenes = realAnalysis.scene_analysis.scene_types.map((scene, index) => ({
           scene: scene.charAt(0).toUpperCase() + scene.slice(1),
-          confidence: 0.75 + Math.random() * 0.20, // Add some variance
-          duration: formatDuration(duration * (0.3 + index * 0.2)), // Distribute duration
+          confidence: 0.75 + Math.random() * 0.20,
+          duration: formatDuration(duration * (0.3 + index * 0.2)),
           type: index === 0 ? 'Primary' : 'Secondary'
         }));
       } else {
-        // Handle scene_types as an object (which is what the backend returns)
         scenes = Object.entries(realAnalysis.scene_analysis.scene_types).map(([scene, count]) => ({
           scene: scene.charAt(0).toUpperCase() + scene.slice(1),
           confidence: realAnalysis.scene_analysis.scene_confidence || 0.8,
-          duration: formatDuration(duration * count / 100), // Proportional duration
+          duration: formatDuration(duration * count / 100),
           type: count > 15 ? 'Primary' : 'Secondary'
         }));
       }
