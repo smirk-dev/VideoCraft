@@ -80,7 +80,7 @@ const RecommendationsPage = () => {
     setError(null);
 
     try {
-      const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8001';
+      const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8002';
       
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 2000));
