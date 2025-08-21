@@ -486,13 +486,23 @@ const AnalysisPage = () => {
     // Transform objects from backend analysis
     let objects = [];
     if (realAnalysis.object_detection?.detected_objects) {
-      // Backend returns detected_objects as an object, not an array
-      objects = Object.entries(realAnalysis.object_detection.detected_objects).map(([obj, count]) => ({
-        object: obj.charAt(0).toUpperCase() + obj.slice(1),
-        confidence: 0.80 + Math.random() * 0.15, // Add some variance
-        count: count,
-        timestamp: `0:${Math.floor(Math.random() * 45).toString().padStart(2, '0')}`
-      }));
+      // Backend returns detected_objects as an array of objects
+      if (Array.isArray(realAnalysis.object_detection.detected_objects)) {
+        objects = realAnalysis.object_detection.detected_objects.map((item, index) => ({
+          object: item.object.charAt(0).toUpperCase() + item.object.slice(1),
+          confidence: item.confidence || 0.80,
+          count: item.count || 1,
+          timestamp: `0:${Math.floor(index * 15).toString().padStart(2, '0')}`
+        }));
+      } else {
+        // Fallback for object format
+        objects = Object.entries(realAnalysis.object_detection.detected_objects).map(([obj, count]) => ({
+          object: obj.charAt(0).toUpperCase() + obj.slice(1),
+          confidence: 0.80 + Math.random() * 0.15,
+          count: count,
+          timestamp: `0:${Math.floor(Math.random() * 45).toString().padStart(2, '0')}`
+        }));
+      }
     }
     console.log('Transformed objects:', objects);
 
