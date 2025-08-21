@@ -262,7 +262,7 @@ export const VideoProvider = ({ children }) => {
     setError(null);
 
     try {
-      const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8002';
+      const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://127.0.0.1:8002';
       
       // Calculate project duration based on editing data
       const calculateDuration = () => {
