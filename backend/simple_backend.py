@@ -537,5 +537,6 @@ if __name__ == "__main__":
         host="0.0.0.0",
         port=8002,
         reload=False,
-        log_level="info"
+        log_level="debug",
+        access_log=True
     )
