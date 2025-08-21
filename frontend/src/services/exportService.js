@@ -1,6 +1,6 @@
 import jsPDF from 'jspdf';
 
-const API_BASE_URL = 'http://localhost:8001';
+const API_BASE_URL = 'http://localhost:8002';
 
 class ExportService {
   

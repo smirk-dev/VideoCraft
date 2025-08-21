@@ -71,7 +71,7 @@ const AnalysisPage = () => {
   const [analysisProgress, setAnalysisProgress] = useState(0);
   const [isAnalyzing, setIsAnalyzing] = useState(false); // Prevent multiple simultaneous requests
 
-  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8001';
+  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8002';
 
   // Test function to set a demo video
   const setTestVideo = () => {
