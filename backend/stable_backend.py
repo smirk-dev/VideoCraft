@@ -688,14 +688,6 @@ async def generate_recommendations(request: RecommendationsRequest):
             "processing_time": "0.8 seconds"
         }
         
-        logger.info(f"Recommendations generated successfully for: {request.filename}")
-        
-        return {
-            "success": True,
-            "recommendations": recommendations,
-            "processing_time": "1.9 seconds"
-        }
-        
     except Exception as e:
         logger.error(f"Recommendations failed: {str(e)}")
         # Return error but don't crash
