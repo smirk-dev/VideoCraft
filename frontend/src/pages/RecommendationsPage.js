@@ -45,7 +45,8 @@ import {
   Schedule,
   Lightbulb,
   Analytics,
-  Refresh
+  Refresh,
+  Share
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useVideo } from '../context/VideoContext';
@@ -401,6 +402,7 @@ const RecommendationsPage = () => {
             <Tab icon={<FilterVintage />} label="Filters & Effects" />
             <Tab icon={<Psychology />} label="Sentiment Analysis" />
             <Tab icon={<TrendingUp />} label="Engagement" />
+            <Tab icon={<Share />} label="Platform Optimization" />
           </Tabs>
 
           {/* Cuts & Edits Tab */}
@@ -417,19 +419,41 @@ const RecommendationsPage = () => {
                         <Typography variant="h6">
                           {formatTime(cut.timestamp)}
                         </Typography>
-                        <Chip 
-                          label={`${Math.round(cut.confidence * 100)}%`}
-                          color={getConfidenceColor(cut.confidence)}
-                          size="small"
-                        />
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                          <Chip 
+                            label={cut.priority || 'medium'}
+                            color={cut.priority === 'high' ? 'error' : cut.priority === 'medium' ? 'warning' : 'default'}
+                            size="small"
+                            variant="outlined"
+                          />
+                          <Chip 
+                            label={`${Math.round(cut.confidence * 100)}%`}
+                            color={getConfidenceColor(cut.confidence)}
+                            size="small"
+                          />
+                        </Box>
                       </Box>
                       <Typography variant="body2" color="text.secondary" gutterBottom>
                         {cut.description}
                       </Typography>
-                      <Typography variant="body2" sx={{ mb: 2 }}>
+                      <Typography variant="body2" sx={{ mb: 1 }}>
                         <strong>Reason:</strong> {cut.reason}
                       </Typography>
-                      <Chip label={cut.type} variant="outlined" size="small" />
+                      {cut.expected_impact && (
+                        <Typography variant="body2" sx={{ mb: 2, color: 'success.main' }}>
+                          <strong>Expected Impact:</strong> {cut.expected_impact}
+                        </Typography>
+                      )}
+                      <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                        <Chip label={cut.type} variant="outlined" size="small" />
+                        {cut.priority && (
+                          <Chip 
+                            label={`${cut.priority} priority`} 
+                            size="small"
+                            color={cut.priority === 'high' ? 'error' : cut.priority === 'medium' ? 'warning' : 'default'}
+                          />
+                        )}
+                      </Box>
                     </CardContent>
                     <CardActions>
                       <Button 
@@ -462,27 +486,65 @@ const RecommendationsPage = () => {
                     <CardContent>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
                         <Typography variant="h6">
-                          {music.genre}
+                          {music.genre || music.type}
                         </Typography>
-                        <Chip 
-                          label={music.mood}
-                          color="primary"
-                          size="small"
-                        />
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                          <Chip 
+                            label={music.mood}
+                            color="primary"
+                            size="small"
+                          />
+                          <Chip 
+                            label={`${Math.round(music.confidence * 100)}%`}
+                            color={getConfidenceColor(music.confidence)}
+                            size="small"
+                          />
+                        </Box>
                       </Box>
                       <Typography variant="body2" gutterBottom>
-                        <strong>Timeline:</strong> {formatTime(music.start_time)} - {formatTime(music.end_time)}
+                        <strong>Timeline:</strong> {music.timestamp}
                       </Typography>
                       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                        {music.description}
+                        {music.reason}
                       </Typography>
-                      <Typography variant="body2" sx={{ mb: 1 }}>
-                        <strong>Suggested Tracks:</strong>
-                      </Typography>
+                      
+                      {/* Enhanced music details */}
+                      <Grid container spacing={1} sx={{ mb: 2 }}>
+                        {music.volume_level && (
+                          <Grid item xs={6}>
+                            <Typography variant="caption" color="text.secondary">
+                              Volume: {music.volume_level}
+                            </Typography>
+                          </Grid>
+                        )}
+                        {music.content_type && (
+                          <Grid item xs={6}>
+                            <Typography variant="caption" color="text.secondary">
+                              Type: {music.content_type}
+                            </Typography>
+                          </Grid>
+                        )}
+                        {music.fade_in && (
+                          <Grid item xs={6}>
+                            <Typography variant="caption" color="text.secondary">
+                              Fade In: {music.fade_in}
+                            </Typography>
+                          </Grid>
+                        )}
+                        {music.fade_out && (
+                          <Grid item xs={6}>
+                            <Typography variant="caption" color="text.secondary">
+                              Fade Out: {music.fade_out}
+                            </Typography>
+                          </Grid>
+                        )}
+                      </Grid>
+                      
                       <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                        {music.suggested_tracks?.map((track, index) => (
-                          <Chip key={index} label={track} variant="outlined" size="small" />
-                        ))}
+                        <Chip label={music.type} variant="outlined" size="small" />
+                        <Chip label={music.priority || 'medium'} 
+                              color={music.priority === 'high' ? 'error' : 'default'} 
+                              size="small" variant="outlined" />
                       </Box>
                     </CardContent>
                     <CardActions>
@@ -700,21 +762,127 @@ const RecommendationsPage = () => {
                 <Card>
                   <CardContent>
                     <Typography variant="h6" gutterBottom>
-                      Improvement Suggestions
+                      Engagement Tips
                     </Typography>
                     <List>
-                      {recommendations?.engagement_metrics?.improvements?.map((improvement, index) => (
-                        <ListItem key={index}>
-                          <ListItemIcon>
+                      {recommendations?.engagement_tips?.map((tip, index) => (
+                        <ListItem key={index} sx={{ alignItems: 'flex-start' }}>
+                          <ListItemIcon sx={{ mt: 0.5 }}>
                             <Lightbulb color="primary" />
                           </ListItemIcon>
-                          <ListItemText primary={improvement} />
+                          <ListItemText 
+                            primary={tip.split('(')[0].trim()} 
+                            secondary={tip.includes('(') ? tip.split('(')[1].replace(')', '') : null}
+                          />
+                        </ListItem>
+                      ))}
+                      {recommendations?.quality_improvements?.map((improvement, index) => (
+                        <ListItem key={`quality-${index}`} sx={{ alignItems: 'flex-start' }}>
+                          <ListItemIcon sx={{ mt: 0.5 }}>
+                            <AutoFixHigh color="secondary" />
+                          </ListItemIcon>
+                          <ListItemText 
+                            primary={improvement.split('(')[0].trim()} 
+                            secondary={improvement.includes('(') ? improvement.split('(')[1].replace(')', '') : null}
+                          />
                         </ListItem>
                       ))}
                     </List>
                   </CardContent>
                 </Card>
               </Grid>
+            </Grid>
+          </TabPanel>
+
+          {/* Platform Optimization Tab */}
+          <TabPanel value={currentTab} index={5}>
+            <Typography variant="h6" gutterBottom>
+              Platform Optimization
+            </Typography>
+            <Grid container spacing={3}>
+              {recommendations?.platform_optimization && Object.entries(recommendations.platform_optimization).map(([platform, data]) => (
+                <Grid item xs={12} md={4} key={platform}>
+                  <Card sx={{ height: '100%' }}>
+                    <CardContent>
+                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                        <Avatar 
+                          sx={{ 
+                            bgcolor: data.recommended ? 'success.main' : 'grey.400',
+                            mr: 2,
+                            textTransform: 'capitalize'
+                          }}
+                        >
+                          {platform.charAt(0).toUpperCase()}
+                        </Avatar>
+                        <Box>
+                          <Typography variant="h6" sx={{ textTransform: 'capitalize' }}>
+                            {platform.replace(/_/g, ' ')}
+                          </Typography>
+                          <Chip 
+                            label={data.recommended ? 'Recommended' : 'Not Optimal'}
+                            color={data.recommended ? 'success' : 'default'}
+                            size="small"
+                          />
+                        </Box>
+                      </Box>
+                      
+                      {data.optimizations && data.optimizations.length > 0 && (
+                        <Box sx={{ mb: 2 }}>
+                          <Typography variant="subtitle2" gutterBottom>
+                            Optimizations:
+                          </Typography>
+                          <List dense>
+                            {data.optimizations.map((opt, index) => (
+                              <ListItem key={index} sx={{ px: 0 }}>
+                                <ListItemIcon>
+                                  <CheckCircle color="success" fontSize="small" />
+                                </ListItemIcon>
+                                <ListItemText primary={opt} />
+                              </ListItem>
+                            ))}
+                          </List>
+                        </Box>
+                      )}
+                      
+                      {data.content_tips && data.content_tips.length > 0 && (
+                        <Box sx={{ mb: 2 }}>
+                          <Typography variant="subtitle2" gutterBottom>
+                            Content Tips:
+                          </Typography>
+                          <List dense>
+                            {data.content_tips.map((tip, index) => (
+                              <ListItem key={index} sx={{ px: 0 }}>
+                                <ListItemIcon>
+                                  <Lightbulb color="primary" fontSize="small" />
+                                </ListItemIcon>
+                                <ListItemText primary={tip} />
+                              </ListItem>
+                            ))}
+                          </List>
+                        </Box>
+                      )}
+                      
+                      {data.strategy_tips && data.strategy_tips.length > 0 && (
+                        <Box>
+                          <Typography variant="subtitle2" gutterBottom>
+                            Strategy Tips:
+                          </Typography>
+                          <List dense>
+                            {data.strategy_tips.map((tip, index) => (
+                              <ListItem key={index} sx={{ px: 0 }}>
+                                <ListItemIcon>
+                                  <Analytics color="info" fontSize="small" />
+                                </ListItemIcon>
+                                <ListItemText primary={tip} />
+                              </ListItem>
+                            ))}
+                          </List>
+                        </Box>
+                      )}
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
             </Grid>
           </TabPanel>
         </Paper>
