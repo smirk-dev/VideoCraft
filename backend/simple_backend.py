@@ -404,11 +404,11 @@ async def create_sample_video():
         }
 
 @app.post("/api/analyze/analyze-filename")
-async def analyze_video(request: Dict[str, Any]):
+async def analyze_video(request: AnalysisRequest):
     """Analyze video with AI simulation"""
     try:
-        filename = request.get('filename', 'unknown')
-        metadata = request.get('metadata', {})
+        filename = request.filename
+        metadata = request.metadata or {}
         
         logger.info(f"Starting analysis for: {filename}")
         
