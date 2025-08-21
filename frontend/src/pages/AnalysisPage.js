@@ -438,6 +438,8 @@ const AnalysisPage = () => {
   const transformAnalysisData = (realAnalysis) => {
     // Transform real AI analysis to match UI expectations
     const duration = videoMetadata?.duration || 165; // fallback duration
+    console.log('🔄 Starting data transformation...');
+    console.log('Input realAnalysis:', realAnalysis);
     console.log('Video metadata:', videoMetadata);
     console.log('Using duration:', duration);
     
@@ -467,6 +469,15 @@ const AnalysisPage = () => {
         confidence: realAnalysis.emotion_detection.confidence || 0.7,
         timestamp: '0:15'
       }];
+      
+      // Add emotions from emotion_timeline if available
+      if (realAnalysis.emotion_detection.emotion_timeline && Array.isArray(realAnalysis.emotion_detection.emotion_timeline)) {
+        emotions = emotions.concat(realAnalysis.emotion_detection.emotion_timeline.map(item => ({
+          emotion: item.emotion.charAt(0).toUpperCase() + item.emotion.slice(1),
+          confidence: item.intensity || 0.7,
+          timestamp: item.timestamp || '0:00'
+        })));
+      }
     } else if (realAnalysis.emotion_analysis?.emotion_scores) {
       emotions = Object.entries(realAnalysis.emotion_analysis.emotion_scores).map(([emotion, confidence], index) => ({
         emotion: emotion.charAt(0).toUpperCase() + emotion.slice(1),
