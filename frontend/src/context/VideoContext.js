@@ -14,10 +14,17 @@ const VIDEO_ACTIONS = {
 
 // Initial state
 const initialState = {
-  currentVideo: null,
+  currentVideo: "test_video.mp4", // Default video for testing
   videoFile: null,
   videoUrl: null,
-  videoMetadata: null,
+  videoMetadata: {
+    duration: 120,
+    width: 1920,
+    height: 1080,
+    size: 50000000,
+    type: "video/mp4",
+    name: "test_video.mp4"
+  },
   isProcessing: false,
   error: null,
   editingData: {

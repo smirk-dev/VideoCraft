@@ -75,6 +75,15 @@ const RecommendationsPage = () => {
     }
   }, [hasVideo, currentVideo]);
 
+  // Debug recommendations state changes
+  useEffect(() => {
+    console.log('🎯 Recommendations state changed:', recommendations);
+    console.log('🎯 Recommendations type:', typeof recommendations);
+    if (recommendations) {
+      console.log('🎯 Recommendations keys:', Object.keys(recommendations));
+    }
+  }, [recommendations]);
+
   const generateRecommendations = async () => {
     setLoading(true);
     setError(null);
