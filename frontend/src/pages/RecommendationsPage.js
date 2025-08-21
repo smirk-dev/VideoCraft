@@ -96,11 +96,15 @@ const RecommendationsPage = () => {
         })
       });
 
+      console.log('🎯 Recommendations API Response:', response.status, response.statusText);
       const result = await response.json();
+      console.log('🎯 Recommendations Result:', result);
       
       if (result.success) {
+        console.log('✅ Setting recommendations:', result.recommendations);
         setRecommendations(result.recommendations);
       } else {
+        console.warn('❌ Recommendations failed:', result.error);
         throw new Error(result.error || 'Failed to generate recommendations');
       }
     } catch (err) {
