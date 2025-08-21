@@ -102,7 +102,7 @@ class SimpleCORSHandler(BaseHTTPRequestHandler):
                     ]
                 }
                 
-            elif '/api/recommendations' in self.path:
+            elif '/api/recommendations/generate' in self.path or '/api/recommendations' in self.path:
                 # Return basic recommendations
                 response = {
                     "success": True,
@@ -124,6 +124,21 @@ class SimpleCORSHandler(BaseHTTPRequestHandler):
                             "suggestion": "Current audio levels are optimal",
                             "confidence": 0.87,
                             "platform": "youtube"
+                        }
+                    ]
+                }
+            
+            elif '/api/projects' in self.path:
+                # Return project data
+                response = {
+                    "success": True,
+                    "projects": [
+                        {
+                            "id": 1,
+                            "name": "Current Video Project",
+                            "filename": "current_video.mp4",
+                            "created_at": "2025-08-22T00:00:00Z",
+                            "status": "active"
                         }
                     ]
                 }
