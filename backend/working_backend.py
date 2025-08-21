@@ -293,7 +293,7 @@ async def download_processed_video(filename: str):
         logger.error(f"Download failed: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/api/analysis/analyze")
+@app.post("/api/analyze/analyze-filename")
 async def analyze_video(request: Dict[str, Any]):
     """Analyze video with AI simulation"""
     try:
@@ -419,6 +419,71 @@ async def generate_recommendations(request: Dict[str, Any]):
         
     except Exception as e:
         logger.error(f"Recommendations failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/projects/")
+async def create_project(project_data: Dict[str, Any]):
+    """Create a new project"""
+    try:
+        # Generate a project ID
+        project_id = str(uuid.uuid4())
+        
+        # Return success response
+        return {
+            "success": True,
+            "project_id": project_id,
+            "message": "Project created successfully"
+        }
+        
+    except Exception as e:
+        logger.error(f"Project creation failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/projects/list")
+async def list_projects():
+    """List all projects"""
+    try:
+        # Return mock projects for now
+        return {
+            "success": True,
+            "projects": []
+        }
+        
+    except Exception as e:
+        logger.error(f"Project listing failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/projects/save")
+async def save_project(project_data: Dict[str, Any]):
+    """Save project data"""
+    try:
+        project_id = str(uuid.uuid4())
+        return {
+            "success": True,
+            "project_id": project_id
+        }
+        
+    except Exception as e:
+        logger.error(f"Project save failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/projects/{project_id}")
+async def get_project(project_id: str):
+    """Get project by ID"""
+    try:
+        return {
+            "success": True,
+            "project": {
+                "id": project_id,
+                "name": "Sample Project",
+                "video_filename": "sample.mp4",
+                "editing_data": {},
+                "video_metadata": {}
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Project retrieval failed: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
