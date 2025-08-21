@@ -29,7 +29,7 @@ import { useNavigate } from 'react-router-dom';
 import { useVideo } from '../context/VideoContext';
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://127.0.0.1:8002';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8002';
 
 const UploadPage = () => {
   const navigate = useNavigate();
