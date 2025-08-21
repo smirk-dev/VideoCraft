@@ -399,6 +399,134 @@ async def create_sample_video():
             "error": str(e)
         }
 
+@app.post("/api/analyze/analyze-filename")
+async def analyze_video(request: Dict[str, Any]):
+    """Analyze video with AI simulation"""
+    try:
+        filename = request.get('filename', 'unknown')
+        metadata = request.get('metadata', {})
+        
+        logger.info(f"Starting analysis for: {filename}")
+        
+        # Simulate AI analysis with realistic data
+        analysis_results = {
+            "video_info": {
+                "filename": filename,
+                "duration": metadata.get('duration', '00:02:30'),
+                "resolution": metadata.get('resolution', '1920x1080'),
+                "fps": metadata.get('fps', 30),
+                "size": metadata.get('size', '45.2 MB'),
+                "format": "MP4",
+                "codec": "H.264"
+            },
+            "scene_analysis": [
+                {"timestamp": "00:00", "scene": "Opening scene", "description": "Video begins with establishing shot"},
+                {"timestamp": "00:15", "scene": "Main content", "description": "Primary content begins"},
+                {"timestamp": "01:30", "scene": "Climax", "description": "Peak engagement moment"},
+                {"timestamp": "02:15", "scene": "Conclusion", "description": "Video concludes"}
+            ],
+            "emotion_detection": {
+                "dominant_emotions": ["joy", "excitement", "satisfaction"],
+                "emotion_timeline": [
+                    {"timestamp": "00:00", "emotion": "neutral", "confidence": 0.8},
+                    {"timestamp": "00:30", "emotion": "joy", "confidence": 0.9},
+                    {"timestamp": "01:00", "emotion": "excitement", "confidence": 0.85},
+                    {"timestamp": "01:30", "emotion": "satisfaction", "confidence": 0.88}
+                ],
+                "overall_sentiment": "positive"
+            },
+            "audio_analysis": {
+                "music_detected": True,
+                "speech_detected": True,
+                "audio_quality": "good",
+                "volume_levels": "balanced",
+                "background_noise": "minimal"
+            },
+            "technical_metrics": {
+                "video_quality": "high",
+                "stability": "good",
+                "lighting": "adequate",
+                "color_balance": "good",
+                "sharpness": "high"
+            }
+        }
+        
+        return {
+            "success": True,
+            "analysis_results": analysis_results,
+            "processing_time": "3.2 seconds",
+            "confidence_score": 0.87
+        }
+        
+    except Exception as e:
+        logger.error(f"Analysis failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/recommendations/generate")
+async def generate_recommendations(request: Dict[str, Any]):
+    """Generate AI recommendations for video editing"""
+    try:
+        filename = request.get('filename', 'unknown')
+        metadata = request.get('metadata', {})
+        
+        logger.info(f"Generating recommendations for: {filename}")
+        
+        # Simulate AI recommendations
+        recommendations = {
+            "overall_score": 78,
+            "sentiment": "positive", 
+            "editing_recommendations": [
+                {
+                    "type": "Trim Beginning",
+                    "reason": "Remove first 3 seconds for better engagement",
+                    "timestamp": "00:00-00:03",
+                    "priority": "high",
+                    "confidence": 0.89
+                },
+                {
+                    "type": "Add Background Music",
+                    "reason": "Enhance emotional impact with upbeat music",
+                    "timestamp": "00:15-01:45",
+                    "priority": "medium",
+                    "confidence": 0.75
+                },
+                {
+                    "type": "Color Correction",
+                    "reason": "Increase brightness by 15% for better visibility",
+                    "timestamp": "entire",
+                    "priority": "medium",
+                    "confidence": 0.82
+                },
+                {
+                    "type": "Speed Adjustment",
+                    "reason": "Increase speed to 1.2x for better pacing",
+                    "timestamp": "01:00-01:30",
+                    "priority": "low",
+                    "confidence": 0.65
+                }
+            ],
+            "quality_improvements": [
+                "Consider stabilizing camera shake at 00:45",
+                "Audio levels could be normalized",
+                "Add fade-in/fade-out transitions"
+            ],
+            "engagement_tips": [
+                "Strong opening will improve retention",
+                "Consider adding captions for accessibility",
+                "End with clear call-to-action"
+            ]
+        }
+        
+        return {
+            "success": True,
+            "recommendations": recommendations,
+            "processing_time": "2.1 seconds"
+        }
+        
+    except Exception as e:
+        logger.error(f"Recommendations failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 if __name__ == "__main__":
     uvicorn.run(
         "working_backend:app",
