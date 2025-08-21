@@ -180,6 +180,18 @@ async def analyze_video(request: AnalysisRequest):
         "processing_time": "2.1 seconds"
     }
 
+@app.post("/api/analyze/analyze-filename")
+async def analyze_video_by_filename(request: Dict[str, Any]):
+    """Analyze video by filename - matches frontend expectations"""
+    filename = request.get('filename', 'unknown')
+    logger.info(f"Analyzing video by filename: {filename}")
+    
+    # Convert to our AnalysisRequest format
+    analysis_request = AnalysisRequest(filename=filename, metadata=request.get('metadata'))
+    
+    # Call our existing analysis function
+    return await analyze_video(analysis_request)
+
 @app.post("/api/recommendations/generate")
 async def generate_recommendations(request: Dict[str, Any]):
     """Generate sophisticated AI recommendations"""
