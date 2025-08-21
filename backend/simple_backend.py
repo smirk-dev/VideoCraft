@@ -45,6 +45,10 @@ class VideoProcessingResponse(BaseModel):
     applied_operations: Optional[Dict] = None
     error: Optional[str] = None
 
+class AnalysisRequest(BaseModel):
+    filename: str
+    metadata: Optional[Dict[str, Any]] = None
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("🚀 Starting VideoCraft Working Backend...")
