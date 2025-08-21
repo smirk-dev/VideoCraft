@@ -97,11 +97,25 @@ const RecommendationsPage = () => {
       });
 
       console.log('🎯 Recommendations API Response:', response.status, response.statusText);
+      
       const result = await response.json();
       console.log('🎯 Recommendations Result:', result);
+      console.log('🎯 Result type:', typeof result);
+      console.log('🎯 Result keys:', Object.keys(result));
       
       if (result.success) {
         console.log('✅ Setting recommendations:', result.recommendations);
+        console.log('🔍 Recommendations type:', typeof result.recommendations);
+        console.log('🔍 Recommendations keys:', Object.keys(result.recommendations || {}));
+        
+        if (result.recommendations && result.recommendations.editing_recommendations) {
+          const editing = result.recommendations.editing_recommendations;
+          console.log('🔍 editing_recommendations keys:', Object.keys(editing));
+          console.log('🔍 cuts length:', editing.cuts ? editing.cuts.length : 'undefined');
+          console.log('🔍 music length:', editing.music ? editing.music.length : 'undefined');
+          console.log('🔍 filters length:', editing.filters ? editing.filters.length : 'undefined');
+        }
+        
         setRecommendations(result.recommendations);
       } else {
         console.warn('❌ Recommendations failed:', result.error);
