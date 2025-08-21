@@ -165,73 +165,29 @@ async def analyze_video(request: AnalysisRequest):
 
 @app.post("/api/recommendations/generate")
 async def generate_recommendations(request: RecommendationsRequest):
-    """Generate AI recommendations for video editing - stable implementation"""
+    """Generate intelligent AI recommendations for video editing based on content analysis"""
     try:
-        logger.info(f"Generating recommendations for: {request.filename}")
+        logger.info(f"Generating advanced recommendations for: {request.filename}")
         
-        recommendations = {
-            "overall_score": 78,
-            "sentiment": "positive",
-            "editing_recommendations": {
-                "cuts": [
-                    {
-                        "id": "cut1",
-                        "type": "Trim Beginning",
-                        "reason": "Remove first 3 seconds for better engagement",
-                        "timestamp": "00:00-00:03",
-                        "priority": "high",
-                        "confidence": 0.89,
-                        "start": "00:00",
-                        "end": "00:03"
-                    }
-                ],
-                "music": [
-                    {
-                        "id": "music1", 
-                        "type": "Add Background Music",
-                        "reason": "Enhance emotional impact with upbeat music",
-                        "timestamp": "00:15-01:45",
-                        "priority": "medium",
-                        "confidence": 0.75,
-                        "mood": "upbeat",
-                        "genre": "instrumental"
-                    }
-                ],
-                "filters": [
-                    {
-                        "id": "filter1",
-                        "type": "Color Correction", 
-                        "reason": "Increase brightness by 15% for better visibility",
-                        "timestamp": "entire",
-                        "priority": "medium",
-                        "confidence": 0.82,
-                        "filter": "brightness",
-                        "intensity": "15%"
-                    }
-                ],
-                "pacing": {
-                    "slow_segments": [
-                        {
-                            "start": "01:00",
-                            "end": "01:30", 
-                            "reason": "Increase speed to 1.2x for better pacing",
-                            "suggested_speed": "1.2x"
-                        }
-                    ],
-                    "fast_segments": []
-                }
-            },
-            "quality_improvements": [
-                "Consider stabilizing camera shake at 00:45",
-                "Audio levels could be normalized",
-                "Add fade-in/fade-out transitions"
-            ],
-            "engagement_tips": [
-                "Strong opening will improve retention",
-                "Consider adding captions for accessibility",
-                "End with clear call-to-action"
-            ]
-        }
+        # Extract metadata for intelligent analysis
+        metadata = request.metadata or {}
+        duration = metadata.get('duration', 120)  # Default 2 minutes
+        width = metadata.get('width', 1920)
+        height = metadata.get('height', 1080)
+        size = metadata.get('size', 50000000)  # 50MB default
+        
+        # Analyze video characteristics
+        aspect_ratio = width / height if height > 0 else 16/9
+        is_portrait = aspect_ratio < 1
+        is_square = 0.9 <= aspect_ratio <= 1.1
+        is_widescreen = aspect_ratio >= 2.0
+        video_length_category = "short" if duration < 60 else "medium" if duration < 300 else "long"
+        
+        # Generate intelligent recommendations based on analysis
+        recommendations = generate_intelligent_recommendations(
+            duration, aspect_ratio, is_portrait, is_square, is_widescreen, 
+            video_length_category, request.filename
+        )
         
         logger.info(f"Recommendations generated successfully for: {request.filename}")
         
