@@ -581,7 +581,7 @@ const AnalysisPage = () => {
       speechQuality: ['Excellent', 'Good', 'Fair'][Math.floor(Math.random() * 3)]
     };
 
-    return {
+    const transformedAnalysis = {
       videoMetrics: realVideoMetrics,
       emotions: emotions,
       objects: objects,
@@ -621,6 +621,9 @@ const AnalysisPage = () => {
         confidence: realAnalysis.video_properties?.analysis_confidence || 'high'
       }
     };
+    
+    console.log('🎯 Final transformed analysis data:', transformedAnalysis);
+    return transformedAnalysis;
   };
 
   const generateSmartSuggestions = (analysisData, duration) => {
