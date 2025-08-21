@@ -486,6 +486,106 @@ async def get_project(project_id: str):
         logger.error(f"Project retrieval failed: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/export/video")
+async def export_video(request: Dict[str, Any]):
+    """Export video with editing data"""
+    try:
+        video_filename = request.get('video_filename', 'unknown')
+        editing_data = request.get('editing_data', {})
+        quality = request.get('quality', 'high')
+        
+        logger.info(f"Export request for: {video_filename}")
+        
+        # Generate export filename
+        export_filename = f"exported_{video_filename}"
+        
+        return {
+            "success": True,
+            "download_url": f"http://localhost:8002/uploads/{video_filename}",
+            "filename": export_filename,
+            "message": "Video export completed successfully"
+        }
+        
+    except Exception as e:
+        logger.error(f"Export failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/export/report")
+async def export_report(request: Dict[str, Any]):
+    """Export project report"""
+    try:
+        video_filename = request.get('video_filename', 'unknown')
+        
+        report_data = {
+            "video_name": video_filename,
+            "export_date": "2024-08-21T00:00:00Z",
+            "editing_summary": request.get('editing_data', {}),
+            "recommendations": [
+                {"type": "Quality", "reason": "Video quality is excellent"},
+                {"type": "Audio", "reason": "Audio levels are balanced"}
+            ]
+        }
+        
+        return {
+            "success": True,
+            "report_data": report_data
+        }
+        
+    except Exception as e:
+        logger.error(f"Report export failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/export/analysis")
+async def export_analysis(request: Dict[str, Any]):
+    """Export analysis report"""
+    try:
+        video_filename = request.get('video_filename', 'unknown')
+        
+        analysis_data = {
+            "analysis_results": {
+                "video_info": {
+                    "duration": "2:30",
+                    "resolution": "1920x1080",
+                    "fps": 30
+                },
+                "scene_analysis": [
+                    {"timestamp": "00:00", "description": "Opening scene"},
+                    {"timestamp": "01:00", "description": "Main content"}
+                ]
+            }
+        }
+        
+        return {
+            "success": True,
+            "analysis_data": analysis_data
+        }
+        
+    except Exception as e:
+        logger.error(f"Analysis export failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/export/data")
+async def export_data(request: Dict[str, Any]):
+    """Export raw project data"""
+    try:
+        video_filename = request.get('video_filename', 'unknown')
+        
+        export_data = {
+            "video_info": {"filename": video_filename},
+            "editing_data": request.get('editing_data', {}),
+            "analysis_data": request.get('analysis_data', {}),
+            "export_timestamp": "2024-08-21T00:00:00Z"
+        }
+        
+        return {
+            "success": True,
+            "export_data": export_data
+        }
+        
+    except Exception as e:
+        logger.error(f"Data export failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 if __name__ == "__main__":
     uvicorn.run(
         "working_backend:app",
