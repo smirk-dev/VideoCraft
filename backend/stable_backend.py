@@ -172,36 +172,55 @@ async def generate_recommendations(request: RecommendationsRequest):
         recommendations = {
             "overall_score": 78,
             "sentiment": "positive",
-            "editing_recommendations": [
-                {
-                    "type": "Trim Beginning",
-                    "reason": "Remove first 3 seconds for better engagement",
-                    "timestamp": "00:00-00:03",
-                    "priority": "high",
-                    "confidence": 0.89
-                },
-                {
-                    "type": "Add Background Music",
-                    "reason": "Enhance emotional impact with upbeat music",
-                    "timestamp": "00:15-01:45",
-                    "priority": "medium",
-                    "confidence": 0.75
-                },
-                {
-                    "type": "Color Correction",
-                    "reason": "Increase brightness by 15% for better visibility",
-                    "timestamp": "entire",
-                    "priority": "medium",
-                    "confidence": 0.82
-                },
-                {
-                    "type": "Speed Adjustment",
-                    "reason": "Increase speed to 1.2x for better pacing",
-                    "timestamp": "01:00-01:30",
-                    "priority": "low",
-                    "confidence": 0.65
+            "editing_recommendations": {
+                "cuts": [
+                    {
+                        "id": "cut1",
+                        "type": "Trim Beginning",
+                        "reason": "Remove first 3 seconds for better engagement",
+                        "timestamp": "00:00-00:03",
+                        "priority": "high",
+                        "confidence": 0.89,
+                        "start": "00:00",
+                        "end": "00:03"
+                    }
+                ],
+                "music": [
+                    {
+                        "id": "music1", 
+                        "type": "Add Background Music",
+                        "reason": "Enhance emotional impact with upbeat music",
+                        "timestamp": "00:15-01:45",
+                        "priority": "medium",
+                        "confidence": 0.75,
+                        "mood": "upbeat",
+                        "genre": "instrumental"
+                    }
+                ],
+                "filters": [
+                    {
+                        "id": "filter1",
+                        "type": "Color Correction", 
+                        "reason": "Increase brightness by 15% for better visibility",
+                        "timestamp": "entire",
+                        "priority": "medium",
+                        "confidence": 0.82,
+                        "filter": "brightness",
+                        "intensity": "15%"
+                    }
+                ],
+                "pacing": {
+                    "slow_segments": [
+                        {
+                            "start": "01:00",
+                            "end": "01:30", 
+                            "reason": "Increase speed to 1.2x for better pacing",
+                            "suggested_speed": "1.2x"
+                        }
+                    ],
+                    "fast_segments": []
                 }
-            ],
+            },
             "quality_improvements": [
                 "Consider stabilizing camera shake at 00:45",
                 "Audio levels could be normalized",
