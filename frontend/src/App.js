@@ -9,6 +9,7 @@ import EditorPage from './pages/EditorPage';
 import AnalysisPage from './pages/AnalysisPage';
 import ProjectsPage from './pages/ProjectsPage';
 import RecommendationsPage from './pages/RecommendationsPage';
+import DebugPage from './pages/DebugPage';
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
             <Route path="/analysis" element={<AnalysisPage />} />
             <Route path="/projects" element={<ProjectsPage />} />
             <Route path="/recommendations" element={<RecommendationsPage />} />
+            <Route path="/debug" element={<DebugPage />} />
           </Routes>
         </Box>
       </Box>
