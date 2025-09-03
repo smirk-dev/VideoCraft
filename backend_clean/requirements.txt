@@ -1,0 +1,12 @@
+# VideoCraft Backend Dependencies
+# Core web framework
+Flask==2.3.3
+Flask-CORS==4.0.0
+
+# Development and utilities
+python-dotenv==1.0.0
+
+# Future AI/ML dependencies (optional)
+# opencv-python==4.8.1.78
+# numpy==1.24.3
+# Pillow==10.0.1
