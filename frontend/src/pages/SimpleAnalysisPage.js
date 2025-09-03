@@ -22,6 +22,7 @@ import {
   Timeline,
   SmartToy
 } from '@mui/icons-material';
+import { API_CONFIG } from '../config/api';
 
 const SimpleAnalysisPage = () => {
   const [analysisData, setAnalysisData] = useState(null);
@@ -35,7 +36,7 @@ const SimpleAnalysisPage = () => {
     try {
       console.log('🚀 Starting simple analysis...');
       
-      const response = await fetch('http://localhost:8003/api/analyze/analyze-filename', {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/api/analyze/analyze-filename`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ filename: 'test_video.mp4' })
