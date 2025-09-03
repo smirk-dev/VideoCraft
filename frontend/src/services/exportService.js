@@ -1,6 +1,9 @@
 import jsPDF from 'jspdf';
 
-const API_BASE_URL = 'http://localhost:8002';
+import axios from 'axios';
+import { API_CONFIG } from '../config/api';
+
+const API_BASE_URL = API_CONFIG.BASE_URL;
 
 class ExportService {
   
