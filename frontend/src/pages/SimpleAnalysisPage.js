@@ -35,7 +35,7 @@ const SimpleAnalysisPage = () => {
     try {
       console.log('🚀 Starting simple analysis...');
       
-      const response = await fetch('http://localhost:8002/api/analyze/analyze-filename', {
+      const response = await fetch('http://localhost:8003/api/analyze/analyze-filename', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ filename: 'test_video.mp4' })

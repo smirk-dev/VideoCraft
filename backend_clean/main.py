@@ -201,7 +201,7 @@ def internal_error(error):
 # ===============================
 
 if __name__ == "__main__":
-    PORT = 8002
+    PORT = 8003  # Changed from 8002 to avoid permission issues
     print("\n" + "="*50)
     print("🚀 VIDEOCRAFT BACKEND STARTING")
     print("="*50)
