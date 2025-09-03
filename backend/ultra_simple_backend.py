@@ -104,7 +104,87 @@ class SimpleHandler(http.server.BaseHTTPRequestHandler):
             self.wfile.write(b'Not Found')
 
     def do_POST(self):
-        if self.path == '/api/upload':
+        parsed_path = urlparse(self.path)
+        path = parsed_path.path
+        
+        print(f"[POST] Request to: {path}")
+        
+        if path.startswith('/api/analyze'):
+            # Handle POST requests to /api/analyze or /api/analyze/analyze-filename
+            self.send_response(200)
+            self._set_cors_headers()
+            self.send_header('Content-Type', 'application/json')
+            self.end_headers()
+            
+            # Read request body
+            content_length = int(self.headers.get('Content-Length', 0))
+            post_data = self.rfile.read(content_length)
+            
+            try:
+                request_data = json.loads(post_data.decode('utf-8')) if post_data else {}
+                print(f"[POST DATA] {request_data}")
+            except:
+                request_data = {}
+            
+            # Return data in the format the SimpleAnalysisPage expects
+            response_data = {
+                "success": True,
+                "analysis": {
+                    "emotion_detection": {
+                        "emotion_timeline": [
+                            {"emotion": "happy", "intensity": 0.85, "timestamp": "00:02"},
+                            {"emotion": "excited", "intensity": 0.92, "timestamp": "00:08"},
+                            {"emotion": "calm", "intensity": 0.78, "timestamp": "00:15"}
+                        ]
+                    },
+                    "scene_analysis": [
+                        {
+                            "scene": "outdoor nature", 
+                            "confidence": 0.88, 
+                            "timestamp": "00:01",
+                            "description": "Beautiful outdoor landscape with trees and mountains"
+                        },
+                        {
+                            "scene": "indoor room", 
+                            "confidence": 0.75, 
+                            "timestamp": "00:10",
+                            "description": "Cozy indoor setting with warm lighting"
+                        },
+                        {
+                            "scene": "outdoor park", 
+                            "confidence": 0.90, 
+                            "timestamp": "00:20",
+                            "description": "Open park area with people enjoying activities"
+                        }
+                    ],
+                    "processing_time_seconds": 2.3
+                },
+                "recommendations": [
+                    {
+                        "type": "Music Suggestion",
+                        "suggestion": "Add uplifting acoustic music that matches the happy emotions",
+                        "confidence": 0.9,
+                        "platform": "YouTube"
+                    },
+                    {
+                        "type": "Color Grading",
+                        "suggestion": "Use warm color filters to enhance the positive mood",
+                        "confidence": 0.85,
+                        "platform": "TikTok"
+                    },
+                    {
+                        "type": "Editing Style",
+                        "suggestion": "Try quick cuts during exciting moments for dynamic feel",
+                        "confidence": 0.8,
+                        "platform": "Instagram"
+                    }
+                ]
+            }
+            
+            print(f"[RESPONSE] Sending structured analysis data")
+            self.wfile.write(json.dumps(response_data).encode())
+            
+        elif self.path == '/api/upload':
             self.send_response(200)
             self._set_cors_headers()
             self.send_header('Content-Type', 'application/json')
