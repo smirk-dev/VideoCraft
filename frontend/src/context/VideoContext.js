@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useReducer, useCallback } from 'react';
+import { API_CONFIG } from '../config/api';
 
 // Video action types
 const VIDEO_ACTIONS = {
@@ -269,7 +270,7 @@ export const VideoProvider = ({ children }) => {
     setError(null);
 
     try {
-      const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8002';
+      const API_BASE_URL = API_CONFIG.BASE_URL;
       
       // Calculate project duration based on editing data
       const calculateDuration = () => {
