@@ -1,4 +1,5 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useRef } from 'react';
+import { API_CONFIG } from '../config/api';
 import {
   Container,
   Typography,
@@ -29,7 +30,7 @@ import { useNavigate } from 'react-router-dom';
 import { useVideo } from '../context/VideoContext';
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8002';
+const API_BASE_URL = API_CONFIG.BASE_URL;
 
 const UploadPage = () => {
   const navigate = useNavigate();
