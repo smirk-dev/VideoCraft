@@ -187,6 +187,77 @@ def get_recommendations():
         logger.error(f"Recommendations error: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
+@app.route('/api/recommendations/generate', methods=['POST'])
+def generate_recommendations():
+    """Generate personalized video editing recommendations based on analysis"""
+    try:
+        # Get request data
+        data = request.get_json() or {}
+        logger.info(f"Generate recommendations request: {data}")
+        
+        # Simulated personalized recommendations based on video analysis
+        recommendations_result = {
+            "success": True,
+            "recommendations": {
+                "overall_score": 78,
+                "sentiment": "positive",
+                "editing_recommendations": {
+                    "music_style": "upbeat",
+                    "color_grading": "warm_bright",
+                    "pacing": "moderate_fast",
+                    "transitions": ["cut", "fade"],
+                    "effects": ["brightness_boost", "saturation_enhance"]
+                },
+                "sentiment_analysis": {
+                    "dominant_emotion": "happy",
+                    "emotion_confidence": 0.85,
+                    "mood_timeline": [
+                        {"timestamp": "0:02", "emotion": "happy", "intensity": 0.85},
+                        {"timestamp": "0:08", "emotion": "excited", "intensity": 0.92},
+                        {"timestamp": "0:15", "emotion": "calm", "intensity": 0.78}
+                    ]
+                },
+                "engagement_metrics": {
+                    "predicted_retention": 0.82,
+                    "viral_potential": 0.67,
+                    "audience_appeal": "high",
+                    "recommended_platforms": ["TikTok", "Instagram", "YouTube Shorts"]
+                },
+                "music_recommendations": [
+                    {
+                        "title": "Summer Vibes",
+                        "artist": "Happy Beats",
+                        "genre": "upbeat_pop",
+                        "confidence": 0.91,
+                        "reason": "Matches positive emotion timeline"
+                    },
+                    {
+                        "title": "Good Times",
+                        "artist": "Feel Good Music",
+                        "genre": "acoustic_uplifting", 
+                        "confidence": 0.87,
+                        "reason": "Complements outdoor nature scenes"
+                    }
+                ],
+                "editing_tips": [
+                    "Start with the most exciting moment to hook viewers",
+                    "Use quick cuts during high-energy sections",
+                    "Add text overlays during calm moments",
+                    "End with a strong emotional peak"
+                ]
+            }
+        }
+        
+        logger.info("Recommendations generated successfully")
+        return jsonify(recommendations_result)
+        
+    except Exception as e:
+        logger.error(f"Generate recommendations error: {str(e)}")
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
 @app.route('/api/upload', methods=['POST'])
 def upload_video():
     """Handle video upload"""
@@ -232,6 +303,7 @@ if __name__ == "__main__":
     print(f"📊 Analysis: POST http://localhost:{PORT}/api/analyze")
     print(f"📊 Analysis (filename): POST http://localhost:{PORT}/api/analyze/analyze-filename")
     print(f"💡 Recommendations: GET http://localhost:{PORT}/api/recommendations")
+    print(f"🎯 Generate Recommendations: POST http://localhost:{PORT}/api/recommendations/generate")
     print("="*50)
     
     app.run(
