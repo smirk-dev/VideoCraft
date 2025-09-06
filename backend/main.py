@@ -85,6 +85,27 @@ def analyze_video(filename=None):
                         "description": "Open park area with people enjoying activities"
                     }
                 ],
+                "audio_analysis": {
+                    "avg_volume": 72,
+                    "peak_volume": 95,
+                    "silent_segments": 2,
+                    "music_detected": True,
+                    "speech_quality": "Good",
+                    "audio_features": {
+                        "tempo": 120,
+                        "key": "C major",
+                        "loudness": -12.5
+                    }
+                },
+                "scene_transitions": {
+                    "transitions_count": 4,
+                    "transition_types": ["Cut", "Fade", "Cut", "Dissolve"]
+                },
+                "motion_analysis": {
+                    "motion_type": "moderate",
+                    "motion_intensity": 0.65,
+                    "camera_movement": "minimal"
+                },
                 "processing_time_seconds": 2.3
             },
             "recommendations": [
