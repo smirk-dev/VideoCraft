@@ -250,7 +250,7 @@ const AnalysisPage = () => {
     } catch (error) {
       console.error('💥 Analysis failed with error:', error);
       console.error('Error stack:', error.stack);
-      setAnalysisError(`Connection failed: ${error.message}. Please ensure the backend is running on localhost:8002.`);
+      setAnalysisError(`Connection failed: ${error.message}. Please ensure the backend is running on localhost:8003.`);
       // Don't set dummy data - leave analysisData as null so user can retry
     } finally {
       console.log('🔧 Cleaning up...');
